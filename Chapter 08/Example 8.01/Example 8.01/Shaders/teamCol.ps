@@ -1,0 +1,22 @@
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//               Unit Lighting/Teamcolor Pixelshader                    //
+//                                                                      //
+//                   Written by C. Granberg, 2006                       //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+
+sampler unitTexture;
+uniform extern float4 tmCol;
+
+float4 Main(float2 UV : TEXCOORD0, float shade : TEXCOORD1) : COLOR
+{
+    float4 c0 = tex2D(unitTexture, UV);
+    float Inv = 1.0f - c0.a;
+
+    //Weigh pixel and team color using the alpha channel
+    float4 c1 = float4(c0.rgb * Inv + tmCol.rgb * c0.a, 1.0f);
+
+    //return Shaded pixel
+    return c1 * shade;
+}
