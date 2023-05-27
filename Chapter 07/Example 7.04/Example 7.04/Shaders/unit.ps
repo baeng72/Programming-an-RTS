@@ -1,0 +1,16 @@
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                     Unit Lighting Pixelshader                        //
+//                                                                      //
+//                   Written by C. Granberg, 2006                       //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+
+sampler text;
+
+float4 Main(float2 UV : TEXCOORD0, float shade : TEXCOORD1) : COLOR
+{
+    float4 c0 = tex2D(text, UV);
+    float4 c1 = c0 * shade;
+    return c1;
+}
