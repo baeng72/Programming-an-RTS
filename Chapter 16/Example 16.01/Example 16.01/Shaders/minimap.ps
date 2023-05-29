@@ -1,0 +1,19 @@
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                       Minimap Pixelshader                            //
+//                                                                      //
+//                   Written by C. Granberg, 2006                       //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+
+sampler landScape;
+sampler FogOfWar;
+
+float4 Main(float2 UV : TEXCOORD0) : COLOR
+{
+    float4 c0 = tex2D(landScape, UV);
+    float4 c1 = tex2D(FogOfWar, UV);
+    float4 c2 = c0 * c1;
+
+    return float4(c2.rgb, 1.0f);
+}
