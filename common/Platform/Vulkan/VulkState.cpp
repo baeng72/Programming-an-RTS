@@ -19,9 +19,6 @@ namespace Vulkan {
 		std::vector<const char*> requiredExtensions{ "VK_KHR_surface" };
 		std::vector<const char*> requiredLayers;
 
-		requiredExtensions.push_back("VK_KHR_win32_surface");
-
-
 		uint32_t count = 0;
 		auto extensions = glfwGetRequiredInstanceExtensions(&count);
 		for (uint32_t i = 0; i < count; i++) {
@@ -36,9 +33,8 @@ namespace Vulkan {
 #endif
 
 		instance = initInstance(requiredExtensions, requiredLayers);
-#ifdef HZ_PLATFORM_WINDOWS
+#ifdef _WIN32
 		requiredExtensions.push_back("VK_KHR_win32_surface");
-
 #endif
 
 
