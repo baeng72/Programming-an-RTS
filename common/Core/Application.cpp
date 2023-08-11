@@ -6,7 +6,7 @@ Application* Application::_instance = nullptr;
 
 Application::Application()
 {
-	assert(!_instance);//only 1 instance
+	ASSERT(!_instance,"Only 1 application instance allowed!");//only 1 instance
 	_instance = this;
 	Logger::Init();
 	

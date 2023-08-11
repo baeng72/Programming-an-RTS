@@ -23,11 +23,7 @@ layout(location=1) in vec4 inColor;
 layout(location=0) out vec3 PosW;
 layout(location=1) out vec4 outColor;
 
-layout (push_constant) uniform PushConst{	
-	mat4 viewProj;
-	vec3 eyePosW;
-	vec2 sizeW;	
-};
+
 void main(){
 	// Just pass data over to geometry shader.
 	PosW = inPos;		
@@ -119,7 +115,7 @@ void main(){
 			.AddVertices(vertSize, (float*)pvertices)
 			.build(_vertexBuffer, vertexLocations);
 
-		std::vector<VkPushConstantRange> pushConstants{ {VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_GEOMETRY_BIT,0,sizeof(PushConst)} };
+		std::vector<VkPushConstantRange> pushConstants{ {VK_SHADER_STAGE_GEOMETRY_BIT,0,sizeof(PushConst)} };
 			
 		PipelineLayoutBuilder::begin(context.device)
 				
@@ -169,7 +165,7 @@ void main(){
 		VkDeviceSize offsets[1] = { 0 };
 		vkCmdBindVertexBuffers(cmd, 0, 1, &_vertexBuffer.buffer, offsets);
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-		vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_GEOMETRY_BIT, 0, sizeof(PushConst), &pushConst);
+		vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_GEOMETRY_BIT, 0, sizeof(PushConst), &pushConst);
 		vkCmdDraw(cmd, _vertexCount, 1, 0, 0);
 	}
 }
