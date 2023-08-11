@@ -6,4 +6,5 @@ The original code is DirectX 9, which still runs for the most part. A few minor 
 To build original code, you'll need the SDK here: https://www.microsoft.com/en-au/download/details.aspx?id=6812 <br/>
 DXD9 branch will hold original code.<br/>
 This is a GLFW (wsi)/Vulkan implementation.<br/>
+You'll need the Vulkan SDK installed.<br/>
 Build system is CMake (targeting Windows mostly, so you'll need to change it for another target), which I don't understand well, so if it compiles, yay!
