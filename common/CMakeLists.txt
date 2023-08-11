@@ -1,0 +1,7 @@
+#project(common)
+file(GLOB COMMON_FILES "*.h")
+set(COMMON_FILES ${COMMON_FILES} PARENT_SCOPE)
+add_subdirectory(Platform)
+add_subdirectory(Core)
+add_subdirectory(Renderer)
+add_library(common ${COMMON_FILES} ${PLATFORM_FILES} ${CORE_FILES} ${RENDERER_FILES})
