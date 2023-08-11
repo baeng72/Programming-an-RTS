@@ -29,7 +29,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf",40);
 	float fw, fh;
 	_font->GetTextSize("Hello World!", fw, fh);
-	_font->Draw("Hello World!", width/2-fw/2, height/2-fh/2);
+	_font->Draw("Hello World!", width/2-(int)fw/2, height/2-(int)fh/2);
 	return true;
 }
 

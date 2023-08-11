@@ -198,7 +198,7 @@ namespace Vulkan {
 		VkBuffer	buffer{ VK_NULL_HANDLE };
 #ifdef __USE__VMA__
 		VmaAllocation allocation{ VK_NULL_HANDLE };
-		VmaAllocationInfo allocationInfo;
+		VmaAllocationInfo allocationInfo{};
 #else
 		VkDeviceMemory memory{ VK_NULL_HANDLE };
 #endif

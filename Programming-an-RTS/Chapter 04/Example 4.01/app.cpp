@@ -24,6 +24,7 @@ public:
 APPLICATION::APPLICATION() {
 	m_angle = 0.f;
 	_image = 0;
+	_width = _height = 0;
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {

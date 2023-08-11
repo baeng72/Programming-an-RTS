@@ -8,7 +8,7 @@ namespace Renderer {
 		glm::vec4 color;
 	};
 	class ParticleSwarm {
-		RenderDevice* _pdevice;
+		
 	public:
 		static ParticleSwarm* Create(RenderDevice* pdevice,ParticleVertex*vertices,int vertexCount,glm::vec2&size);
 		virtual ~ParticleSwarm() = default;		
