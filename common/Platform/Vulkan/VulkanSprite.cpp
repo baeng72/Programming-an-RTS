@@ -126,38 +126,40 @@ void main(){
 	
 	void VulkanSprite::Draw(Renderer::Texture* ptexture, glm::vec3 position)
 	{
-		Vulkan::Texture*ptext= (Vulkan::Texture*)ptexture->GetNativeHandle();
-		if (_ptexture != ptext) {
-			if (_ptexture && !ptext) {
-				//resuse existing
+		if (ptexture) {
+			Vulkan::Texture* ptext = (Vulkan::Texture*)ptexture->GetNativeHandle();
+			if (_ptexture != ptext) {
+				if (_ptexture && !ptext) {
+					//resuse existing
+				}
+				else {
+					ASSERT(ptexture, "Invalid Sprite Texture");
+					_scale = ptexture->GetScale();
+					VulkContext* contextptr = reinterpret_cast<VulkContext*>(_pdevice->GetDeviceContext());
+					VulkContext& context = *contextptr;
+					_ptexture = ptext;
+					VkDescriptorImageInfo imageInfo{};
+					imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					imageInfo.imageView = ptext->imageView;
+					imageInfo.sampler = ptext->sampler;
+					DescriptorSetUpdater::begin(context.pLayoutCache, descriptorLayout, descriptorSet)
+						.AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo)
+						.update();
+				}
 			}
-			else {
-				ASSERT(ptexture, "Invalid Sprite Texture");
-				_scale = ptexture->GetScale();
-				VulkContext* contextptr = reinterpret_cast<VulkContext*>(_pdevice->GetDeviceContext());
-				VulkContext& context = *contextptr;
-				_ptexture = ptext;
-				VkDescriptorImageInfo imageInfo{};
-				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				imageInfo.imageView = ptext->imageView;
-				imageInfo.sampler = ptext->sampler;
-				DescriptorSetUpdater::begin(context.pLayoutCache,descriptorLayout,descriptorSet)
-					.AddBinding(0,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,&imageInfo)
-					.update();
-			}
-		}
 
-		VulkFrameData* framedataptr = reinterpret_cast<VulkFrameData*>(_pdevice->GetCurrentFrameData());
-		VulkFrameData& framedata = *framedataptr;
-		VkCommandBuffer cmd = framedata.cmd;
-		
-		
-		glm::mat4 model = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(_ptexture->width*_scale.x/2.f, _ptexture->height*_scale.y/2.f, 0.f)), position);
-		PushConst pushConst = { _orthoproj ,model};
-		
-		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-		vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConst), &pushConst);
-		vkCmdDraw(cmd, 6, 1, 0, 0);
+			VulkFrameData* framedataptr = reinterpret_cast<VulkFrameData*>(_pdevice->GetCurrentFrameData());
+			VulkFrameData& framedata = *framedataptr;
+			VkCommandBuffer cmd = framedata.cmd;
+
+
+			glm::mat4 model = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(_ptexture->width * _scale.x / 2.f, _ptexture->height * _scale.y / 2.f, 0.f)), position);
+			PushConst pushConst = { _orthoproj ,model };
+
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+			vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConst), &pushConst);
+			vkCmdDraw(cmd, 6, 1, 0, 0);
+		}
 	}
 }
