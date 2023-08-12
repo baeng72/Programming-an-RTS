@@ -11,6 +11,8 @@ class Application {
 	bool OnWindowClose(WindowCloseEvent& ev);
 	bool OnWindowResize(WindowResizeEvent& ev);
 protected:
+	int _width;
+	int _height;
 	void SetRunning(bool running) { _running = running; }
 	bool IsRunning()const { return _running; }
 	bool IsMinimized()const { return _minimized; }

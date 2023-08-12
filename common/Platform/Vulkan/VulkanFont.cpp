@@ -255,7 +255,7 @@ void main(){
 
 		std::vector<FontVertex> vertices;
 		std::vector<uint32_t> indices;
-		uint32_t indexoffset = (uint32_t)_indices.size();
+		uint32_t indexoffset = (uint32_t)_vertices.size();
 		size_t len = strlen(ptext);
 		float x = (float)xstart;
 		float y = (float)ystart;
@@ -312,8 +312,18 @@ void main(){
 		VkDeviceSize indSize = sizeof(uint32_t) * _indices.size();
 		currFrame++;
 		uint32_t frameIdx = currFrame % 2;
-
+		VkDeviceSize maxSize = std::max(vertSize, indSize);
+		
 		FrameData& frame = frames[frameIdx];
+		bool needStaging = !(frame.vertSize == 0 || frame.vertSize < vertSize || frame.indSize == 0 || frame.indSize < indSize);
+		Vulkan::Buffer stagingBuffer;
+		void* ptr = nullptr;
+		if (needStaging) {
+			stagingBuffer = StagingBufferBuilder::begin(context.device, context.memoryProperties)
+				.setSize(maxSize)
+				.build();
+			ptr = Vulkan::mapBuffer(context.device, stagingBuffer);
+		}
 		if (frame.vertSize == 0 || frame.vertSize < vertSize) {
 			if (frame.vertexBuffer.buffer != VK_NULL_HANDLE) {
 				cleanupBuffer(context.device, frame.vertexBuffer);
@@ -325,7 +335,11 @@ void main(){
 			frame.vertSize = vertSize;
 		}
 		else if (vertSize > 0) {
-			int z = 0;
+			//stream vertices
+			
+			memcpy(ptr, _vertices.data(), vertSize);			
+			Vulkan::CopyBufferTo(context.device, context.queue, context.commandBuffer, stagingBuffer, frame.vertexBuffer, vertSize);
+
 		}
 		if (frame.indSize == 0 || frame.indSize < indSize) {
 			if (frame.indexBuffer.buffer != VK_NULL_HANDLE) {
@@ -339,10 +353,18 @@ void main(){
 			frame.numIndices = (uint32_t)_indices.size();
 		}
 		else if (indSize > 0) {
-			int z = 0;
+			//stream indices
+			memcpy(ptr, _indices.data(), indSize);
+			Vulkan::CopyBufferTo(context.device, context.queue, context.commandBuffer, stagingBuffer, frame.indexBuffer, indSize);
+
+		}
+		if (needStaging) {
+			Vulkan::unmapBuffer(context.device, stagingBuffer);
+			Vulkan::cleanupBuffer(context.device, stagingBuffer);
 		}
 		currFrame = frameIdx;
-
+		_vertices.clear();
+		_indices.clear();
 	}
 
 	void VulkanFont::Render() {

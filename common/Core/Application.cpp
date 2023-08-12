@@ -17,6 +17,8 @@ Application::~Application()
 }
 
 bool Application::Init(int width, int height, const char* title) {
+	_width = width;
+	_height = height;
 	_window = std::unique_ptr<Window>(Window::Create(width,height,title));
 	_window->SetEventHandler(std::bind(&Application::OnEvent, this, std::placeholders::_1));
 	return true;

@@ -4,6 +4,7 @@
 class APPLICATION : public Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;
 	std::unique_ptr<Renderer::Font> _font;
+	
 public:
 	APPLICATION();
 	bool Init(int width, int height, const char* title);
@@ -18,8 +19,9 @@ APPLICATION::APPLICATION() {
 
 }
 
-bool APPLICATION::Init(int width, int height, const char* title) {
+bool APPLICATION::Init(int width, int height, const char* title){
 	LOG_INFO("Application::Init()");
+	
 	if (!Application::Init(width, height, title))
 		return false;
 
@@ -27,9 +29,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->Init();
 	_font.reset(Renderer::Font::Create());
 	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf",40);
-	float fw, fh;
-	_font->GetTextSize("Hello World!", fw, fh);
-	_font->Draw("Hello World!", width/2-(int)fw/2, height/2-(int)fh/2);
+	
 	return true;
 }
 
@@ -40,7 +40,9 @@ void APPLICATION::Update(float deltaTime) {
 
 void APPLICATION::Render() {
 	_device->StartRender();
-	
+	float fw, fh;
+	_font->GetTextSize("Hello World!", fw, fh);
+	_font->Draw("Hello World!", _width / 2 - (int)fw / 2, _height / 2 - (int)fh / 2);
 	_font->Render();
 	
 	_device->EndRender();

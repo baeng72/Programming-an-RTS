@@ -9,6 +9,7 @@ namespace Vulkan{
 		glm::vec2 _size;
 	public:
 		VulkanTextureImpl(Renderer::RenderDevice* pdevice, const char* pfile,glm::vec2 size);
+		VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, int bytesperpixel, uint8_t * pixels);
 		virtual ~VulkanTextureImpl();		
 		virtual void* GetNativeHandle()const override;
 		virtual glm::vec2 GetScale()const override;
