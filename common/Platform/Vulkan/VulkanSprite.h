@@ -13,7 +13,7 @@ namespace Vulkan {
 		};
 		int _width, _height;
 		glm::vec2 _scale;
-		glm::mat4 _orthoproj;
+		glm::mat4 _orthoproj;		
 		Vulkan::Texture* _ptexture;				
 		VkDescriptorSetLayout	descriptorLayout;
 		VkDescriptorSet			descriptorSet;

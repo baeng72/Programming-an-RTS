@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VulkanRenderDevice.h"
+#include "VulkanShaderManager.h"
 #include "../../Core/Log.h"
 Renderer::RenderDevice* Renderer::RenderDevice::Create(void* nativeWindowHandle) {
 	return new Vulkan::VulkanRenderDevice(nativeWindowHandle);
@@ -29,6 +30,7 @@ namespace Vulkan {
 		_state = std::make_unique<VulkState>();
 		VulkStateInitFlags initFlags;
 		initFlags.enableGeometryShader = _enableGeometry;
+		initFlags.enableWireframe = _enableLines;
 		_state->Init(initFlags, _window);
 		auto physicalDevice = _state->getPhysicalDevice();
 		VkPhysicalDeviceProperties properties;
@@ -48,6 +50,7 @@ namespace Vulkan {
 		flags.clearValueCount = 2;
 		flags.clearValues = clearValues;
 		flags.enableDepthBuffer = true;
+		
 		int width, height;
 		glfwGetFramebufferSize(_window, &width, &height);
 		flags.clientWidth = width;
@@ -66,7 +69,7 @@ namespace Vulkan {
 		glfwGetFramebufferSize(_window, &width, &height);
 		VkViewport viewport = { 0,0,(float)width,(float)height };
 		vkCmdSetViewport(_cmd, 0, 1, &viewport);
-		VkRect2D scissor{ 0,0,width,height };
+		VkRect2D scissor{ 0,0,(uint32_t)width,(uint32_t)height };
 		vkCmdSetScissor(_cmd, 0, 1, &scissor);
 	}
 
@@ -86,6 +89,9 @@ namespace Vulkan {
 	void VulkanRenderDevice::SetGeometry(bool geom) {
 		_enableGeometry = geom;
 	}
+	void VulkanRenderDevice::SetLines(bool lines) {
+		_enableLines = lines;
+	}
 
 	void* VulkanRenderDevice::GetDeviceContext() const
 	{
@@ -94,6 +100,11 @@ namespace Vulkan {
 
 	void* VulkanRenderDevice::GetCurrentFrameData()const {
 		return (void*)&_frameData;
+	}
+
+	void VulkanRenderDevice::Wait() const
+	{
+		vkDeviceWaitIdle(_context.device);
 	}
 
 

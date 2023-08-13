@@ -15,6 +15,7 @@ namespace Vulkan {
 		VkCommandBuffer		_cmd;
 		bool				_enableVSync;
 		bool				_enableGeometry;
+		bool				_enableLines;
 	public:
 		VulkanRenderDevice(void* nativeWindowHandle);
 		virtual ~VulkanRenderDevice();
@@ -23,8 +24,10 @@ namespace Vulkan {
 		virtual void EndRender() override;
 		virtual void SetVSync(bool vsync) override;
 		virtual void SetGeometry(bool geom) override;
+		virtual void SetLines(bool lines)override;
 		virtual void* GetDeviceContext()const override;
 		virtual void* GetCurrentFrameData()const override;
+		virtual void Wait()const override;
 		virtual void  GetDimensions(int* width, int* height)const override;
 	};
 }

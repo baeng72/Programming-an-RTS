@@ -58,7 +58,7 @@ void APPLICATION::Cleanup() {
 
 int main() {
 	APPLICATION app;
-	if (app.Init(640, 480, "Example 3.01: Application Framework")) {
+	if (app.Init(800, 600, "Example 3.01: Application Framework")) {
 		app.Run();
 	}
 	return 0;

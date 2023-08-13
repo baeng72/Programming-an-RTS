@@ -7,3 +7,7 @@
 #include "Renderer/Sprite.h"
 #include "Renderer/Texture.h"
 #include "Renderer/ParticleSwarm.h"
+#include "Renderer/ShaderManager.h"
+#include "Renderer/Light.h"
+#include "Renderer/MeshShader.h"
+#include "Renderer/Mesh.h"

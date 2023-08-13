@@ -13,7 +13,7 @@ namespace Vulkan {
 	
 	
 
-	VulkanFont::VulkanFont() :_renderdevice(nullptr) {
+	VulkanFont::VulkanFont() :_renderdevice(nullptr),_width(0),_height(0),invBmpWidth(0.f) {
 		bmpHeight = 0;
 		currFrame = UINT32_MAX;
 		for (int i = 0; i < 2; i++) {

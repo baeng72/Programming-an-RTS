@@ -94,7 +94,7 @@ void APPLICATION::Cleanup() {
 
 int main() {
 	APPLICATION app;
-	if (app.Init(640, 480, "Example 4.1: Heightmaps from Images")) {
+	if (app.Init(800, 600, "Example 4.1: Heightmaps from Images")) {
 		app.Run();
 	}
 	return 0;

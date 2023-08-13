@@ -114,7 +114,7 @@ void APPLICATION::Cleanup() {
 
 int main() {
 	APPLICATION app;
-	if (app.Init(640, 480, "Example 4.2: Heightmaps from Perlin Noise")) {
+	if (app.Init(800, 600, "Example 4.3: Heightmap Editor")) {
 		app.Run();
 	}
 	return 0;
