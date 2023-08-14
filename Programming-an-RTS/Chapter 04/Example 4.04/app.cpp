@@ -33,7 +33,8 @@ APPLICATION::APPLICATION() {
 	_image = 0;
 	_wireframe = false;
 	_numPatches = 4;
-	srand(10222);
+	
+	srand(411678390);
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -42,10 +43,10 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 		return false;
 
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
-	_device->SetGeometry(true);	
-	_device->SetLines(true);
+	//_device->EnableGeometry(true);	
+	_device->EnableLines(true);
 	_device->Init();
-
+	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	_font.reset(Renderer::Font::Create());
 	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
 	_shaderManager.reset(Renderer::ShaderManager::Create(_device.get()));

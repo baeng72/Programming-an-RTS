@@ -16,6 +16,7 @@ namespace Vulkan {
 		bool				_enableVSync;
 		bool				_enableGeometry;
 		bool				_enableLines;
+		bool				_enableDepthBuffer;
 	public:
 		VulkanRenderDevice(void* nativeWindowHandle);
 		virtual ~VulkanRenderDevice();
@@ -23,11 +24,13 @@ namespace Vulkan {
 		virtual void StartRender() override;
 		virtual void EndRender() override;
 		virtual void SetVSync(bool vsync) override;
-		virtual void SetGeometry(bool geom) override;
-		virtual void SetLines(bool lines)override;
+		virtual void EnableGeometry(bool geom) override;
+		virtual void EnableLines(bool lines)override;
+		virtual void EnableDepthBuffer(bool depth)override;
 		virtual void* GetDeviceContext()const override;
 		virtual void* GetCurrentFrameData()const override;
 		virtual void Wait()const override;
 		virtual void  GetDimensions(int* width, int* height)const override;
+		virtual void SetClearColor(float r, float g, float b, float a) override;
 	};
 }

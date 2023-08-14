@@ -41,6 +41,7 @@ namespace Vulkan {
 		Vulkan::VulkFrameData* framedataptr = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
 		Vulkan::VulkFrameData& framedata = *framedataptr;
 		{
+
 			//Flat shaded
 			const char* vertexSrcFlat = R"(
 #version 450
@@ -76,6 +77,7 @@ void main(){
 	outFragColor = inColor;
 }
 )";
+
 			ShaderCompiler compiler;
 			std::vector<uint32_t> vertexSpirv;
 			std::vector<uint32_t> fragmentSpirv;

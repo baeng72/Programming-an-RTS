@@ -33,7 +33,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 		return false;
 
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
-	_device->SetGeometry(true);	
+	_device->EnableGeometry(true);	
 	_device->Init();
 
 	_font.reset(Renderer::Font::Create());

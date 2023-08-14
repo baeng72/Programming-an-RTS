@@ -10,7 +10,7 @@ namespace Vulkan {
 
 	
 
-	VulkanRenderDevice::VulkanRenderDevice(void* nativeWindowHandle) :_enableVSync(true),_enableGeometry(false)
+	VulkanRenderDevice::VulkanRenderDevice(void* nativeWindowHandle) :_enableVSync(true),_enableGeometry(false),_enableDepthBuffer(false)
 	{
 		_window = reinterpret_cast<GLFWwindow*>(nativeWindowHandle);
 		
@@ -47,9 +47,9 @@ namespace Vulkan {
 			{0.f,0.f,0.f,1.f} ,
 			{1.f,0.f}
 		};
-		flags.clearValueCount = 2;
+		flags.clearValueCount = _enableDepthBuffer ? 2 : 1;
 		flags.clearValues = clearValues;
-		flags.enableDepthBuffer = true;
+		flags.enableDepthBuffer = _enableDepthBuffer;
 		
 		int width, height;
 		glfwGetFramebufferSize(_window, &width, &height);
@@ -86,11 +86,14 @@ namespace Vulkan {
 		_enableVSync = vsync;//only useful before Init() is called
 	}
 
-	void VulkanRenderDevice::SetGeometry(bool geom) {
+	void VulkanRenderDevice::EnableGeometry(bool geom) {
 		_enableGeometry = geom;
 	}
-	void VulkanRenderDevice::SetLines(bool lines) {
+	void VulkanRenderDevice::EnableLines(bool lines) {
 		_enableLines = lines;
+	}
+	void VulkanRenderDevice::EnableDepthBuffer(bool depth) {
+		_enableDepthBuffer = depth;
 	}
 
 	void* VulkanRenderDevice::GetDeviceContext() const
@@ -110,5 +113,9 @@ namespace Vulkan {
 
 	void VulkanRenderDevice::GetDimensions(int* width, int* height)const {
 		glfwGetFramebufferSize(_window, width, height);
+	}
+	void VulkanRenderDevice::SetClearColor(float r, float g, float b, float a)
+	{
+		_swapchain->SetClearColor(0, { r,g,b,a });
 	}
 }
