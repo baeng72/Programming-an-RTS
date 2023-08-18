@@ -404,6 +404,31 @@ size_t DescriptorSetLayoutCache::DescriptorSetLayoutInfo::hash()const {
 	return result;
 }
 
+DescriptorSetLayoutBuilder::DescriptorSetLayoutBuilder( DescriptorSetLayoutCache* pLayout_) : pLayout(pLayout_)
+{
+}
+DescriptorSetLayoutBuilder DescriptorSetLayoutBuilder::begin( DescriptorSetLayoutCache* pLayout_)
+{
+	DescriptorSetLayoutBuilder builder( pLayout_);
+	return builder;
+}
+DescriptorSetLayoutBuilder& DescriptorSetLayoutBuilder::AddBinding(uint32_t binding, VkDescriptorType type, VkShaderStageFlags stageFlags, uint32_t descriptorCount)
+{
+	VkDescriptorSetLayoutBinding newBinding{ binding,type,descriptorCount,stageFlags,nullptr };
+	bindings.push_back(newBinding);
+	return *this;
+}
+DescriptorSetLayoutBuilder& DescriptorSetLayoutBuilder::AddBinding(VkDescriptorSetLayoutBinding& binding)
+{
+	bindings.push_back(binding);
+	return *this;
+}
+VkDescriptorSetLayout DescriptorSetLayoutBuilder::build()
+{
+	VkDescriptorSetLayout layout = pLayout->create(bindings);
+	return layout;
+}
+
 DescriptorSetBuilder::DescriptorSetBuilder(DescriptorSetPoolCache* pPool_, DescriptorSetLayoutCache* pLayout_) :pPool(pPool_), pLayout(pLayout_) {
 
 }
@@ -418,7 +443,10 @@ DescriptorSetBuilder& DescriptorSetBuilder::AddBinding(uint32_t binding, VkDescr
 	bindings.push_back(newBinding);
 	return *this;
 }
-
+DescriptorSetBuilder& DescriptorSetBuilder::AddBinding(VkDescriptorSetLayoutBinding&binding){	
+	bindings.push_back(binding);
+	return *this;
+}
 bool DescriptorSetBuilder::build(VkDescriptorSet& set, VkDescriptorSetLayout& layout) {
 	layout = pLayout->create(bindings);
 	return pPool->allocateDescriptorSet(&set, layout);
@@ -2132,4 +2160,5 @@ VulkanDescriptorList::VulkanDescriptorList(VkDevice device_, std::vector<VkDescr
 VulkanDescriptorList::~VulkanDescriptorList() {
 
 }
+
 }

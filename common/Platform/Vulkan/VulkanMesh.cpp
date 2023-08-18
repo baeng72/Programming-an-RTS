@@ -35,7 +35,7 @@ namespace Renderer {
 		Vulkan::cleanupBuffer(context.device, _vertexBuffer);
 		Vulkan::cleanupBuffer(context.device, _indexBuffer);
 	}
-	void VulkanMesh::Render(Renderer::MeshShader*pshader)
+	void VulkanMesh::Render(Renderer::Shader*pshader)
 	{
 		pshader->Bind();
 		Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());

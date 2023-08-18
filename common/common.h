@@ -9,5 +9,6 @@
 #include "Renderer/ParticleSwarm.h"
 #include "Renderer/ShaderManager.h"
 #include "Renderer/Light.h"
-#include "Renderer/MeshShader.h"
+#include "Renderer/Shader.h"
 #include "Renderer/Mesh.h"
+#include "Renderer/Material.h"

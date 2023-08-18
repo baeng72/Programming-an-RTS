@@ -9,13 +9,13 @@ class APPLICATION : public Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;	
 	std::shared_ptr<Renderer::ShaderManager> _shaderManager;
 	std::unique_ptr<Renderer::Font> _font;	
+	std::unique_ptr<Renderer::Material> _mat;
 	Renderer::DirectionalLight _light;
 	TERRAIN	_terrain;
 	float _angle;	
 	float _radius;
 	bool _wireframe;
-	int _image;
-	int _numPatches;
+	
 	
 public:
 	APPLICATION();
@@ -30,9 +30,7 @@ public:
 APPLICATION::APPLICATION() {
 	_angle = 0.f;
 	_radius = 100.f;
-	_image = 0;
 	_wireframe = false;
-	_numPatches = 4;
 	
 	srand(411678390);
 }
@@ -43,7 +41,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 		return false;
 
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
-	//_device->EnableGeometry(true);	
+	_device->EnableGeometry(true);	
 	_device->EnableLines(true);
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
@@ -55,7 +53,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_light.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
 	_light.diffuse = glm::vec4(0.9f, 0.9f, 0.9f, 1.f);
 	_light.specular = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
-	_light.direction = glm::normalize(glm::vec3(0.f, -1.f, 0.f));
+	_light.direction = glm::normalize(glm::vec3(0.7f, -0.3f, 0.f));
 	return true;
 }
 
@@ -68,51 +66,19 @@ void APPLICATION::Update(float deltaTime) {
 		_terrain.SetWireframe(_wireframe);
 		Sleep(100);
 	}
-	else if (IsKeyPressed(KEY_F)) {
-		//Create terrain from file
-		_image++;
-		if (_image > 1)
-			_image = 0;
-		if (_terrain._heightMap) {
-			_terrain._heightMap->_maxHeight = 10.f;
-			if (_image == 0) {
-				
-				_terrain._heightMap->LoadFromFile( "../../../../Resources/Chapter 04/Example 4.04/images/abe.jpg");
-				_terrain.CreatePatches(_numPatches);
-				
-			}
-			else if (_image == 1) {
-				_terrain._heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.04/images/smiley.bmp");
-				_terrain.CreatePatches(_numPatches);
-
-			}
-		}
-	}
 	else if (IsKeyPressed(KEY_SPACE)) {
 		//Generate random terrain
-		_terrain.GenerateRandomTerrain(_numPatches);
+		_terrain.GenerateRandomTerrain(3);
 		Sleep(300);
 	}
 	else if (IsKeyPressed(KEY_KP_ADD) && _radius < 200.f) {
 		//zoom out
 		_radius += deltaTime * 30.f;
 	}
-	else if (IsKeyPressed(KEY_KP_SUBTRACT)) {
+	else if (IsKeyPressed(KEY_KP_SUBTRACT) && _radius > 5.f) {
 		_radius -= deltaTime * 30.f;
 	}
-	else if (IsKeyPressed(KEY_UP) && _numPatches < 8) {
-		//Increate the number of patches used
-		_numPatches++;
-		_terrain.CreatePatches(_numPatches);
-		Sleep(300);
-	}		
-	else if (IsKeyPressed(KEY_DOWN) && _numPatches > 1) {
-		//Decrease the number of patches used
-		_numPatches--;
-		_terrain.CreatePatches(_numPatches);
-		Sleep(300);
-	}
-
+	
 }
 
 void APPLICATION::Render() {	
@@ -131,11 +97,10 @@ void APPLICATION::Render() {
 	matProj[1][1] *= -1;
 	glm::mat4 viewProj = matProj * matView;
 
-	_font->Draw("W: Toggle Wireframe", 10, 10, glm::vec4(0.f, 0.f, 0.f, 1.f));
+	_font->Draw("W: Toggle Wireframe", 10, 10,glm::vec4(0.f,0.f,0.f,1.f));
 	_font->Draw("+/-: Zoom In/Out", 10, 30, glm::vec4(0.f, 0.f, 0.f, 1.f));
 	_font->Draw("SPACE: Randomize Terrain", 10, 50, glm::vec4(0.f, 0.f, 0.f, 1.f));
-	_font->Draw("UP/DOWN: Increate/Decrease Number of Patches", 10, 70, glm::vec4(0.f, 0.f, 0.f, 1.f));
-	_font->Draw("F: Load HeighMap from File", 10, 90, glm::vec4(0.f, 0.f, 0.f, 1.f));
+	
 	
 	
 
@@ -157,7 +122,7 @@ void APPLICATION::Cleanup() {
 
 int main() {
 	APPLICATION app;
-	if (app.Init(800, 600, "Example 4.4: Creating the Terrain Mesh")) {
+	if (app.Init(800, 600, "Example 4.5: Tilebased Texturing")) {
 		app.Run();
 	}
 	return 0;

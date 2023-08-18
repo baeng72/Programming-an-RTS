@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include "RenderDevice.h"
-#include "MeshShader.h"
+
 namespace Renderer {
 	struct DirectionalLight {
 		using color = glm::vec4;

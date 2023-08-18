@@ -234,6 +234,17 @@ namespace Vulkan {
 		}
 	};
 
+	class DescriptorSetLayoutBuilder {
+		
+		std::vector<VkDescriptorSetLayoutBinding> bindings;
+		DescriptorSetLayoutCache* pLayout{ nullptr };
+		DescriptorSetLayoutBuilder(DescriptorSetLayoutCache* pLayout_);
+	public:
+		static DescriptorSetLayoutBuilder begin(DescriptorSetLayoutCache* pLayout_);
+		DescriptorSetLayoutBuilder& AddBinding(uint32_t binding, VkDescriptorType type, VkShaderStageFlags stageFlags, uint32_t descriptorCount = 1);
+		DescriptorSetLayoutBuilder& AddBinding(VkDescriptorSetLayoutBinding& binding);
+		VkDescriptorSetLayout build();
+	};
 
 	class DescriptorSetBuilder {
 		DescriptorSetPoolCache* pPool{ nullptr };
@@ -243,6 +254,7 @@ namespace Vulkan {
 	public:
 		static DescriptorSetBuilder begin(DescriptorSetPoolCache* pPool_, DescriptorSetLayoutCache* pLayout_);
 		DescriptorSetBuilder& AddBinding(uint32_t binding, VkDescriptorType type, VkShaderStageFlags stageFlags, uint32_t descriptorCount = 1);
+		DescriptorSetBuilder& AddBinding(VkDescriptorSetLayoutBinding& binding);
 		bool build(VkDescriptorSet& set, VkDescriptorSetLayout& layout);
 		bool build(VkDescriptorSet& set);
 		bool build(std::vector<VkDescriptorSet>& sets, VkDescriptorSetLayout& layout, uint32_t count);

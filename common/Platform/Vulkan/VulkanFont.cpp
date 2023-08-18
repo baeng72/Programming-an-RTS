@@ -36,13 +36,14 @@ namespace Vulkan {
 		const char* vertexSrc = R"(
 #version 450
 layout (location=0) in vec3 inPos;
-layout (location=1) in vec2 inTexCoords;
+layout (location=1) in vec4 inColor;
+layout (location=2) in vec2 inTexCoords;
 layout (location=0) out vec2 outTexCoords;
 layout (location=1) out vec4 outColor;
 
 layout (push_constant) uniform PushConst{
 	mat4 projection;
-	vec4 color;
+	
 };
 
 void main(){
@@ -51,7 +52,7 @@ void main(){
 	gl_Position = projection * vec4(inPos,1.0);
 	
 	outTexCoords = inTexCoords;
-	outColor = color;
+	outColor = inColor;
 }
 )";
 
@@ -249,7 +250,7 @@ void main(){
 
 	}
 
-	void VulkanFont::Draw(const char* ptext, int xstart, int ystart)
+	void VulkanFont::Draw(const char* ptext, int xstart, int ystart,glm::vec4 color)
 	{
 
 
@@ -279,10 +280,10 @@ void main(){
 			float v = (hraw) / fbmpHeight;
 			float u1 = (float)(character.offset + character.size.x) * invBmpWidth;
 
-			FontVertex topleft = { {xpos,ypos,0.0f},{u0,0.f} };
-			FontVertex topright = { { xpos + w,ypos,0.0f},{u1,0.f} };
-			FontVertex bottomleft = { { xpos,ypos + h,0.0f},{u0,v} };
-			FontVertex bottomright = { {xpos + w,ypos + h,0.0f},{u1,v} };
+			FontVertex topleft = { {xpos,ypos,0.0f},color,{u0,0.f} };
+			FontVertex topright = { { xpos + w,ypos,0.0f},color,{u1,0.f} };
+			FontVertex bottomleft = { { xpos,ypos + h,0.0f},color,{u0,v} };
+			FontVertex bottomright = { {xpos + w,ypos + h,0.0f},color,{u1,v} };
 			vertices.push_back(topleft);
 			vertices.push_back(topright);
 			vertices.push_back(bottomleft);
@@ -375,7 +376,7 @@ void main(){
 		VkPipelineLayout pipelineLayout = *fontPipelineLayoutPtr;
 		VkDescriptorSet descriptorSet = *fontDescriptorPtr;
 		VkPipeline pipeline = *fontPipelinePtr;
-		PushConst pushConst{ _orthoproj,glm::vec4(1.f) };
+		PushConst pushConst{ _orthoproj};
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 		VkDeviceSize offsets[1] = { 0 };

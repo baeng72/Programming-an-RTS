@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include "../../Renderer/Mesh.h"
-#include "../../Renderer/MeshShader.h"
+#include "../../Renderer/Shader.h"
 #include "VulkanEx.h"
 namespace Renderer {
 	class VulkanMesh : public Renderer::Mesh {
@@ -12,6 +12,6 @@ namespace Renderer {
 	public:
 		VulkanMesh(RenderDevice* pdevice,float*pvertices,uint32_t vertSize, uint32_t*pindices,uint32_t indSize);
 		virtual ~VulkanMesh();
-		void Render(Renderer::MeshShader*pshader)override;
+		void Render(Renderer::Shader*pshader)override;
 	};
 }

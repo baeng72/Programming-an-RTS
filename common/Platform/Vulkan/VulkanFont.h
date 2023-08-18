@@ -14,6 +14,7 @@ namespace Vulkan {
 		};
 		struct FontVertex {
 			glm::vec3 pos;
+			glm::vec4 color;
 			glm::vec2 uv;
 		};
 		std::vector<FontVertex> _vertices;
@@ -41,7 +42,7 @@ namespace Vulkan {
 		Renderer::RenderDevice* _renderdevice;
 		struct PushConst {
 			glm::mat4 proj;
-			glm::vec4 color;
+			
 		};
 
 		void Update();
@@ -49,7 +50,7 @@ namespace Vulkan {
 		VulkanFont();
 		~VulkanFont();
 		virtual void Init(Renderer::RenderDevice* pdevice, const char* pfont, int fontSize) override;
-		virtual void Draw(const char* ptext, int xpos, int ypos) override;
+		virtual void Draw(const char* ptext, int xpos, int ypos,glm::vec4 color) override;
 		virtual void Render()override;
 		virtual void GetTextSize(const char* ptext, float& width, float& height) override;
 		virtual void Clear()override {
