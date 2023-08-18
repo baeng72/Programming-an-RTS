@@ -7,4 +7,24 @@ To build original code, you'll need the SDK here: https://www.microsoft.com/en-a
 DXD9 branch will hold original code.<br/>
 This is a GLFW (wsi)/Vulkan implementation.<br/>
 You'll need the Vulkan SDK installed.<br/>
-Build system is CMake (targeting Windows mostly, so you'll need to change it for another target), which I don't understand well, so if it compiles, yay!
+Build system is CMake (targeting Windows mostly, so you'll need to change it for another target), which I don't understand well, so if it compiles, yay!<br/>
+
+Basic build using git/cmake from command line:<br/>
+<p>
+git clone <i>repository-....</i> (click click button for this)<br/>
+cd <i>repository-folder</i><br/>
+git submodules update
+</p>
+<p>
+mkdir build --out of source build?<br/>
+cd build<br/>
+cmake .. --should run using current generator <br/>
+or<br/>
+cmake -G "Visual Studio 16 2019" ..--select specific generator<br/>
+Open in IDE to build or <br/>
+use --build e.g. <i>cmake .. --build</i>
+</p>
+As mentioned, not a cmake expert, so some messing about will be required for your system.
+
+
+
