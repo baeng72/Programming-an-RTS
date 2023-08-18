@@ -12,19 +12,19 @@ Build system is CMake (targeting Windows mostly, so you'll need to change it for
 Basic build using git/cmake from command line:<br/>
 Clone with git...<br/>
 ```diff
-# git clone <i>repository-....</i> (click code button for repository link)<br/>
-# cd <i>repository-folder</i><br/>
-# git submodules update
+git clone  repository-.... (click code button for repository link)
+cd repository-folder
+git submodules update
 ```
-Build with cmake...<br/> 
+Build with cmake...
 ```diff
-mkdir build --out of source build?<br/>
-cd build<br/>
-cmake .. --should run using current generator <br/>
-or<br/>
-cmake -G "Visual Studio 16 2019" ..--select specific generator<br/>
-Open in IDE to build or <br/>
-use --build e.g. <i>cmake .. --build</i>
+mkdir build --out of source build?
+cd build
+cmake .. --should run using current generator 
+or
+cmake -G "Visual Studio 16 2019" ..--select specific generator
+Open in IDE to build or 
+use --build e.g. cmake .. --build
 ```
 As mentioned, not a cmake expert, so some messing about will be required for your system.
 
