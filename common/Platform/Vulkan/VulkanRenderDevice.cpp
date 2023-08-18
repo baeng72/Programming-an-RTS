@@ -67,7 +67,7 @@ namespace Vulkan {
 		_frameData.cmd = _cmd;
 		int width, height;
 		glfwGetFramebufferSize(_window, &width, &height);
-		VkViewport viewport = { 0,0,(float)width,(float)height };
+		VkViewport viewport = { 0,0,(float)width,(float)height,0.f,1.f };
 		vkCmdSetViewport(_cmd, 0, 1, &viewport);
 		VkRect2D scissor{ 0,0,(uint32_t)width,(uint32_t)height };
 		vkCmdSetScissor(_cmd, 0, 1, &scissor);

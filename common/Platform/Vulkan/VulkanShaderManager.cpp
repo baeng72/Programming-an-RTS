@@ -1104,7 +1104,8 @@ namespace Vulkan {
 			VkPipeline pipeline = VK_NULL_HANDLE;
 			PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
 				.setBlend(VK_TRUE)
-				.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
+				.setCullMode(VK_CULL_MODE_FRONT_BIT)
+				.setDepthTest(VK_TRUE)//need this to be a parameter
 				.build(pipeline);
 			VulkanShaderData shaderData;
 			shaderData.descriptorSetLayouts = layouts;
@@ -1119,6 +1120,7 @@ namespace Vulkan {
 			PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
 				.setPolygonMode(VK_POLYGON_MODE_LINE)
 				.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
+				.setDepthTest(VK_TRUE)//need this to be a parameter
 				.build(pipeline);
 			_shaderList[name].wireframePipeline = pipeline;
 			

@@ -40,7 +40,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 		return false;
 
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
-	_device->EnableGeometry(true);	
+	_device->EnableDepthBuffer(true);
 	_device->EnableLines(true);
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
@@ -121,7 +121,7 @@ void APPLICATION::Cleanup() {
 
 int main() {
 	APPLICATION app;
-	if (app.Init(800, 600, "Example 4.5: Tilebased Texturing")) {
+	if (app.Init(800, 600, "Example 4.6: Pre-rendered Textures")) {
 		app.Run();
 	}
 	return 0;

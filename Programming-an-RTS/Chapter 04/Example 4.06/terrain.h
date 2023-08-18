@@ -25,14 +25,11 @@ struct TERRAINVertex {
 struct PATCH {
 	Renderer::RenderDevice* _pdevice;
 	std::unique_ptr<Renderer::Mesh>	_mesh;
-	std::unique_ptr<Renderer::Shader> _shader;
-	std::unique_ptr<Renderer::Buffer> _attrBuffer;
 	PATCH();
 	~PATCH();
-	bool CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevice, void*shaderData,std::vector<std::shared_ptr<Renderer::Texture>>&textures);
-	void Render(glm::mat4&mat4,glm::mat4&world, Renderer::DirectionalLight& light);
-	void Release();
-	void SetWireframe(bool wireframe) { _shader->SetWireframe(wireframe); }
+	bool CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevice);
+	void Render(Renderer::Shader * pshader);
+	void Release();	
 };
 
 class TERRAIN {
@@ -42,9 +39,9 @@ class TERRAIN {
 	std::unique_ptr<HEIGHTMAP> _heightMap;
 	std::vector<PATCH*> _patches;
 	std::shared_ptr<Renderer::ShaderManager> _shaderManager;
-	std::vector<std::shared_ptr<Renderer::Texture>> _textures;
-	//std::unique_ptr<Renderer::Shader> _shader;
-	//std::unique_ptr<Renderer::Buffer> _colorBuffer;
+	std::shared_ptr<Renderer::Texture> _texture;
+	std::unique_ptr<Renderer::Shader> _shader;
+	
 public:
 	TERRAIN();
 	void Cleanup();

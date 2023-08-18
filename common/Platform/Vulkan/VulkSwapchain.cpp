@@ -54,7 +54,7 @@ namespace Vulkan {
 			clearValues.resize(2);
 #endif
 			clearValues[0] = { 0.0f, 0.0f, 0.0f, 0.0f };
-			clearValues[1] = { 0.f,1.f };
+			clearValues[1] = { 1.f,0.f };
 		}
 #ifdef __USE__VECTOR__
 		if (presentCompletes.size()) {
