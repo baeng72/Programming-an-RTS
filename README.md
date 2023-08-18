@@ -11,7 +11,7 @@ Build system is CMake (targeting Windows mostly, so you'll need to change it for
 
 Basic build using git/cmake from command line:<br/>
 <p>
-git clone <i>repository-....</i> (click click button for this)<br/>
+git clone <i>repository-....</i> (click code button for repository link)<br/>
 cd <i>repository-folder</i><br/>
 git submodules update
 </p>
