@@ -10,12 +10,12 @@ You'll need the Vulkan SDK installed.<br/>
 Build system is CMake (targeting Windows mostly, so you'll need to change it for another target), which I don't understand well, so if it compiles, yay!<br/>
 
 Basic build using git/cmake from command line:<br/>
-<p>
+<p style="background-color:gray">
 git clone <i>repository-....</i> (click code button for repository link)<br/>
 cd <i>repository-folder</i><br/>
 git submodules update
 </p>
-<p>
+<p style="background-color:gray">
 mkdir build --out of source build?<br/>
 cd build<br/>
 cmake .. --should run using current generator <br/>
