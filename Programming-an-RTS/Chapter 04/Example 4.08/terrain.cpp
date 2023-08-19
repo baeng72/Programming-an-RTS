@@ -132,9 +132,7 @@ void TERRAIN::Release() {
 
 void TERRAIN::SetWireframe(bool wireframe)
 {
-	for (auto& shader : _shaders) {
-		shader->SetWireframe(wireframe);
-	}
+	_shader->SetWireframe(wireframe);
 	//_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->GetShaderDataByName("FlatDirectional")));
 }
 
@@ -142,21 +140,12 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.07/images/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.07/images/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.07/images/snow.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.08/images/grass.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.08/images/mountain.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.08/images/snow.jpg")));
 	_size = size_;
-	_shaders.resize(_diffuseMaps.size());//hacktastic, need to a better way  to do this
-	for (size_t i = 0; i < _diffuseMaps.size(); i++) {
-		_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->GetShaderData("../../../../Resources/Chapter 04/Example 4.08/Shaders/TexturedDirectional.glsl")));
-		
-		
-	}
-	
-	std::vector<Renderer::Texture*> textures{ _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get() };
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->GetShaderData("../../../../Resources/Chapter 04/Example 4.08/Shaders/TexturedDirectional.glsl")));
 
-	
-	_alphaMaps.resize(_diffuseMaps.size());
 	GenerateRandomTerrain(3);
 }
 
@@ -206,34 +195,43 @@ void TERRAIN::CreatePatches(int numPatches)
 void TERRAIN::CalculateAlphaMaps() {
 	//height ranges
 	float min_range[] = { 0.f,1.f,15.f };
+	float max_range[] = { 2.f,16.f,21.f };
 	constexpr int texWidth = 128;
 	constexpr int texHeight = 128;
 	//create one alpha map per diffuse map
 	uint32_t* pdata = new uint32_t[texWidth*texHeight];
+	memset(pdata, 0, sizeof(uint32_t) * texWidth * texHeight);
 	for (size_t i = 0; i < _diffuseMaps.size(); i++) {
 		//for each pixel in the alphaMap
+		uint32_t shift = (uint32_t)((2-i) << 3);
 		for (int y = 0; y < texHeight; y++) {
 			for (int x = 0; x < texWidth; x++) {
 				int hm_x = (int)(_heightMap->_size.x * (x / (float)(texWidth)));
 				int hm_y = (int)(_heightMap->_size.y * (y / (float)(texHeight)));
 				float height = _heightMap->_pHeightMap[hm_x + hm_y * _heightMap->_size.x];
-				if (height >= min_range[i])
-					pdata[x + y * texWidth] = 0xFFFFFFFF;
+				uint32_t b = 0;
+				if (height >= min_range[i] && height < max_range[i])
+					b = 0xFF;
 				else
-					pdata[x + y * texWidth] = 0;
+					b = 0;
+				b <<= shift;
+				pdata[x + y * texWidth] |= b;
 			}
 		}
 		//create a new texture
-		_alphaMaps[i].reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
+		//_alphaMaps[i].reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
 
-		//what a hack
-		Renderer::Texture* pdiffuse = _diffuseMaps[i].get();
+		////what a hack
+		//Renderer::Texture* pdiffuse = _diffuseMaps[i].get();
 
-		Renderer::Texture* palpha = _alphaMaps[i].get();
-		std::vector<Renderer::Texture*> textures = { pdiffuse,palpha };
-		_shaders[i]->SetTextures(textures.data(), 2);
+		//Renderer::Texture* palpha = _alphaMaps[i].get();
+		//std::vector<Renderer::Texture*> textures = { pdiffuse,palpha };
+		//_shaders[i]->SetTextures(textures.data(), 2);
 	}
-	
+	//create a new texture
+	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
+	std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
+	_shader->SetTextures(textures.data(), 4);
 
 }
 
@@ -245,15 +243,15 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 
 	Renderer::FlatShaderPushConst pushConst{model };
 	
+	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
+	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
 	
 	for (size_t m = 0; m < _diffuseMaps.size(); m++) {
-		Renderer::Shader* pshader = _shaders[m].get();
-		pshader->SetUniformData("UBO", &ubo, sizeof(ubo));
-		pshader->SetPushConstData(&pushConst, sizeof(pushConst));
+		
 		//draw for each diffuse map, could do it in one draw call per patch passing a buffer or something?
 		
 		
 		for (size_t i = 0; i < _patches.size(); i++)
-			_patches[i]->Render(pshader);
+			_patches[i]->Render(_shader.get());
 	}
 }
