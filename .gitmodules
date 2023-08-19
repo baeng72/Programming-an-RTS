@@ -22,3 +22,6 @@
 [submodule "freetype"]
 	path = ThirdParty/freetype
 	url = https://gitlab.freedesktop.org/freetype/freetype.git
+[submodule "assimp"]
+	path = ThirdParty/assimp
+	url = https://github.com/assimp/assimp.git

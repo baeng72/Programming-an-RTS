@@ -70,3 +70,6 @@ add_subdirectory(spdlog)
 
 #freetype
 add_subdirectory(freetype)
+
+#assimp
+add_subdirectory(assimp)
