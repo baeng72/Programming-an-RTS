@@ -155,6 +155,42 @@ namespace Vulkan {
 		return SetTexture(id, pptexture,count);
 	}
 
+	bool VulkanShader::SetTextures(Renderer::Texture** pptextures, uint32_t count)
+	{
+		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
+		Vulkan::VulkContext& context = *contextptr;
+		ASSERT(count == _pShaderData->imageNames.size(), "Invalid number of textures!");
+		if (count <= _pShaderData->imageNames.size()) {
+			auto setBindings = _pShaderData->imageSetBindings;
+			std::vector<std::vector<uint32_t>> groupedSetBindings(_pShaderData->descriptorSetLayouts.size());//in case they are all over the shop
+			for (uint32_t i = 0; i < count; i++) {
+				uint32_t setbinding = setBindings[i];
+				uint32_t set = setbinding >> 16;
+				uint32_t binding = setbinding & 0xFF;
+				groupedSetBindings[set].push_back(binding);
+			}
+			uint32_t index = 0;
+			for (size_t set = 0; set < groupedSetBindings.size();set++) {
+				auto& groupedBindings = groupedSetBindings[set];
+				if (groupedBindings.size() == 0)
+					continue;
+				auto setupdater = DescriptorSetUpdater::begin(context.pLayoutCache, _pShaderData->descriptorSetLayouts[set], _descriptorSets[set]);
+				
+				std::vector<VkDescriptorImageInfo> imageInfos(groupedBindings.size());
+				for (size_t b = 0; b < groupedBindings.size();b++) {
+					Vulkan::Texture* ptextdata = (Vulkan::Texture*)pptextures[index++]->GetNativeHandle();
+					imageInfos[b].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					imageInfos[b].imageView = ptextdata->imageView;
+					imageInfos[b].sampler = ptextdata->sampler;
+					setupdater.AddBinding(groupedBindings[b], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfos[b]);
+				}
+				setupdater.update();
+			}
+			return true;
+		}
+		return false;
+	}
+
 	
 	uint32_t VulkanShader::GetTextureId(const char* pname)
 	{

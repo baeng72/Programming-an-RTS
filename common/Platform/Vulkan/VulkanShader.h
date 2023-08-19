@@ -26,7 +26,7 @@ namespace Vulkan {
 		virtual uint32_t GetUniformId(const char* pname) override;
 		virtual bool SetTexture(uint32_t, Renderer::Texture** pptexture, uint32_t count) override;
 		virtual bool SetTexture(const char* pname, Renderer::Texture** pptexture, uint32_t count) override;
-		
+		virtual bool SetTextures(Renderer::Texture** pptextures, uint32_t count) override;
 		virtual uint32_t GetTextureId(const char* pname) override;
 		virtual bool SetStorage(uint32_t i, Renderer::Buffer* pbuffer) override;
 		virtual bool SetStorage(const char* pname, Renderer::Buffer* pbuffer) override;

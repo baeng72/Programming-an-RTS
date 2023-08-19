@@ -16,8 +16,9 @@ namespace Renderer {
 		virtual bool SetUniformData(uint32_t i,void*ptr,uint32_t len) = 0;
 		virtual bool SetUniformData(const char*pname, void* ptr, uint32_t len) = 0;		
 		virtual uint32_t GetUniformId(const char* pname) = 0;
-		virtual bool SetTexture(uint32_t, Texture** pptexture, uint32_t count) = 0;
-		virtual bool SetTexture(const char*pname, Texture** pptexture, uint32_t count) = 0;		
+		virtual bool SetTexture(uint32_t, Texture** pptexture, uint32_t count) = 0;		//set 1 or more textures into a slot/descriptor binding
+		virtual bool SetTexture(const char*pname, Texture** pptexture, uint32_t count) = 0;		//set 1 or more textures into a slot/descriptor binding
+		virtual bool SetTextures(Texture** pptextures, uint32_t count) = 0;						//set 1 or more textures into available texture slots/bindings
 		virtual uint32_t GetTextureId(const char* pname) = 0;
 		virtual bool SetStorage(uint32_t i, Buffer*pbuffer) = 0;
 		virtual bool SetStorage(const char* pname, Buffer*pbuffer) = 0;

@@ -15,7 +15,7 @@ PATCH::~PATCH()
 	Release();
 }
 
-bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevice, void*shaderData, std::vector<std::shared_ptr<Renderer::Texture>>& textures)
+bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevice, void*shaderData, std::vector<std::unique_ptr<Renderer::Texture>>& textures)
 {
 	_pdevice = pdevice;
 	int width = source.right - source.left;
@@ -168,9 +168,9 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
-	_textures.push_back(std::shared_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/images/water.jpg")));
-	_textures.push_back(std::shared_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/images/grass.jpg")));
-	_textures.push_back(std::shared_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/images/stone.jpg")));
+	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/images/water.jpg")));
+	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/images/grass.jpg")));
+	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/images/stone.jpg")));
 	_size = size_;	
 	
 	GenerateRandomTerrain(3);
@@ -182,7 +182,7 @@ void TERRAIN::GenerateRandomTerrain(int numPatches)
 
 	//Create two heightmaps and multiply them
 
-	_heightMap = std::make_unique<HEIGHTMAP>(_size, 15.f);
+	_heightMap = std::make_unique<HEIGHTMAP>(_size, 20.f);
 	HEIGHTMAP hm2(_size, 30.f);
 
 	_heightMap->CreateRandomHeightMap(rand() % 2000, 2.5f, 0.5f, 8);

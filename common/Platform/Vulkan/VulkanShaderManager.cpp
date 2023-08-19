@@ -1104,6 +1104,7 @@ namespace Vulkan {
 			VkPipeline pipeline = VK_NULL_HANDLE;
 			PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
 				.setBlend(VK_TRUE)
+				.setDepthCompareOp(VK_COMPARE_OP_LESS_OR_EQUAL)
 				.setCullMode(VK_CULL_MODE_FRONT_BIT)
 				.setDepthTest(VK_TRUE)//need this to be a parameter
 				.build(pipeline);
