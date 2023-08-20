@@ -17,4 +17,5 @@ public:
 	bool Load( Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager> shadermanager, const char* pName );
 	void Render(glm::mat4& matViewProj, glm::mat4& matWorld,Renderer::DirectionalLight&light);
 	void Release();
+	void SetWireframe(bool wireframe) { _shader->SetWireframe(wireframe); }
 };

@@ -1120,7 +1120,7 @@ namespace Vulkan {
 			//wireframe
 			PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
 				.setPolygonMode(VK_POLYGON_MODE_LINE)
-				.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
+				.setCullMode(cullBackFaces ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_FRONT_BIT)
 				.setDepthTest(VK_TRUE)//need this to be a parameter
 				.build(pipeline);
 			_shaderList[name].wireframePipeline = pipeline;
