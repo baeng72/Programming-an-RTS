@@ -198,7 +198,7 @@ void TERRAIN::GenerateRandomTerrain(int numPatches)
 void TERRAIN::CreatePatches(int numPatches)
 {
 	_pdevice->Wait();//who needs synchronisation when you can block GPU?
-	void* shaderData = _shaderManager->GetShaderData("../../../../Resources/Chapter 04/Example 4.05/Shaders/TexturedDirectional.glsl");
+	void* shaderData = _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.05/Shaders/TexturedDirectional.glsl",false);
 	for (int i = 0; i < _patches.size(); i++) {
 		if (_patches[i])
 			delete _patches[i];

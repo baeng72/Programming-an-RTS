@@ -148,7 +148,7 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	_size = size_;
 	_shaders.resize(_diffuseMaps.size());//hacktastic, need to a better way  to do this
 	for (size_t i = 0; i < _diffuseMaps.size(); i++) {
-		_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->GetShaderData("../../../../Resources/Chapter 04/Example 4.08/Shaders/TexturedDirectional.glsl")));
+		_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.07/Shaders/TexturedDirectional.glsl",false)));
 		
 		
 	}

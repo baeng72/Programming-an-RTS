@@ -25,7 +25,7 @@ namespace Renderer {
 		uint32_t size;
 		uint32_t count;
 	};
-	class MeshShader;
+	
 	struct FlatShaderUBO {
 		glm::mat4 viewProj;		
 	};
@@ -45,7 +45,8 @@ namespace Renderer {
 		static ShaderManager * Create(RenderDevice* pdevice);
 		virtual ~ShaderManager() = default;
 		virtual void* GetShaderDataByName(const char*name) = 0;
-		virtual void* GetShaderData(const char* shaderPath) = 0;
+		//virtual void* GetShaderData(const char* shaderPath) = 0;
+		virtual void* CreateShaderData(const char* shaderPath, bool cullBackFaces = true, bool enableBlend = true) = 0;
 		//virtual void* GetShaderAttribute(ShaderAttrData&data) = 0;		
 	};
 }

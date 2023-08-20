@@ -14,14 +14,12 @@ Renderer::Texture* Renderer::Texture::Create(Renderer::RenderDevice* pdevice, in
 }
 namespace Vulkan {
 	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, const char* pfile,glm::vec2 size):_size(size)
-	{
-		
+	{		
 		_pdevice = pdevice;
 		VulkContext* contextptr = reinterpret_cast<VulkContext*>(pdevice->GetDeviceContext());
 		VulkContext& context = *contextptr;
 		std::vector<Vulkan::Texture> textures;
-		char buffer[512];
-		GetCurrentDirectoryA(sizeof(buffer), buffer);
+		
 		TextureLoader::begin(context.device, context.commandBuffer, context.queue, context.memoryProperties)
 			.addTexture(pfile)
 			.load(textures);

@@ -144,7 +144,7 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.08/images/mountain.jpg")));
 	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.08/images/snow.jpg")));
 	_size = size_;
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->GetShaderData("../../../../Resources/Chapter 04/Example 4.08/Shaders/TexturedDirectional.glsl")));
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.08/Shaders/TexturedDirectional.glsl",false)));
 
 	GenerateRandomTerrain(3);
 }

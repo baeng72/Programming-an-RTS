@@ -20,6 +20,9 @@ include_directories(ThirdParty/VulkanMemoryAllocator/include)
 include_directories(ThirdParty/SPIRV-Reflect)
 include_directories(ThirdParty/SPIRV-Reflect/include)
 include_directories(ThirdParty/freetype/include)
+include_directories(ThirdParty/assimp/)
+include_directories(ThirdParty/assimp/include)
+include_directories(build/ThirdParty/assimp/include)
 
 add_subdirectory(ThirdParty)
 

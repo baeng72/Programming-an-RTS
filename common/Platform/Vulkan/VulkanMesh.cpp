@@ -4,11 +4,11 @@
 #include "VulkState.h"
 #include "VulkSwapchain.h"
 Renderer::Mesh* Renderer::Mesh::Create(RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize) {
-	return new VulkanMesh(pdevice, pvertices, vertSize, pindices, indSize);
+	return new Vulkan::VulkanMesh(pdevice, pvertices, vertSize, pindices, indSize);
 }
-namespace Renderer {
+namespace Vulkan {
 	
-	VulkanMesh::VulkanMesh(RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize):_pdevice(pdevice)
+	VulkanMesh::VulkanMesh(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize):_pdevice(pdevice)
 	{
 
 		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());

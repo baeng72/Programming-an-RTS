@@ -139,7 +139,7 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	_shaderManager = shaderManager;
 	_texture = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.06/images/diffusemap.jpg"));
 	_size = size_;	
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->GetShaderData("../../../../Resources/Chapter 04/Example 4.06/Shaders/TexturedDirectional.glsl")));
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.06/Shaders/TexturedDirectional.glsl",false)));
 	Renderer::Texture* ptexture = _texture.get();
 	int texid = 0;
 	_shader->SetTexture(texid, &ptexture, 1);

@@ -824,7 +824,7 @@ namespace Vulkan {
 		}
 		return size;
 	}
-	void VulkanShaderManager::CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources)
+	void VulkanShaderManager::CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,bool cullBackFaces, bool enableBlend)
 	{
 		ShaderCompiler compiler;
 		std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>> spirvMap;
@@ -1103,9 +1103,9 @@ namespace Vulkan {
 		{
 			VkPipeline pipeline = VK_NULL_HANDLE;
 			PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-				.setBlend(VK_TRUE)
+				.setBlend(enableBlend?VK_TRUE:VK_FALSE)
 				.setDepthCompareOp(VK_COMPARE_OP_LESS_OR_EQUAL)
-				.setCullMode(VK_CULL_MODE_FRONT_BIT)
+				.setCullMode(cullBackFaces ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_FRONT_BIT)
 				.setDepthTest(VK_TRUE)//need this to be a parameter
 				.build(pipeline);
 			VulkanShaderData shaderData;
@@ -1218,8 +1218,7 @@ namespace Vulkan {
 	}
 	
 	std::string VulkanShaderManager::readFile(const std::string& filepath) {//borowed from TheCherno Hazel shader stuff
-		std::string result;
-		
+		std::string result;		
 		std::ifstream in(filepath, std::ios::in | std::ios::binary);
 		ASSERT(in, "Unable to open shader file.");
 		in.seekg(0, std::ios::end);
@@ -1259,7 +1258,7 @@ namespace Vulkan {
 			return VK_SHADER_STAGE_FRAGMENT_BIT;
 		return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 	}
-	void* VulkanShaderManager::GetShaderData(const char* shaderPath) {
+	void* VulkanShaderManager::CreateShaderData(const char* shaderPath,bool cullBackFaces,bool enableBlend) {
 		std::string filepath = shaderPath;
 		auto lastSlash = filepath.find_last_of("/\\");
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
@@ -1269,7 +1268,7 @@ namespace Vulkan {
 		if (_shaderList.find(name) == _shaderList.end()) {
 			std::string source = readFile(filepath);
 			const std::unordered_map<VkShaderStageFlagBits, std::string> shaderSources = PreProcess(source);
-			CompileShader(name,shaderSources);
+			CompileShader(name,shaderSources,cullBackFaces,enableBlend);
 		}
 		return &_shaderList[name];
 	}
