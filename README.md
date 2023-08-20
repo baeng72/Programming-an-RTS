@@ -14,7 +14,7 @@ Clone with git...<br/>
 ```diff
 git clone  repository-.... (click code button for repository link)
 cd repository-folder
-git submodules update
+git submodule update
 ```
 Build with cmake...
 ```diff
