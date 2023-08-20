@@ -20,7 +20,7 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 	int uboid = 0;
 
 
-	Renderer::FlatShaderPushConst pushConst{matWorld*_xform};
+	Renderer::FlatShaderPushConst pushConst{matWorld * _xform};
 
 	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
@@ -54,4 +54,34 @@ void MESH::LoadShader()
 	int texid = 0;
 	std::vector<Renderer::Texture*> textures = { _texture.get() };
 	_shader->SetTexture(texid, textures.data(), 1);
+}
+
+MESHINSTANCE::MESHINSTANCE()
+{
+	_pos = _rot = glm::vec3(0.f);
+	_sca = glm::vec3(1.f);
+}
+
+MESHINSTANCE::MESHINSTANCE(MESH* meshPtr)
+{
+	_mesh = meshPtr;
+	_pos = _rot = glm::vec3(0.f);
+	_sca = glm::vec3(1.f);
+}
+
+void MESHINSTANCE::Render(glm::mat4&viewProj,Renderer::DirectionalLight&light)
+{
+	if (_mesh) {
+		glm::mat4 p, rx,ry,rz,r, s;
+		glm::mat4 identity = glm::mat4(1.f);
+		p = glm::translate(identity, _pos);
+		rx = glm::rotate(identity, _rot.x, glm::vec3(1.f, 0.f, 0.f));
+		ry = glm::rotate(identity, _rot.y, glm::vec3(0.f, 1.f, 0.f));
+		rz = glm::rotate(identity, _rot.z, glm::vec3(0.f, 0.f, 1.f));
+
+		r = rz * ry * rx;
+		s = glm::scale(identity, _sca);
+		glm::mat4 world = p * r * s;
+		_mesh->Render(viewProj, world, light);
+	}
 }
