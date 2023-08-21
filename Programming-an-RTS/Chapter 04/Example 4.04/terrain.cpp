@@ -1,8 +1,5 @@
 #include "terrain.h"
-#include "../../../common/Platform/Vulkan/VulkanEx.h"
-#include "../../../common/Platform/Vulkan/VulkState.h"
-#include "../../../common/Platform/Vulkan/VulkSwapchain.h"
-#include "../../../common/Platform/Vulkan/ShaderCompiler.h"
+
 
 PATCH::PATCH()
 {
@@ -134,8 +131,7 @@ void TERRAIN::Release() {
 
 void TERRAIN::SetWireframe(bool wireframe)
 {
-	_shader->SetWireframe(wireframe);
-	//_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->GetShaderData("../../../../Resources/Chapter 04/Example 4.05/Shaders/FlatDirectional.glsl")));
+	_shader->SetWireframe(wireframe);	
 }
 
 void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager> shaderManager, INTPOINT size_)
@@ -143,7 +139,7 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
 	_size = size_;	
-	_shader.reset(Renderer::Shader::Create(pdevice,_shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.05/Shaders/FlatDirectional.glsl",false)));
+	_shader.reset(Renderer::Shader::Create(pdevice,_shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.04/Shaders/terrain.glsl",false)));
 	GenerateRandomTerrain(3);
 }
 

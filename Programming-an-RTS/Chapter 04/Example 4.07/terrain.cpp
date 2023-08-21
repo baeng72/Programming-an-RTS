@@ -1,8 +1,5 @@
 #include "terrain.h"
-#include "../../../common/Platform/Vulkan/VulkanEx.h"
-#include "../../../common/Platform/Vulkan/VulkState.h"
-#include "../../../common/Platform/Vulkan/VulkSwapchain.h"
-#include "../../../common/Platform/Vulkan/ShaderCompiler.h"
+
 
 PATCH::PATCH()
 {
@@ -142,13 +139,13 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.07/images/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.07/images/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.07/images/snow.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.07/textures/grass.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.07/textures/mountain.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.07/textures/snow.jpg")));
 	_size = size_;
 	_shaders.resize(_diffuseMaps.size());//hacktastic, need to a better way  to do this
 	for (size_t i = 0; i < _diffuseMaps.size(); i++) {
-		_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.07/Shaders/TexturedDirectional.glsl",false)));
+		_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.07/Shaders/terrain.glsl",false)));
 		
 		
 	}

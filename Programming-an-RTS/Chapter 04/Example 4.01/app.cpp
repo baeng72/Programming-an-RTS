@@ -37,7 +37,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->Init();
 
 	_heightMap = std::make_unique<HEIGHTMAP>(_device.get(), INTPOINT(100, 100));
-	_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/images/abe.jpg");
+	_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/textures/abe.jpg");
 	
 	_device->GetDimensions(&_width, &_height);
 	return true;
@@ -52,13 +52,13 @@ void APPLICATION::Update(float deltaTime) {
 		_image %= 3;
 		switch (_image) {
 		case 0:
-			_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/images/abe.jpg");
+			_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/textures/abe.jpg");
 			break;
 		case 1:
-			_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/images/smiley.bmp");
+			_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/textures/smiley.bmp");
 			break;
 		case 2:
-			_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/images/heightmap.jpg");
+			_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/textures/heightmap.jpg");
 			break;
 			
 		}

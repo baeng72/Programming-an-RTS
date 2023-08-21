@@ -77,12 +77,12 @@ void APPLICATION::Update(float deltaTime) {
 			_terrain._heightMap->_maxHeight = 10.f;
 			if (_image == 0) {
 				
-				_terrain._heightMap->LoadFromFile( "../../../../Resources/Chapter 04/Example 4.04/images/abe.jpg");
+				_terrain._heightMap->LoadFromFile( "../../../../Resources/Chapter 04/Example 4.04/textures/abe.jpg");
 				_terrain.CreatePatches(_numPatches);
 				
 			}
 			else if (_image == 1) {
-				_terrain._heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.04/images/smiley.bmp");
+				_terrain._heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.04/textures/smiley.bmp");
 				_terrain.CreatePatches(_numPatches);
 
 			}

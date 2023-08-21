@@ -1,8 +1,5 @@
 #include "terrain.h"
-#include "../../../common/Platform/Vulkan/VulkanEx.h"
-#include "../../../common/Platform/Vulkan/VulkState.h"
-#include "../../../common/Platform/Vulkan/VulkSwapchain.h"
-#include "../../../common/Platform/Vulkan/ShaderCompiler.h"
+
 
 PATCH::PATCH()
 {
@@ -140,11 +137,11 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.08/images/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.08/images/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.08/images/snow.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.08/textures/grass.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.08/textures/mountain.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.08/textures/snow.jpg")));
 	_size = size_;
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.08/Shaders/TexturedDirectional.glsl",false)));
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.08/Shaders/terrain.glsl",false)));
 
 	GenerateRandomTerrain(3);
 }

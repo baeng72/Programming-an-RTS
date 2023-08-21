@@ -50,7 +50,7 @@ bool MESH::Load( Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::Shad
 
 void MESH::LoadShader()
 {
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.10/shaders/TexturedDirectional.glsl")));
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.10/shaders/mesh.glsl")));
 	int texid = 0;
 	std::vector<Renderer::Texture*> textures = { _texture.get() };
 	_shader->SetTexture(texid, textures.data(), 1);

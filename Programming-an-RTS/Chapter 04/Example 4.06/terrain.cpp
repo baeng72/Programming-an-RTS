@@ -1,8 +1,4 @@
 #include "terrain.h"
-#include "../../../common/Platform/Vulkan/VulkanEx.h"
-#include "../../../common/Platform/Vulkan/VulkState.h"
-#include "../../../common/Platform/Vulkan/VulkSwapchain.h"
-#include "../../../common/Platform/Vulkan/ShaderCompiler.h"
 
 PATCH::PATCH()
 {
@@ -137,14 +133,14 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
-	_texture = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.06/images/diffusemap.jpg"));
+	_texture = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.06/textures/diffusemap.jpg"));
 	_size = size_;	
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.06/Shaders/TexturedDirectional.glsl",false)));
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.06/Shaders/terrain.glsl",false)));
 	Renderer::Texture* ptexture = _texture.get();
 	int texid = 0;
 	_shader->SetTexture(texid, &ptexture, 1);
 	_heightMap = std::make_unique<HEIGHTMAP>(_size, 20.f);
-	_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.06/images/heightmap.jpg");
+	_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.06/textures/heightmap.jpg");
 	CreatePatches(3);
 }
 

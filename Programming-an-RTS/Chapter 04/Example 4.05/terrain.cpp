@@ -1,8 +1,5 @@
 #include "terrain.h"
-#include "../../../common/Platform/Vulkan/VulkanEx.h"
-#include "../../../common/Platform/Vulkan/VulkState.h"
-#include "../../../common/Platform/Vulkan/VulkSwapchain.h"
-#include "../../../common/Platform/Vulkan/ShaderCompiler.h"
+
 
 PATCH::PATCH()
 {
@@ -105,7 +102,7 @@ bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevi
 		vertices[i].normal = glm::normalize(n);
 	}
 	_mesh.reset(Renderer::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount*sizeof(uint32_t)));
-	_shader.reset(Renderer::Shader::Create(pdevice, shaderData));// _shaderManager->GetShaderData("../../../../Resources/Chapter 04/Example 4.05/Shaders/FlatDirectional2.glsl")));
+	_shader.reset(Renderer::Shader::Create(pdevice, shaderData));
 	int colorid = 0;
 	_shader->SetStorage(colorid, _attrBuffer.get());
 	std::vector<Renderer::Texture*> tex;
@@ -160,17 +157,15 @@ void TERRAIN::SetWireframe(bool wireframe)
 	for (int i = 0; i < _patches.size(); i++) {
 		_patches[i]->SetWireframe(wireframe);
 	}
-	
-	//_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->GetShaderDataByName("FlatDirectional")));
 }
 
 void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager> shaderManager, INTPOINT size_)
 {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
-	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/images/water.jpg")));
-	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/images/grass.jpg")));
-	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/images/stone.jpg")));
+	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/textures/water.jpg")));
+	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/textures/grass.jpg")));
+	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/textures/stone.jpg")));
 	_size = size_;	
 	
 	GenerateRandomTerrain(3);
@@ -198,7 +193,7 @@ void TERRAIN::GenerateRandomTerrain(int numPatches)
 void TERRAIN::CreatePatches(int numPatches)
 {
 	_pdevice->Wait();//who needs synchronisation when you can block GPU?
-	void* shaderData = _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.05/Shaders/TexturedDirectional.glsl",false);
+	void* shaderData = _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.05/Shaders/terrain.glsl",false);
 	for (int i = 0; i < _patches.size(); i++) {
 		if (_patches[i])
 			delete _patches[i];
@@ -221,13 +216,7 @@ void TERRAIN::CreatePatches(int numPatches)
 
 void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLight&light)
 {
-	/*Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
-	int uboid = 0;
-	_shader->SetUniformData("UBO",&ubo, sizeof(ubo));
-
-	Renderer::FlatShaderPushConst pushConst{model };
 	
-	_shader->SetPushConstData(&pushConst,sizeof(pushConst));*/
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render(viewProj,model,light);
 }
