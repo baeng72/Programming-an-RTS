@@ -1,0 +1,20 @@
+#pragma once
+
+#include <common.h>
+#include "Mesh.h"
+
+bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager> pshaderManager);
+bool UnloadObjectResources();
+void ObjectSetWireframe(bool wireframe);
+
+#define OBJ_TREE 0
+#define OBJ_STONE 1
+
+class OBJECT {
+	MESHINSTANCE _meshInstance;
+	int _type;
+public:
+	OBJECT();
+	OBJECT(int t, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca);
+	void Render(glm::mat4& viewProj, Renderer::DirectionalLight& light);
+};
