@@ -1,0 +1,32 @@
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//               Terrain Texture Splatting Pixelshader                  //
+//                                                                      //
+//                   Written by C. Granberg, 2006                       //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+
+sampler alpha;
+sampler texture1;
+sampler texture2;
+sampler texture3;
+
+float4 Main(float2 alphaUV : TEXCOORD0, float2 colorUV : TEXCOORD1) : COLOR
+{
+    //Sample the textures
+    float4 a  = tex2D(alpha, alphaUV);
+    float4 c1 = tex2D(texture1, colorUV);
+    float4 c2 = tex2D(texture2, colorUV);
+    float4 c3 = tex2D(texture3, colorUV);
+
+    //Calculate the inverse
+    float inverse = 1.0f / (a.r + a.g + a.b);
+    
+    //Multiply with alpha texture
+    c1 *= a.b * inverse;
+    c2 *= a.g * inverse;
+    c3 *= a.r * inverse;
+
+    //Return result
+    return c1 + c2 + c3;
+}

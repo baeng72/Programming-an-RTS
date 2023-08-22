@@ -136,6 +136,7 @@ void main(){
 		PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
 			.setTopology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
 			.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
+			.setDepthTest(VK_TRUE)
 			.build(pipeline);
 		particlePipelinePtr = std::make_unique<VulkanPipeline>(context.device, pipeline);
 		for (auto& shader : shaders) {
