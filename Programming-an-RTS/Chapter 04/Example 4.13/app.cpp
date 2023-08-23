@@ -11,11 +11,16 @@ class APPLICATION : public Application {
 	std::unique_ptr<Renderer::ParticleSwarm>	_particles;
 	std::unique_ptr<Renderer::Font> _font;		
 	Renderer::DirectionalLight _light;
+	std::vector<Renderer::LineVertex> _path;
+	std::unique_ptr<Renderer::Line> _line;
 	TERRAIN _terrain;
 	
 	float _angle;
 	float _radius;
 	bool _wireframe;
+
+	INTPOINT	_start;
+	INTPOINT	_goal;
 	
 	
 public:
@@ -57,9 +62,9 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_light.direction = glm::normalize(glm::vec3(0.7f, -0.3f, 0.f));
 	LoadObjectResources(_device.get(), _shadermanager);
 	
-	_terrain.Init(_device.get(), _shadermanager, INTPOINT(150, 150));
+	_terrain.Init(_device.get(), _shadermanager, INTPOINT(100, 100));
 
-	std::vector<Renderer::ParticleVertex> vertices(_terrain._size.x*_terrain._size.y);
+	/*std::vector<Renderer::ParticleVertex> vertices(_terrain._size.x*_terrain._size.y);
 	for (int32_t y = 0; y < _terrain._size.y; ++y) {
 		for (int32_t x = 0; x < _terrain._size.x; ++x) {
 			float prc = _terrain.GetTile(x, y)->_cost;
@@ -70,9 +75,10 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 			v.position = glm::vec3(x, _terrain.GetTile(x, y)->_height + 0.1f, -y);
 			
 		}
-	}
-	_particles.reset(Renderer::ParticleSwarm::Create(_device.get(), vertices.data(), (int)vertices.size(), glm::vec2(0.5f)));
+	}*/
+	_particles.reset(Renderer::ParticleSwarm::Create(_device.get(), nullptr,0, glm::vec2(0.5f)));
 	
+	_line.reset(Renderer::Line::Create(_device.get(), nullptr, 0));
 	return true;
 }
 
@@ -90,22 +96,22 @@ void APPLICATION::Update(float deltaTime) {
 	else if (IsKeyPressed(KEY_SPACE)) {
 		//Generate random terrain		
 		_terrain.GenerateRandomTerrain(3);
-		
-		std::vector<Renderer::ParticleVertex> vertices(_terrain._size.x * _terrain._size.y);
-		for (int32_t y = 0; y < _terrain._size.y; ++y) {
-			for (int32_t x = 0; x < _terrain._size.x; ++x) {
-				float prc = _terrain.GetTile(x, y)->_cost;
-				float red = prc;
-				float green = (1 - prc);
-				Renderer::ParticleVertex& v = vertices[x + y * _terrain._size.x];
-				v.color = glm::vec4(red, green, 0.f, 1.f);
-				v.position = glm::vec3(x, _terrain.GetTile(x, y)->_height + 0.1f, -y);
+		_path.clear();
+		//std::vector<Renderer::ParticleVertex> vertices(_terrain._size.x * _terrain._size.y);
+		//for (int32_t y = 0; y < _terrain._size.y; ++y) {
+		//	for (int32_t x = 0; x < _terrain._size.x; ++x) {
+		//		float prc = _terrain.GetTile(x, y)->_cost;
+		//		float red = prc;
+		//		float green = (1 - prc);
+		//		Renderer::ParticleVertex& v = vertices[x + y * _terrain._size.x];
+		//		v.color = glm::vec4(red, green, 0.f, 1.f);
+		//		v.position = glm::vec3(x, _terrain.GetTile(x, y)->_height + 0.1f, -y);
 
-			}
-		}
-			
-		//very slow, recompile shader each time!		
-		_particles->ResetVertices(vertices.data(), (uint32_t)vertices.size());
+		//	}
+		//}
+		//	
+		////very slow, recompile shader each time!		
+		//_particles.reset(Renderer::ParticleSwarm::Create(_device.get(), vertices.data(), (int)vertices.size(), glm::vec2(0.5f)));
 		
 		//Sleep(100);
 	}
@@ -115,6 +121,53 @@ void APPLICATION::Update(float deltaTime) {
 	}
 	else if (IsKeyPressed(KEY_KP_SUBTRACT) && _radius > 5.f) {
 		_radius -= deltaTime * 30.f;
+	}
+	else if (IsKeyPressed(KEY_N)) {
+		_device->Wait();
+		do {
+			_start = INTPOINT(rand() % _terrain._size.x, rand() % _terrain._size.y);
+			_goal = INTPOINT(rand() % _terrain._size.x, rand() % _terrain._size.y);
+			while (!_terrain.GetTile(_start)->_walkable) {
+				_start = INTPOINT(rand() % _terrain._size.x, rand() % _terrain._size.y);
+			}
+			while (!_terrain.GetTile(_goal)->_walkable || _start == _goal) {
+				_goal = INTPOINT(rand() % _terrain._size.x, rand() % _terrain._size.y);
+			}
+		} while (_terrain.GetTile(_start)->_set != _terrain.GetTile(_goal)->_set);
+
+		std::vector<INTPOINT> p = _terrain.GetPath(_start, _goal);
+		_path.clear();
+
+		if (!p.empty()) {
+			for (int i = 0; i < p.size(); i++) {
+				float prc = i / (float)p.size();
+				float red = prc;
+				float green = (1 - prc);
+				MAPTILE* t = _terrain.GetTile(p[i]);
+
+				_path.push_back({ glm::vec3(p[i].x,t->_height +0.5f,-p[i].y),glm::vec4(red,green,0.f,1.f) });
+			}
+			_line->ResetVertices(_path.data(), (uint32_t)_path.size());
+			std::vector<Renderer::ParticleVertex> particles;
+			particles.push_back({ glm::vec3(_start.x, _terrain.GetTile(_start)->_height + 0.5f, -_start.y), glm::vec4(0.f, 1.f, 0.f, 1.f) });
+			particles.push_back({ glm::vec3(_goal.x, _terrain.GetTile(_goal)->_height + 0.5f, -_goal.y), glm::vec4(1.f, 0.f, 0.f, 1.f) });
+			for (int y = 0; y < _terrain._size.y; y++) {
+				for (int x = 0; x < _terrain._size.x; x++) {
+					if (_terrain.GetTile(x, y)->g < 1000.f) {
+
+						particles.push_back({ glm::vec3(x,_terrain.GetTile(x,y)->_height + 0.1f,-y),glm::vec4(0.f,0.f,1.f,1.f) });
+					}
+				}
+			}
+			_particles->ResetVertices(particles.data(), (uint32_t)particles.size());
+		}
+		else {
+			_line->ResetVertices(nullptr, 0);
+			_particles->ResetVertices(nullptr, 0);
+		}
+
+		
+		Sleep(200);
 	}
 	
 }
@@ -141,7 +194,12 @@ void APPLICATION::Render() {
 	
 	_font->Draw("W: Toggle Wireframe", 10, 10, glm::vec4(0.f, 0.f, 0.f, 1.f));
 	_font->Draw("+/-: Zoom In/Out", 10, 30, glm::vec4(0.f, 0.f, 0.f, 1.f));
-	_font->Draw("SPACE: Randomize Terrain", 10, 50, glm::vec4(0.f, 0.f, 0.f, 1.f));
+	_font->Draw("N: New Path", 10, 50, glm::vec4(0.f, 0.f, 0.f, 1.f));
+	_font->Draw("SPACE: Randomize Terrain", 10, 70, glm::vec4(0.f, 0.f, 0.f, 1.f));
+
+	if (_path.empty()) {
+		_font->Draw("No Path Found!", 10, 110, glm::vec4(0.f, 0.f, 0.f, 1.f));
+	}
 	
 	char buffer[64];
 	sprintf_s(buffer, "%d objects", (int)_terrain._objects.size());
@@ -150,7 +208,7 @@ void APPLICATION::Render() {
 	_device->StartRender();		
 
 	_terrain.Render(viewProj, matWorld, _light);
-
+	_line->Draw(viewProj);
 	_particles->Draw(viewProj, eye);
 	_font->Render();
 
@@ -168,7 +226,7 @@ void APPLICATION::Cleanup() {
 
 int main() {
 	APPLICATION app;
-	if (app.Init(800, 600, "Example 4.12: Calculating Tile Cost")) {
+	if (app.Init(800, 600, "Example 4.13: Pathfinding")) {
 		app.Run();
 	}
 	return 0;

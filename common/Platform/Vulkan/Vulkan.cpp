@@ -1703,7 +1703,7 @@ namespace Vulkan{
 
 		//dynamic state (viewport & scissor)
 		std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT,VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_DEPTH_BIAS };
-		if (pipelineInfo.topology == VK_PRIMITIVE_TOPOLOGY_LINE_LIST) {
+		if (pipelineInfo.topology == VK_PRIMITIVE_TOPOLOGY_LINE_LIST|| pipelineInfo.topology == VK_PRIMITIVE_TOPOLOGY_LINE_STRIP) {
 			dynamicStates.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
 		}
 		VkPipelineDynamicStateCreateInfo dynamicState = { VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };

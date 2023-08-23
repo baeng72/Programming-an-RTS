@@ -22,8 +22,9 @@ namespace Vulkan {
 		VkPipeline pipeline;
 		
 	public:
-		VulkanParticleSwarm(Renderer::RenderDevice* pdevice,Renderer::ParticleVertex*vertices,int vertexCount,glm::vec2&size);
+		VulkanParticleSwarm(Renderer::RenderDevice* pdevice,Renderer::ParticleVertex*vertices,uint32_t vertexCount,glm::vec2&size);
 		virtual ~VulkanParticleSwarm();		
 		virtual void Draw(glm::mat4&viewProj,glm::vec3&eyePos) override;
+		virtual void ResetVertices(Renderer::ParticleVertex* pvertices, uint32_t vertexCount)override;
 	};
 }

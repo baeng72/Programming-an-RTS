@@ -151,11 +151,11 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	memset(_pMaptiles, 0, sizeof(MAPTILE) * _size.x * _size.y);
 
 	//Load Textures
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.12/textures/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.12/textures/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.12/textures/snow.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.13/textures/grass.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.13/textures/mountain.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.13/textures/snow.jpg")));
 	
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.12/Shaders/terrain.glsl",false)));
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.13/Shaders/terrain.glsl",false)));
 
 	GenerateRandomTerrain(3);
 }
@@ -189,9 +189,13 @@ void TERRAIN::GenerateRandomTerrain(int numPatches)
 		}
 	}
 	
-	InitPathfinding();
-	CreatePatches(numPatches);
-	CalculateAlphaMaps();
+		InitPathfinding();
+		
+		
+		CreatePatches(numPatches);
+		
+		
+		CalculateAlphaMaps();
 		
 	
 
@@ -269,7 +273,6 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
 	
-	
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render(_shader.get());
 	
@@ -305,6 +308,7 @@ void TERRAIN::InitPathfinding()
 
 			MAPTILE* ptile = GetTile(x, y);
 			ptile->_height = _heightMap->GetHeight(x, y);
+			ptile->_mappos = INTPOINT(x, y);
 
 			if (ptile->_height < 1.f)
 				ptile->_type = 0;		//Grass
@@ -392,6 +396,138 @@ void TERRAIN::InitPathfinding()
 			}
 		}
 	}
+	CreateTileSets();
+}
+
+void TERRAIN::CreateTileSets()
+{
+	int setNo = 0;
+	for (int y = 0; y < _size.y; y++) {
+		// set a unique set for each tile
+		for (int x = 0; x < _size.x; x++) {
+			_pMaptiles[x + y * _size.x]._set = setNo++;
+		}
+	}
+
+	bool changed = true;
+	while (changed) {
+		changed = false;
+
+		for (int y = 0; y < _size.y; y++) {
+			for (int x = 0; x < _size.x; x++) {
+				MAPTILE* ptile = GetTile(x, y);
+
+				//Find the lowest set of a neighbor
+				if (ptile && ptile->_walkable) {
+					for (int i = 0; i < numNeighbors; i++) {
+						if (ptile->_neighbors[i] &&
+							ptile->_neighbors[i]->_walkable &&
+							ptile->_neighbors[i]->_set < ptile->_set) {
+							changed = true;
+							ptile->_set = ptile->_neighbors[i]->_set;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+float H(INTPOINT a, INTPOINT b){
+	//return abs(a.x - b.x) + abs(a.y-b.y);
+	return a.Distance(b);
+}
+
+std::vector<INTPOINT> TERRAIN::GetPath(INTPOINT start, INTPOINT goal)
+{
+	//Check that the two points are within the bounds of the map
+	MAPTILE* pstartTile = GetTile(start);
+	MAPTILE* pgoalTile = GetTile(goal);
+	if(!Within(start) ||!Within(goal) || start == goal || pstartTile==nullptr || pgoalTile==nullptr)
+		return std::vector<INTPOINT>();
+
+	//Check if a path exists
+	if(!pstartTile->_walkable || !pgoalTile->_walkable || pstartTile->_set != pgoalTile->_set)
+		return std::vector<INTPOINT>();
+
+	//Init search
+	long numTiles = _size.x * _size.y;
+	for (long l = 0; l < numTiles; l++) {
+		_pMaptiles[l].f = _pMaptiles[l].g = (float)INT_MAX;		//clear f, g
+		_pMaptiles[l].open = _pMaptiles[l].closed = false;		//reset open and closed
+	}
+
+	std::vector<MAPTILE*> open;					//create our open list
+	pstartTile->g = 0.f;						//init our starting point (SP)
+	pstartTile->f = H(start, goal);
+	pstartTile->open = true;
+	open.push_back(pstartTile);					//Add SP to the open list
+
+	bool found = false;						//search as long as a path hasn't been found
+	while (!found && !open.empty()) {		//or there are no more tiles to search
+
+		MAPTILE* pbest = open[0];			//find the best tile (i.e. the lowest F value)
+		int bestPlace = 0;
+		for (int i = 1; i < open.size(); i++) {
+			if (open[i]->f < pbest->f) {
+				pbest = open[i];
+				bestPlace = i;
+			}
+		}
+
+		if(pbest == nullptr)	
+			break;							//no path found
+
+		open[bestPlace]->open = false;
+		//open.erase(&open[bestPlace]);		//Take the best node out of the Open list
+		std::vector<MAPTILE*>::iterator iter = open.begin() + bestPlace;
+		open.erase(iter);
+
+		if (pbest->_mappos == goal) {			//if the goal has been found
+			std::vector<INTPOINT> p, p2;
+			MAPTILE* ppoint = pbest;
+			while (ppoint->_mappos != start) {	//Generate path
+				p.push_back(ppoint->_mappos);
+				ppoint = ppoint->_pParent;
+			}
+
+			for (size_t i = p.size() - 1; i != 0; i-- )		//Reverse path
+				p2.push_back(p[i]);
+			p2.push_back(goal);
+			return p2;
+		}
+		else {
+			for (int i = 0; i < numNeighbors; i++) {			//otherwise, check the neighbors of the
+				if (pbest->_neighbors[i]) {						//best tile
+					bool inList = false;						//generate new G and F values
+					float newG = pbest->g + 1.f;
+					float d = H(pbest->_mappos, pbest->_neighbors[i]->_mappos);
+					float newF = newG + H(pbest->_neighbors[i]->_mappos, goal) + pbest->_neighbors[i]->_cost * 5.f * d;
+					
+					if (pbest->_neighbors[i]->open || pbest->_neighbors[i]->closed) {
+						if (newF < pbest->_neighbors[i]->f) {	//If the new F value is lower
+							pbest->_neighbors[i]->g = newG;		//update the values of this tile
+							pbest->_neighbors[i]->f = newF;
+							pbest->_neighbors[i]->_pParent = pbest;
+						}
+						inList = true;
+					}
+
+					if (!inList) {								//if the neighbor tile isn't in the open or closed list
+						pbest->_neighbors[i]->f = newF;			//set the values
+						pbest->_neighbors[i]->g = newG;
+						pbest->_neighbors[i]->_pParent = pbest;
+						pbest->_neighbors[i]->open = true;
+						open.push_back(pbest->_neighbors[i]);	//add it to the open list
+					}
+				}
+			}
+			pbest->closed = true;							//the best tile has now beed searched, add it to the closed list
+
+		}
+	}
+	return std::vector<INTPOINT>();		//no path found
+	
 }
 
 MAPTILE* TERRAIN::GetTile(int x, int y)

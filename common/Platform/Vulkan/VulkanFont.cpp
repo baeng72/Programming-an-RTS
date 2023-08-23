@@ -333,15 +333,17 @@ void main(){
 			VertexBufferBuilder::begin(context.device, context.queue, context.commandBuffer, context.memoryProperties)
 				.AddVertices(vertSize, (float*)_vertices.data())
 				.build(frame.vertexBuffer, vertexLocations);
-			frame.vertSize = vertSize;
+		
 		}
 		else if (vertSize > 0) {
 			//stream vertices
 			
 			memcpy(ptr, _vertices.data(), vertSize);			
 			Vulkan::CopyBufferTo(context.device, context.queue, context.commandBuffer, stagingBuffer, frame.vertexBuffer, vertSize);
+			
 
 		}
+		frame.vertSize = vertSize;
 		if (frame.indSize == 0 || frame.indSize < indSize) {
 			if (frame.indexBuffer.buffer != VK_NULL_HANDLE) {
 				cleanupBuffer(context.device, frame.indexBuffer);
@@ -350,15 +352,16 @@ void main(){
 			IndexBufferBuilder::begin(context.device, context.queue, context.commandBuffer, context.memoryProperties)
 				.AddIndices(indSize, _indices.data())
 				.build(frame.indexBuffer, indexLocations);
-			frame.indSize = indSize;
-			frame.numIndices = (uint32_t)_indices.size();
+			
 		}
 		else if (indSize > 0) {
 			//stream indices
 			memcpy(ptr, _indices.data(), indSize);
 			Vulkan::CopyBufferTo(context.device, context.queue, context.commandBuffer, stagingBuffer, frame.indexBuffer, indSize);
-
+			
 		}
+		frame.indSize = indSize;
+		frame.numIndices = (uint32_t)_indices.size();
 		if (needStaging) {
 			Vulkan::unmapBuffer(context.device, stagingBuffer);
 			Vulkan::cleanupBuffer(context.device, stagingBuffer);

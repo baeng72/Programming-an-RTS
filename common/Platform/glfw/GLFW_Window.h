@@ -1,5 +1,5 @@
 #pragma once
-
+#include <set>
 #include "../../Core/Window.h"
 #include "../../Renderer/RenderDevice.h"
 #include <GLFW/glfw3.h>
@@ -11,6 +11,7 @@ class GLFW_Window : public Window {
 		uint32_t _width;
 		uint32_t _height;
 		std::function<void(Event&)> _evFunc;
+		//std::set<int32_t> keys;
 		
 	}winData;
 public:
@@ -20,5 +21,12 @@ public:
 	virtual void SetEventHandler(const std::function<void(Event&)>& func)override;
 	virtual void OnBeginUpdate()override;
 	virtual void OnUpdate()override;
-	virtual bool IsKeyPressed(int key)override { return glfwGetKey(_window, key)==GLFW_PRESS; }
+	virtual bool IsKeyPressed(int key)override { 
+		//bool pressed = winData.keys.find(key) != winData.keys.end();
+		//winData.keys.erase(key);
+		//return pressed;
+		//return _winData.keys.find(key)!=_winData.keys
+			return glfwGetKey(_window, key)==GLFW_PRESS; 
+	}
+
 };

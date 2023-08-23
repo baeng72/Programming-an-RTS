@@ -215,15 +215,7 @@ void TERRAIN::CalculateAlphaMaps() {
 				pdata[x + y * texWidth] |= b;
 			}
 		}
-		//create a new texture
-		//_alphaMaps[i].reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
-
-		////what a hack
-		//Renderer::Texture* pdiffuse = _diffuseMaps[i].get();
-
-		//Renderer::Texture* palpha = _alphaMaps[i].get();
-		//std::vector<Renderer::Texture*> textures = { pdiffuse,palpha };
-		//_shaders[i]->SetTextures(textures.data(), 2);
+	
 	}
 	//create a new texture
 	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
@@ -243,12 +235,8 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
 	
-	for (size_t m = 0; m < _diffuseMaps.size(); m++) {
-		
-		//draw for each diffuse map, could do it in one draw call per patch passing a buffer or something?
-		
-		
-		for (size_t i = 0; i < _patches.size(); i++)
-			_patches[i]->Render(_shader.get());
-	}
+	
+	for (size_t i = 0; i < _patches.size(); i++)
+		_patches[i]->Render(_shader.get());
+	
 }

@@ -51,6 +51,7 @@ GLFW_Window::GLFW_Window(uint32_t width, uint32_t height,const  std::string&titl
 		case GLFW_PRESS: {
 			KeyPressedEvent event(key, false);
 			data._evFunc(event);
+			//data.keys.insert(key);
 		}
 					   break;
 		case GLFW_RELEASE: {
