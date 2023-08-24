@@ -97,23 +97,9 @@ void APPLICATION::Update(float deltaTime) {
 		//Generate random terrain		
 		_terrain.GenerateRandomTerrain(3);
 		_path.clear();
-		//std::vector<Renderer::ParticleVertex> vertices(_terrain._size.x * _terrain._size.y);
-		//for (int32_t y = 0; y < _terrain._size.y; ++y) {
-		//	for (int32_t x = 0; x < _terrain._size.x; ++x) {
-		//		float prc = _terrain.GetTile(x, y)->_cost;
-		//		float red = prc;
-		//		float green = (1 - prc);
-		//		Renderer::ParticleVertex& v = vertices[x + y * _terrain._size.x];
-		//		v.color = glm::vec4(red, green, 0.f, 1.f);
-		//		v.position = glm::vec3(x, _terrain.GetTile(x, y)->_height + 0.1f, -y);
-
-		//	}
-		//}
-		//	
-		////very slow, recompile shader each time!		
-		//_particles.reset(Renderer::ParticleSwarm::Create(_device.get(), vertices.data(), (int)vertices.size(), glm::vec2(0.5f)));
-		
-		//Sleep(100);
+		_particles->ResetVertices(nullptr, 0);
+		_line->ResetVertices(nullptr, 0);
+		Sleep(100);
 	}
 	else if (IsKeyPressed(KEY_KP_ADD) && _radius < 200.f) {
 		//zoom out

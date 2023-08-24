@@ -12,15 +12,15 @@ PATCH::~PATCH()
 	Release();
 }
 
-bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevice)
+bool PATCH::CreateMesh(TERRAIN&t, Rect source, Renderer::RenderDevice* pdevice)
 {
 	_pdevice = pdevice;
 	int width = source.right - source.left;
 	int height = source.bottom - source.top;
 	int nrVert = (width + 1) * (height + 1);
 	int nrTri = width * height * 2;
-	float invSizeX = 1 / (float)hm._size.x;
-	float invSizeY = 1 / (float)hm._size.y;
+	float invSizeX = 1 / (float)t._size.x;
+	float invSizeY = 1 / (float)t._size.y;
 	std::vector<TERRAINVertex> vertices(nrVert);
 	for (int z = source.top, z0 = 0; z <= source.bottom; z++, z0++) {
 		for (int x = source.left, x0 = 0; x <= source.right; x++, x0++) {
@@ -29,8 +29,8 @@ bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevi
 			glm::vec2 alphaUV = glm::vec2(x * invSizeX, z * invSizeY);
 			glm::vec2 uv = alphaUV * 8.f;
 			//Extract height (and position) from heightMap
-			
-			glm::vec3 pos = glm::vec3(x, hm._pHeightMap[x + z * hm._size.x], -z);
+			MAPTILE* ptile = t.GetTile(x, z);
+			glm::vec3 pos = glm::vec3(x, ptile->_height, -z);
 
 			vertices[z0 * (width + 1) + x0] = TERRAINVertex(pos,uv,alphaUV);
 		}
@@ -151,11 +151,11 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	memset(_pMaptiles, 0, sizeof(MAPTILE) * _size.x * _size.y);
 
 	//Load Textures
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.13/textures/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.13/textures/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.13/textures/snow.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.14/textures/grass.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.14/textures/mountain.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.14/textures/snow.jpg")));
 	
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.13/Shaders/terrain.glsl",false)));
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.14/Shaders/terrain.glsl",false)));
 
 	GenerateRandomTerrain(3);
 }
@@ -220,7 +220,7 @@ void TERRAIN::CreatePatches(int numPatches)
 			(int)((y + 1) * (_size.y - 1) / (float)numPatches) };
 
 			PATCH* p = new PATCH();
-			p->CreateMesh(*_heightMap, r, _pdevice);
+			p->CreateMesh(*this, r, _pdevice);
 			_patches.push_back(p);
 		}
 	}
@@ -243,9 +243,9 @@ void TERRAIN::CalculateAlphaMaps() {
 				int terrain_x = (int)(_size.x * (x / (float)(texWidth)));
 				int terrain_y = (int)(_size.y * (y / (float)(texHeight)));
 				MAPTILE* ptile = GetTile(terrain_x, terrain_y);
-
+				float height = 0;
 				uint32_t b = 0;
-				if(ptile && ptile->_type==i)
+				if (ptile && ptile->_type==i)					
 					b = 0xFF;
 				else
 					b = 0;
@@ -307,7 +307,8 @@ void TERRAIN::InitPathfinding()
 		for (int x = 0; x < _size.x; x++) {
 
 			MAPTILE* ptile = GetTile(x, y);
-			ptile->_height = _heightMap->GetHeight(x, y);
+			if(_heightMap)
+				ptile->_height = _heightMap->GetHeight(x, y);
 			ptile->_mappos = INTPOINT(x, y);
 
 			if (ptile->_height < 1.f)
@@ -533,4 +534,82 @@ std::vector<INTPOINT> TERRAIN::GetPath(INTPOINT start, INTPOINT goal)
 MAPTILE* TERRAIN::GetTile(int x, int y)
 {
 	return &_pMaptiles[x + y * _size.x];
+}
+
+void TERRAIN::SaveTerrain(const char* pfilename)
+{
+	std::ofstream out(pfilename, std::ios::binary);				//binary format
+	if (out.good()) {
+		out.write((char*)&_size, sizeof(INTPOINT));				//write map size
+
+		//write all the maptile information needed to recreate the map
+		for (int y = 0; y < _size.y; y++) {
+			for (int x = 0; x < _size.x; x++) {
+				MAPTILE* ptile = GetTile(x, y);
+				out.write((char*)&ptile->_type, sizeof(int));			//type
+				out.write((char*)&ptile->_height, sizeof(float));		//height
+			}
+		}
+
+		//Write all the objects
+		int numObjects = (int) _objects.size();
+		out.write((char*)&numObjects, sizeof(int));					//num objects
+		for (int i = 0; i < (int)_objects.size(); i++) {
+			out.write((char*)&_objects[i]._type, sizeof(int));			//type
+			out.write((char*)&_objects[i]._mappos, sizeof(INTPOINT));	//mappos
+			out.write((char*)&_objects[i]._meshInstance._pos,sizeof(glm::vec3));			//Pos
+			out.write((char*)&_objects[i]._meshInstance._rot,sizeof(glm::vec3));			//Rot
+			out.write((char*)&_objects[i]._meshInstance._sca, sizeof(glm::vec3));			//Sca
+		}
+	}
+	out.close();
+}
+
+void TERRAIN::LoadTerrain(const char* pfilename)
+{
+	std::ifstream in(pfilename, std::ios::binary);	//Binary forms
+
+	if (in.good()) {
+		Release();		//release all resources
+
+		in.read((char*)&_size, sizeof(INTPOINT));		//read map size
+
+		if (_pMaptiles != nullptr)							//Clear old maptiles
+			delete[] _pMaptiles;
+
+		//Create new maptiles
+		_pMaptiles = new MAPTILE[_size.x * _size.y];
+		memset(_pMaptiles, 0, sizeof(MAPTILE) * _size.x * _size.y);
+
+		//Read the maptile information
+		for (int y = 0; y < _size.y; y++) {
+			for (int x = 0; x < _size.x; x++) {
+				MAPTILE* ptile = GetTile(x, y);
+				in.read((char*)&ptile->_type, sizeof(int));			//type
+				in.read((char*)&ptile->_height, sizeof(float));		//Height
+			}
+		}
+
+		//Read number of objects
+		int numObjects = 0;
+		in.read((char*)&numObjects, sizeof(int));
+		for (int i = 0; i < numObjects; i++) {
+			int type = 0;
+			INTPOINT mp;
+			glm::vec3 p, r, s;
+			in.read((char*)&type, sizeof(int));						//type
+			in.read((char*)&mp, sizeof(INTPOINT));					//mappos
+			in.read((char*)&p, sizeof(glm::vec3));					//Pos
+			in.read((char*)&r, sizeof(glm::vec3));					//Rot
+			in.read((char*)&s, sizeof(glm::vec3));					//Sca
+
+			_objects.push_back(OBJECT(type, mp, p, r, s));
+		}
+
+		//Recreate Terrain
+		InitPathfinding();
+		CreatePatches(3);
+		CalculateAlphaMaps();
+	}
+	in.close();
 }
