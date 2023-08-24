@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+
 enum class EventType{WindowResize,WindowClose,KeyPressed,KeyReleased,KeyTyped,MouseButtonPressed,MouseButtonReleased,MouseScrolled,MouseMoved};
 
 struct Event {

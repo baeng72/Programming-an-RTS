@@ -28,5 +28,7 @@ public:
 		//return _winData.keys.find(key)!=_winData.keys
 			return glfwGetKey(_window, key)==GLFW_PRESS; 
 	}
-
+	virtual void GetWindowSize(int& width, int& height)override {
+		glfwGetWindowSize(_window, &width, &height);
+	}
 };

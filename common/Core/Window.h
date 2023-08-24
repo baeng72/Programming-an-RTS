@@ -141,4 +141,5 @@ public:
 	virtual void OnBeginUpdate() = 0;
 	virtual void OnUpdate() = 0;
 	virtual bool IsKeyPressed(int key) = 0;
+	virtual void GetWindowSize(int& width, int& height) = 0;
 };

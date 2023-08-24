@@ -9,8 +9,7 @@ class APPLICATION : public Application {
 	std::unique_ptr<HEIGHTMAP> _heightMap;
 	int	_image;
 	float m_angle;
-	int _width;
-	int _height;
+	
 public:
 	APPLICATION();
 	bool Init(int width, int height, const char* title);
@@ -24,7 +23,7 @@ public:
 APPLICATION::APPLICATION() {
 	m_angle = 0.f;
 	_image = 0;
-	_width = _height = 0;
+	
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -39,7 +38,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_heightMap = std::make_unique<HEIGHTMAP>(_device.get(), INTPOINT(100, 100));
 	_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/textures/abe.jpg");
 	
-	_device->GetDimensions(&_width, &_height);
+	
 	return true;
 }
 

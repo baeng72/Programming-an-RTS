@@ -14,16 +14,7 @@ namespace Assimp {
 		
 		glm::mat4 _xform;
 		std::string _path;
-		struct AssimpMaterial {
-			std::string name;
-			glm::vec4 ambient;
-			glm::vec4 diffuse;
-			glm::vec4 specular;
-			glm::vec4 emissive;
-			std::vector<std::string> diffuseTextures;
-			std::vector<std::string> normalTextures;
-			std::vector < std::string> specularTextures;
-		};
+		
 
 		std::vector<std::string> _diffuseTextures;
 
@@ -47,11 +38,11 @@ namespace Assimp {
 			std::vector<uint32_t> indices;	
 			uint32_t materialIndex;
 		};
-		std::vector<AssimpMaterial> _materials;
+		std::vector<Renderer::ModelMaterial> _materials;
 
 		
 		std::vector<AssimpPrimitive> _primitives;
-		uint32_t _materialIndex;
+		std::vector<uint32_t> _materialIndices;
 		struct AssimpNode {
 			std::string name;
 			glm::mat4 nodeXForm;
@@ -70,9 +61,10 @@ namespace Assimp {
 		virtual uint32_t GetMeshCount() override;
 		virtual Renderer::Mesh* GetMesh(Renderer::MeshType meshType,uint32_t i) override;
 		virtual glm::mat4 GetMeshXForm(uint32_t i) override;
+		virtual uint32_t GetMeshMaterialIndex(uint32_t i) override;
 		virtual uint32_t GetTextureCount(Renderer::TextureType type) override;
 		virtual Renderer::Texture* GetTexture(Renderer::TextureType type, uint32_t i) override;
 		virtual uint32_t GetMaterialCount() override;
-		virtual Renderer::Material* GetMaterial(uint32_t i) override;
+		virtual Renderer::ModelMaterial* GetMaterial(uint32_t i) override;
 	};
 }

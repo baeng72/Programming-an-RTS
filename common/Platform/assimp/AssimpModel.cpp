@@ -51,7 +51,7 @@ namespace Assimp {
 	void AssimpModel::ProcessMaterials(const aiScene* pscene)
 	{
 		for (uint32_t i = 0; i < pscene->mNumMaterials; i++) {
-			AssimpMaterial mat;
+			Renderer::ModelMaterial mat;
 			aiMaterial* pmat = pscene->mMaterials[i];
 			aiString name;
 			pmat->Get(AI_MATKEY_NAME, name);
@@ -134,6 +134,7 @@ namespace Assimp {
 		
 		AssimpPrimitive primitive = { pmesh->mName.C_Str(), verts,inds,pmesh->mMaterialIndex };
 		_primitives.push_back(primitive);
+		_materialIndices.push_back(pmesh->mMaterialIndex);
 		
 	}
 	void AssimpModel::ProcessTextureTypes(aiMaterial* pmat, aiTextureType type, std::vector<std::string>& textureNames)
@@ -151,6 +152,19 @@ namespace Assimp {
 	}
 	Renderer::Mesh* AssimpModel::GetMesh(Renderer::MeshType meshType,uint32_t i)
 	{
+		if (meshType == Renderer::MeshType::position_normal) {
+			struct PosNorm {
+				glm::vec3 pos;
+				glm::vec3 norm;
+			};
+			std::vector<PosNorm> vertices(_primitives[i].vertices.size());
+			for (size_t v = 0; v < _primitives[i].vertices.size(); v++) {
+				vertices[v] = { _primitives[i].vertices[v].position,_primitives[i].vertices[v].normal };
+			}
+			uint32_t vertSize = (uint32_t)(sizeof(PosNorm) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Renderer::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+		}
 		if (meshType == Renderer::MeshType::position_normal_uv) {
 			uint32_t vertSize = (uint32_t)(sizeof(AssimpVertex) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
@@ -161,6 +175,10 @@ namespace Assimp {
 	glm::mat4 AssimpModel::GetMeshXForm(uint32_t i)
 	{
 		return _xform;
+	}
+
+	uint32_t AssimpModel::GetMeshMaterialIndex(uint32_t i) {
+		return _materialIndices[i];
 	}
 	uint32_t AssimpModel::GetTextureCount(Renderer::TextureType type)
 	{
@@ -181,8 +199,8 @@ namespace Assimp {
 	{
 		return (uint32_t)_materials.size();
 	}
-	Renderer::Material* AssimpModel::GetMaterial(uint32_t i)
+	Renderer::ModelMaterial* AssimpModel::GetMaterial(uint32_t i)
 	{
-		return nullptr;
+		return &_materials[i];
 	}
 }

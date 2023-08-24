@@ -22,6 +22,7 @@ public:
 	virtual ~Application();
 	void OnEvent(Event& e);
 	inline Window& GetWindow() { return *_window; }
+	inline Window* GetWindowPtr() { return _window.get(); }
 	inline static Application& Get() { return *_instance; }
 	void Run();
 	//mimic app functions from DX9 code
