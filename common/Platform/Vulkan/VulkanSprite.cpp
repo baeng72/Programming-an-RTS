@@ -20,10 +20,10 @@ namespace Vulkan {
 layout (location=0) out vec2 outUV;
 
 vec3 vertices[4]={
-	{-1.0,-1.0,0.0},
-	{ 1.0,-1.0,0.0},
+	{0.0,0.0,0.0},
+	{ 1.0,0.0,0.0},
 	{ 1.0, 1.0,0.0},
-	{-1.0, 1.0,0.0},
+	{ 0.0, 1.0,0.0},
 };
 
 vec2 uvs[4]={
@@ -67,10 +67,14 @@ void main(){
 		VulkContext& context = *contextptr;
 		VulkFrameData* framedataptr = reinterpret_cast<VulkFrameData*>(pdevice->GetCurrentFrameData());
 		VulkFrameData& framedata = *framedataptr;
+		std::vector<VkDescriptorSet> descriptorSetList;
 		DescriptorSetBuilder::begin(context.pPoolCache, context.pLayoutCache)
 			.AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,VK_SHADER_STAGE_FRAGMENT_BIT)
-			.build(descriptorSet, descriptorLayout);
-		spriteDescriptorPtr = std::make_unique<VulkanDescriptor>(context.device, descriptorSet);
+			.build(descriptorSetList, _descriptorLayout,MAX_FRAMES);
+		spriteDescriptorPtr = std::make_unique<VulkanDescriptorList>(context.device, descriptorSetList);
+		_descriptorSets[0] = descriptorSetList[0];
+		_descriptorSets[1] = descriptorSetList[1];
+		_descriptorIndex = UINT32_MAX;
 		if (instances == 0) {
 			//build pipepline first time 
 			ShaderCompiler compiler;
@@ -82,10 +86,10 @@ void main(){
 			std::vector<VkPushConstantRange> pushConstants{ {VK_SHADER_STAGE_VERTEX_BIT,0,sizeof(PushConst)} };
 			
 			PipelineLayoutBuilder::begin(context.device)
-				.AddDescriptorSetLayout(descriptorLayout)
+				.AddDescriptorSetLayout(_descriptorLayout)
 				.AddPushConstants(pushConstants)
-				.build(pipelineLayout);
-			spritePipelineLayoutPtr = std::make_unique<VulkanPipelineLayout>(context.device, pipelineLayout);
+				.build(_pipelineLayout);
+			spritePipelineLayoutPtr = std::make_unique<VulkanPipelineLayout>(context.device, _pipelineLayout);
 
 			std::vector<ShaderModule> shaders;
 			VkVertexInputBindingDescription vertexInputDescription = {};
@@ -96,20 +100,20 @@ void main(){
 				.load(shaders, vertexInputDescription, vertexAttributeDescriptions);
 			
 			
-			PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
+			PipelineBuilder::begin(context.device, _pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
 				.setBlend(VK_TRUE)
 				//.setCullMode(VK_CULL_MODE_FRONT_BIT)
 				.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-				.build(pipeline);
-			spritePipelinePtr = std::make_unique<VulkanPipeline>(context.device, pipeline);
+				.build(_pipeline);
+			spritePipelinePtr = std::make_unique<VulkanPipeline>(context.device, _pipeline);
 			for (auto& shader : shaders) {
 				cleanupShaderModule(context.device, shader.shaderModule);
 			}
 			
 		}
 		else {
-			pipelineLayout = *spritePipelineLayoutPtr;
-			pipeline = *spritePipelinePtr;
+			_pipelineLayout = *spritePipelineLayoutPtr;
+			_pipeline = *spritePipelinePtr;
 		}
 		instances++;
 		pdevice->GetDimensions(&_width, &_height);
@@ -133,6 +137,8 @@ void main(){
 					//resuse existing
 				}
 				else {
+					_descriptorIndex++;
+					_descriptorIndex %= 2;
 					ASSERT(ptexture, "Invalid Sprite Texture");
 					_scale = ptexture->GetScale();
 					VulkContext* contextptr = reinterpret_cast<VulkContext*>(_pdevice->GetDeviceContext());
@@ -142,7 +148,7 @@ void main(){
 					imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 					imageInfo.imageView = ptext->imageView;
 					imageInfo.sampler = ptext->sampler;
-					DescriptorSetUpdater::begin(context.pLayoutCache, descriptorLayout, descriptorSet)
+					DescriptorSetUpdater::begin(context.pLayoutCache, _descriptorLayout, _descriptorSets[_descriptorIndex])
 						.AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo)
 						.update();
 				}
@@ -152,13 +158,15 @@ void main(){
 			VulkFrameData& framedata = *framedataptr;
 			VkCommandBuffer cmd = framedata.cmd;
 
-
-			glm::mat4 model = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(_ptexture->width * _scale.x / 2.f, _ptexture->height * _scale.y / 2.f, 0.f)), position);
+			glm::mat4 id = glm::mat4(1.f);
+			glm::mat4 t = glm::translate(id, position);
+			glm::mat4 s = glm::scale(id, glm::vec3(_ptexture->width * _scale.x, _ptexture->height * _scale.y, 0.f));
+			glm::mat4 model = t * s;
 			PushConst pushConst = { _orthoproj ,model };
 
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-			vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConst), &pushConst);
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[_descriptorIndex], 0, nullptr);
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline);
+			vkCmdPushConstants(cmd, _pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConst), &pushConst);
 			vkCmdDraw(cmd, 6, 1, 0, 0);
 		}
 	}

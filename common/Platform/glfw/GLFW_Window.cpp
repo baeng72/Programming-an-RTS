@@ -17,6 +17,8 @@ Window* Window::Create(uint32_t width, uint32_t height, const std::string& title
 GLFW_Window::GLFW_Window(uint32_t width, uint32_t height,const  std::string&title)
 	:winData{title,width,height}
 {
+	winData.xoffset = winData.yoffset = 0.f;
+
 	if (!glfwInitialized) {
 		int success = glfwInit();
 		assert(success);
@@ -88,7 +90,8 @@ GLFW_Window::GLFW_Window(uint32_t width, uint32_t height,const  std::string&titl
 
 	glfwSetScrollCallback(_window, [](GLFWwindow* window, double xoffset, double yoffset) {
 		WinData& data = *(WinData*)glfwGetWindowUserPointer(window);
-
+		data.xoffset = (float)xoffset;
+		data.yoffset = (float)yoffset;
 		MouseScrolledEvent event((float)xoffset, (float)yoffset);
 		data._evFunc(event);
 		});

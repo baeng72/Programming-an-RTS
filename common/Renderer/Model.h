@@ -1,6 +1,6 @@
 #pragma once
 #include<string>
-#include <glm/glm.hpp>
+#include "../Core/defines.h"
 #include "RenderDevice.h"
 #include "Mesh.h"
 #include "Texture.h"

@@ -1,9 +1,6 @@
 #pragma once
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "Core/defines.h"
+#include "Core/types.h"
 #include "Core/Window.h"
 #include "Core/Application.h"
 #include "Core/log.h"
@@ -20,3 +17,4 @@
 #include "Renderer/Model.h"
 #include "Renderer/Mesh.h"
 #include "Renderer/Material.h"
+#include "Renderer/Image.h"

@@ -32,5 +32,7 @@ namespace Vulkan {
 		virtual void Wait()const override;
 		virtual void  GetDimensions(int* width, int* height)const override;
 		virtual void SetClearColor(float r, float g, float b, float a) override;
+		virtual void Clear(Rect& r, Color clr) override;
+		
 	};
 }

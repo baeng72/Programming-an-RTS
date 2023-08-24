@@ -1,4 +1,4 @@
-#pragma once
+
 #include "camera.h"
 
 
@@ -72,7 +72,7 @@ void CAMERA::Update(float delta)
 	if (_pwindow->IsKeyPressed(KEY_UP))
 		Scroll(_look * delta * 20.f);
 	if (_pwindow->IsKeyPressed(KEY_DOWN))
-		Scroll(-_look * 20.f);
+		Scroll(-_look * delta * 20.f);
 
 	//Move Camera (i.e. Change Angle)
 	if (_pwindow->IsKeyPressed(KEY_A))

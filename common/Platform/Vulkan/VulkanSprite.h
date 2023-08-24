@@ -1,8 +1,5 @@
 #pragma once
-#define GLM_FORCE_RADIANS
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "../../Core/defines.h"
 #include "../../Renderer/RenderDevice.h"
 #include "../../Renderer/Sprite.h"
 #include "VulkanEx.h"
@@ -16,12 +13,14 @@ namespace Vulkan {
 		int _width, _height;
 		glm::vec2 _scale;
 		glm::mat4 _orthoproj;		
+		uint32_t _descriptorIndex;
 		Vulkan::Texture* _ptexture;				
-		VkDescriptorSetLayout	descriptorLayout;
-		VkDescriptorSet			descriptorSet;
-		VkPipelineLayout		pipelineLayout;
-		VkPipeline				pipeline;
-		std::unique_ptr<VulkanDescriptor> spriteDescriptorPtr;
+		VkDescriptorSetLayout	_descriptorLayout;
+		//VkDescriptorSet			descriptorSet;
+		VkDescriptorSet			_descriptorSets[MAX_FRAMES];
+		VkPipelineLayout		_pipelineLayout;
+		VkPipeline				_pipeline;
+		std::unique_ptr<VulkanDescriptorList> spriteDescriptorPtr;
 		static std::unique_ptr<VulkanPipelineLayout> spritePipelineLayoutPtr;
 		static std::unique_ptr<VulkanPipeline> spritePipelinePtr;
 		static int instances;

@@ -42,6 +42,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
 	_device->EnableGeometry(true);	
 	_device->EnableLines(true);
+	_device->EnableDepthBuffer(true);
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	_font.reset(Renderer::Font::Create());
@@ -121,7 +122,7 @@ void APPLICATION::Cleanup() {
 
 int main() {
 	APPLICATION app;
-	if (app.Init(800, 600, "Example 4.5: Tilebased Texturing")) {
+	if (app.Init(800, 600, "Example 5.2: Mouse Example")) {
 		app.Run();
 	}
 	return 0;

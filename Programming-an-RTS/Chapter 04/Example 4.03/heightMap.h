@@ -1,9 +1,6 @@
 #pragma once
-#include "../../../common/common.h"
-#include "../../../common/Platform/Vulkan/VulkanEx.h"
+
 #include "intpoint.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/constants.hpp>
 
 #define LEFT 0
 #define RIGHT 1

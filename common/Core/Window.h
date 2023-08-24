@@ -130,6 +130,8 @@
 
 #define KEY_LAST               KEY_MENU
 
+#define MOUSE_BUTTON_LEFT 0
+#define MOUSE_BUTTON_RIGHT 1
 
 class Window {
 public:
@@ -142,4 +144,8 @@ public:
 	virtual void OnUpdate() = 0;
 	virtual bool IsKeyPressed(int key) = 0;
 	virtual void GetWindowSize(int& width, int& height) = 0;
+	virtual void GetCursorPos(float& xpos, float& ypos) = 0;
+	virtual bool IsMouseButtonPressed(int button) = 0;
+	virtual void GetScrollPos(float& xoffset, float& yoffset) = 0;
+	virtual void ShowCursor(bool show) = 0;
 };

@@ -1,5 +1,5 @@
 #pragma once
-#include <glm/glm.hpp>
+#include "../../Core/defines.h"
 #include "VulkanMesh.h"
 #include "VulkState.h"
 #include "VulkSwapchain.h"

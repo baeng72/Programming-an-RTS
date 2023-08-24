@@ -1,7 +1,6 @@
 #pragma once
-
+#include <cmath>
 #include <common.h>
-
 struct INTPOINT {
 	int x, y;
 	INTPOINT() {

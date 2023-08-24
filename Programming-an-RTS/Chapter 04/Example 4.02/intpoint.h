@@ -1,11 +1,6 @@
 #pragma once
+#include <common.h>
 
-struct Rect {
-	int left, right, top, bottom;
-	Rect() {
-		left = right = top = bottom = 0;
-	}
-};
 struct INTPOINT {
 	int x, y;
 	INTPOINT() {

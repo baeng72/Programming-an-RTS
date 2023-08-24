@@ -1,11 +1,7 @@
 #pragma once
-#include "../../../common/common.h"
-#include "../../../common/Renderer/RenderDevice.h"
-#include "../../../common/Renderer/ShaderManager.h"
-#include "../../../common/Renderer/Shader.h"
-#include "../../../common/Renderer/Mesh.h"
+#include <common.h>
 #include "heightMap.h"
-#include <glm/glm.hpp>
+
 
 struct TERRAINVertex {
 	glm::vec3 position;

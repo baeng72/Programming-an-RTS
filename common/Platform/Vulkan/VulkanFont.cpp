@@ -16,7 +16,7 @@ namespace Vulkan {
 	VulkanFont::VulkanFont() :_renderdevice(nullptr),_width(0),_height(0),invBmpWidth(0.f) {
 		bmpHeight = 0;
 		currFrame = UINT32_MAX;
-		for (int i = 0; i < 2; i++) {
+		for (int i = 0; i < MAX_FRAMES; i++) {
 			frames[i].indexBuffer.buffer = VK_NULL_HANDLE;
 			frames[i].indSize = 0;
 			frames[i].vertexBuffer.buffer = VK_NULL_HANDLE;
@@ -312,7 +312,7 @@ void main(){
 		VkDeviceSize vertSize = sizeof(FontVertex) * _vertices.size();
 		VkDeviceSize indSize = sizeof(uint32_t) * _indices.size();
 		currFrame++;
-		uint32_t frameIdx = currFrame % 2;
+		uint32_t frameIdx = currFrame % MAX_FRAMES;
 		VkDeviceSize maxSize = std::max(vertSize, indSize);
 		
 		FrameData& frame = frames[frameIdx];

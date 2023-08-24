@@ -1,5 +1,6 @@
 message("STB CMakeLists.txt")
-file(GLOB STB_FILES "*.cpp")
+file(GLOB STB_FILES  "*.cpp" "*.h")
+
 # foreach(FILE ${STB_FILES}) 
     # # Get the directory of the source file
     # get_filename_component(PARENT_DIR "${FILE}" DIRECTORY)

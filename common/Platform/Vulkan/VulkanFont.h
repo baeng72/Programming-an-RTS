@@ -1,8 +1,7 @@
 #pragma once
 #include "../../Renderer/RenderDevice.h"
 #include "../../Renderer/Font.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+
 #include "VulkanEx.h"
 namespace Vulkan {
 	class VulkanFont : public Renderer::Font {
@@ -31,7 +30,7 @@ namespace Vulkan {
 			VkDeviceSize indSize;
 			uint32_t numIndices;
 		};
-		FrameData frames[2];//double-buffering
+		FrameData frames[MAX_FRAMES];//double-buffering
 		uint32_t currFrame;
 		std::unique_ptr<VulkanTexture> fontTexturePtr;
 		std::unique_ptr<VulkanDescriptor> fontDescriptorPtr;

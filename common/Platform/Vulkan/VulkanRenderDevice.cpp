@@ -118,4 +118,17 @@ namespace Vulkan {
 	{
 		_swapchain->SetClearColor(0, { r,g,b,a });
 	}
+	void VulkanRenderDevice::Clear(Rect& r, Color clr)
+	{
+		VkClearAttachment attachments[1] = { 0 };
+		attachments[0].colorAttachment = 0;
+		attachments[0].clearValue.color = VkClearColorValue{ clr.r,clr.g,clr.b,clr.a };
+		attachments[0].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		VkClearRect rects[1] = { 0 };
+		rects[0].rect = { { (int32_t)r.left,(int32_t)r.top},{(uint32_t)(r.right - r.left),(uint32_t)(r.bottom - r.top)} };
+		rects[0].baseArrayLayer = 0;
+		rects[0].layerCount = 1;
+		vkCmdClearAttachments(_cmd, 1, attachments, 1, rects);
+	}
+	
 }
