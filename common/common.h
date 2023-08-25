@@ -18,3 +18,4 @@
 #include "Renderer/Mesh.h"
 #include "Renderer/Material.h"
 #include "Renderer/Image.h"
+#include "Renderer/Shape.h"

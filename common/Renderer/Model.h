@@ -25,6 +25,8 @@ namespace Renderer {
 		virtual ~Model() = default;
 		virtual uint32_t GetMeshCount() = 0;
 		virtual Mesh* GetMesh(MeshType meshType,uint32_t i) = 0;
+		virtual float* GetMeshRawVertices(uint32_t i,uint32_t &stride,uint32_t&count ) = 0;
+		virtual uint32_t* GetMeshRawIndices(uint32_t i, uint32_t& count) = 0;
 		virtual glm::mat4 GetMeshXForm(uint32_t i) = 0;
 		virtual uint32_t GetMeshMaterialIndex(uint32_t i) = 0;
 		virtual uint32_t GetTextureCount(TextureType type) = 0;

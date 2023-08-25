@@ -172,6 +172,17 @@ namespace Assimp {
 		}
 		return nullptr;
 	}
+	float* AssimpModel::GetMeshRawVertices(uint32_t i, uint32_t&stride, uint32_t& count)
+	{
+		stride = sizeof(AssimpVertex);//code using this function must use stride size
+		count = (uint32_t)_primitives[i].vertices.size();
+		return (float*)_primitives[i].vertices.data();
+	}
+	uint32_t* AssimpModel::GetMeshRawIndices(uint32_t i, uint32_t& count)
+	{
+		count = (uint32_t)_primitives[i].indices.size();
+		return (uint32_t*)_primitives[i].indices.data();
+	}
 	glm::mat4 AssimpModel::GetMeshXForm(uint32_t i)
 	{
 		return _xform;

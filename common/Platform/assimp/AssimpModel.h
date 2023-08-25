@@ -60,6 +60,8 @@ namespace Assimp {
 		virtual ~AssimpModel();
 		virtual uint32_t GetMeshCount() override;
 		virtual Renderer::Mesh* GetMesh(Renderer::MeshType meshType,uint32_t i) override;
+		virtual float* GetMeshRawVertices(uint32_t i, uint32_t &stride, uint32_t& count) override;
+		virtual uint32_t* GetMeshRawIndices(uint32_t i, uint32_t& count) override;
 		virtual glm::mat4 GetMeshXForm(uint32_t i) override;
 		virtual uint32_t GetMeshMaterialIndex(uint32_t i) override;
 		virtual uint32_t GetTextureCount(Renderer::TextureType type) override;

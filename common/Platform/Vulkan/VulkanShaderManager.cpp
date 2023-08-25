@@ -826,6 +826,7 @@ namespace Vulkan {
 	}
 	void VulkanShaderManager::CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,bool cullBackFaces, bool enableBlend)
 	{
+		LOG_INFO("Compiling shader {0}", name);
 		ShaderCompiler compiler;
 		std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>> spirvMap;
 		for (auto &pair : shaderSources) {

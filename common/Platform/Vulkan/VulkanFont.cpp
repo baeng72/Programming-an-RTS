@@ -372,6 +372,8 @@ void main(){
 	}
 
 	void VulkanFont::Render() {
+		if (_vertices.size() == 0)
+			return;
 		Update();
 		FrameData& frame = frames[currFrame];
 		VulkFrameData& frameData = *reinterpret_cast<VulkFrameData*>(_renderdevice->GetCurrentFrameData());

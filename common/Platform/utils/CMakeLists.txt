@@ -1,13 +1,7 @@
-message("Platform CMakeLists.txt")
-add_subdirectory(stb)
-add_subdirectory(glfw)
-add_subdirectory(Vulkan)
-add_subdirectory(Assimp)
-add_subdirectory(Utils)
 
-file(GLOB PLATFORM_FILES "*.c??" "*.h??")
-# #source_group(PLATFORM FILES ${PLATFORM_FILES})
-# foreach(FILE ${PLATFORM_FILES}) 
+file(GLOB UTILS_FILES "*.cpp" "*.h")
+#source_group(PLATFORM FILES ${PLATFORM_FILES})
+# foreach(FILE ${VULKAN_FILES}) 
     # # Get the directory of the source file
     # get_filename_component(PARENT_DIR "${FILE}" DIRECTORY)
 
@@ -27,5 +21,5 @@ file(GLOB PLATFORM_FILES "*.c??" "*.h??")
     # source_group("${GROUP}" FILES "${FILE}")
 # endforeach()
 
-set(PLATFORM_FILES ${STB_FILES} ${GLFW_FILES} ${VULKAN_FILES} ${ASSIMP_FILES} ${UTILS_FILES})
-set(PLATFORM_FILES ${PLATFORM_FILES} PARENT_SCOPE)
+
+set(UTILS_FILES ${UTILS_FILES} PARENT_SCOPE)
