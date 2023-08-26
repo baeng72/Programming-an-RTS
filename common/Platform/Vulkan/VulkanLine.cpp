@@ -48,7 +48,7 @@ void main(){
 		VulkContext& context = *contextptr;
 		VulkFrameData* framedataptr = reinterpret_cast<VulkFrameData*>(pdevice->GetCurrentFrameData());
 		VulkFrameData& framedata = *framedataptr;
-
+		LOG_INFO("Compiling Line Shader...");
 		//build pipepline first time 
 		ShaderCompiler compiler;
 		std::vector<uint32_t> vertexSpirv;

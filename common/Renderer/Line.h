@@ -15,4 +15,6 @@ namespace Renderer {
 		virtual void Draw(glm::mat4&viewProj) = 0;
 		virtual void ResetVertices(Renderer::LineVertex* vertices, uint32_t vertexCount) = 0;
 	};
+
+	
 }

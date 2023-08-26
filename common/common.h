@@ -19,3 +19,4 @@
 #include "Renderer/Material.h"
 #include "Renderer/Image.h"
 #include "Renderer/Shape.h"
+#include "Renderer/Line2D.h"
