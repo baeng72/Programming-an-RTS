@@ -64,7 +64,7 @@ void main(){
 	
 	//normalize interpolated normal
 	vec3 normal = normalize(inNormal);
-	float shade = max(dot(normal,-light.direction),0);
+	float shade = max(dot(normal,light.direction),0);
 	vec3 ambient = vec3(inColor)*vec3(light.ambient);
 	vec3 diffuse = vec3(inColor)*vec3(light.diffuse) * shade;
 	

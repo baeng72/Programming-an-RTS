@@ -106,7 +106,7 @@ void APPLICATION::Cleanup() {
 
 int main() {
 	APPLICATION app;
-	if (app.Init(800, 600, "Example 5.1: Camera Example")) {
+	if (app.Init(800, 600, "Example 5.2: Mouse Example")) {
 		app.Run();
 	}
 	return 0;

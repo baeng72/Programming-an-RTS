@@ -831,6 +831,9 @@ namespace Vulkan {
 		std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>> spirvMap;
 		for (auto &pair : shaderSources) {
 			std::vector<uint32_t> spirv = compiler.compileShader(pair.second.c_str(),pair.first);
+			if (spirv.size() == 0) {
+				LOG_ERROR("Unable to compile shader: {0}", pair.first);
+			}
 			spirvMap[pair.first] = spirv;
 		}
 		//get descriptor sets, ubo sizes, etc
@@ -1049,6 +1052,7 @@ namespace Vulkan {
 			}
 			
 		}
+		
 		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
 		Vulkan::VulkContext& context = *contextptr;
 		Vulkan::VulkFrameData* framedataptr = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
@@ -1215,6 +1219,9 @@ namespace Vulkan {
 			_shaderList[name].storageSizeMap[name] = 0;
 		}
 		
+		for (auto& pc : mergedPushConsts) {
+			_shaderList[name].pushConstStages = pc.stageFlags;
+		}
 
 	}
 	

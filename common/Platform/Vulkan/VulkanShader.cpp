@@ -76,7 +76,7 @@ namespace Vulkan {
 		Vulkan::VulkFrameData* framedataptr = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
 		Vulkan::VulkFrameData& framedata = *framedataptr;
 
-		vkCmdPushConstants(framedata.cmd, _pShaderData->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, size, pdata);
+		vkCmdPushConstants(framedata.cmd, _pShaderData->pipelineLayout, _pShaderData->pushConstStages, 0, size, pdata);
 
 	}
 

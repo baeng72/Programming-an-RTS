@@ -130,5 +130,11 @@ namespace Vulkan {
 		rects[0].layerCount = 1;
 		vkCmdClearAttachments(_cmd, 1, attachments, 1, rects);
 	}
+
+	void VulkanRenderDevice::SetViewport(Renderer::ViewPort& vp)
+	{
+		VkViewport viewport = { vp.x,vp.y,vp.width,vp.height,vp.fnear,vp.ffar };
+		vkCmdSetViewport(_cmd, 0, 1, &viewport);
+	}
 	
 }

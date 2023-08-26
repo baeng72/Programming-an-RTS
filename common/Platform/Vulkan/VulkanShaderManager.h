@@ -37,6 +37,7 @@ namespace Vulkan {
 		VkPipeline		 pipeline;
 		VkPipeline		filledPipeline;
 		VkPipeline		wireframePipeline;
+		VkShaderStageFlags pushConstStages;
 		Vulkan::Buffer	uniformBuffer;		
 		std::vector<std::string> uboNames;
 		std::vector<uint32_t> uboSetBindings;
