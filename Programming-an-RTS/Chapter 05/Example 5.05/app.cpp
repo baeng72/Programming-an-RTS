@@ -175,7 +175,7 @@ void APPLICATION::Render() {
 
 	_device->StartRender();		
 
-	Renderer::ViewPort v;
+	ViewPort v;
 	v.x = v.y = 0;
 	v.width = 800;
 	v.height = 600;

@@ -10,4 +10,21 @@ struct Rect {
 		top = t;
 		bottom = b;
 	}
+	int Width() { return right - left; }
+	int Height() { return bottom - top; }
+};
+
+struct ViewPort {
+	float x;
+	float y;
+	float width;
+	float height;
+	float fnear;
+	float ffar;
+};
+struct Plane {
+	float a;
+	float b;
+	float c;
+	float d;
 };

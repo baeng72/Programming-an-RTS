@@ -30,7 +30,8 @@ namespace Vulkan {
 		_state = std::make_unique<VulkState>();
 		VulkStateInitFlags initFlags;
 		initFlags.enableGeometryShader = _enableGeometry;
-		initFlags.enableWireframe = _enableLines;
+		initFlags.enableWireframe = _enableWireframe;
+		initFlags.enableLineWidth = _enableLines;
 		_state->Init(initFlags, _window);
 		auto physicalDevice = _state->getPhysicalDevice();
 		VkPhysicalDeviceProperties properties;
@@ -92,6 +93,9 @@ namespace Vulkan {
 	void VulkanRenderDevice::EnableLines(bool lines) {
 		_enableLines = lines;
 	}
+	void VulkanRenderDevice::EnableWireframe(bool wireframe) {
+		_enableWireframe = wireframe;
+	}
 	void VulkanRenderDevice::EnableDepthBuffer(bool depth) {
 		_enableDepthBuffer = depth;
 	}
@@ -131,7 +135,7 @@ namespace Vulkan {
 		vkCmdClearAttachments(_cmd, 1, attachments, 1, rects);
 	}
 
-	void VulkanRenderDevice::SetViewport(Renderer::ViewPort& vp)
+	void VulkanRenderDevice::SetViewport(ViewPort& vp)
 	{
 		VkViewport viewport = { vp.x,vp.y,vp.width,vp.height,vp.fnear,vp.ffar };
 		vkCmdSetViewport(_cmd, 0, 1, &viewport);

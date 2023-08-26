@@ -82,6 +82,7 @@ void main(){
 		PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
 			.setTopology(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP)
 			.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
+			
 			.setDepthTest(VK_TRUE)
 			.build(pipeline);
 		linePipelinePtr = std::make_unique<VulkanPipeline>(context.device, pipeline);

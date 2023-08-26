@@ -3,14 +3,7 @@
 #include "../Core/defines.h"
 #include "../Core/types.h"
 namespace Renderer {
-	struct ViewPort {
-		float x;
-		float y;
-		float width;
-		float height;
-		float fnear;
-		float ffar;
-	};
+	
 	class RenderDevice {
 	public:
 		virtual ~RenderDevice() = default;
@@ -19,6 +12,7 @@ namespace Renderer {
 		virtual void EndRender() = 0;
 		virtual void SetVSync(bool vsync) = 0;
 		virtual void EnableGeometry(bool geom) = 0;
+		virtual void EnableWireframe(bool wireframe) = 0;
 		virtual void EnableLines(bool lines) = 0;
 		virtual void EnableDepthBuffer(bool depth) = 0;
 		virtual void* GetDeviceContext()const = 0;
