@@ -391,6 +391,8 @@ void main(){
 		vkCmdDrawIndexed(cmd, frame.numIndices, 1, 0, 0, 0);
 	}
 
+	
+
 	void VulkanFont::GetTextSize(const char* ptext, float& width, float& height)
 	{
 		size_t len = strlen(ptext);
@@ -414,6 +416,6 @@ void main(){
 	void VulkanFont::SetDimensions(int width, int height) {
 		_width = width;
 		_height = height;
-		_orthoproj = glm::ortho(0.f, (float)_width, (float)_height, 0.f, -1.f, 1.f);
+		_orthoproj = glm::ortho(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);
 	}
 }

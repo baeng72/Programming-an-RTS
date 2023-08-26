@@ -4,13 +4,13 @@
 #include "VulkSwapchain.h"
 #include "ShaderCompiler.h"
 #include "../../Core/Log.h"
-Renderer::Line* Renderer::Line::Create(Renderer::RenderDevice*pdevice,Renderer::LineVertex*pvertices,uint32_t vertexCount, float lineWidth) {
-	return new Vulkan::VulkanLine(pdevice,pvertices,vertexCount,lineWidth);
+Renderer::Line* Renderer::Line::Create(Renderer::RenderDevice*pdevice,Renderer::LineVertex*pvertices,uint32_t vertexCount, float lineWidth,bool isLineList) {
+	return new Vulkan::VulkanLine(pdevice,pvertices,vertexCount,lineWidth,isLineList);
 }
 namespace Vulkan {
 	
 	
-	VulkanLine::VulkanLine(Renderer::RenderDevice* pdevice, Renderer::LineVertex* pvertices, uint32_t vertexCount, float lineWidth) :_pdevice(pdevice),_lineWidth(lineWidth)
+	VulkanLine::VulkanLine(Renderer::RenderDevice* pdevice, Renderer::LineVertex* pvertices, uint32_t vertexCount, float lineWidth,bool isLineList) :_pdevice(pdevice),_lineWidth(lineWidth)
 	{
 		
 		const char* vertexSrc = R"(
@@ -81,7 +81,7 @@ void main(){
 			
 			
 		PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-			.setTopology(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP)
+			.setTopology(isLineList?VK_PRIMITIVE_TOPOLOGY_LINE_LIST : VK_PRIMITIVE_TOPOLOGY_LINE_STRIP)
 			.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
 			.setDepthTest(VK_TRUE)
 			.build(pipeline);

@@ -51,6 +51,7 @@ namespace Vulkan {
 		virtual void Init(Renderer::RenderDevice* pdevice, const char* pfont, int fontSize) override;
 		virtual void Draw(const char* ptext, int xpos, int ypos,glm::vec4 color) override;
 		virtual void Render()override;
+		
 		virtual void GetTextSize(const char* ptext, float& width, float& height) override;
 		virtual void Clear()override {
 			_vertices.clear();

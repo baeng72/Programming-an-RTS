@@ -10,7 +10,7 @@ namespace Renderer {
 	class Line {
 		
 	public:
-		static Line * Create(RenderDevice* pdevice,LineVertex*vertices,uint32_t vertexCount,float lineWidth=1);
+		static Line * Create(RenderDevice* pdevice,LineVertex*vertices,uint32_t vertexCount,float lineWidth=1,bool isLineList=false);
 		virtual ~Line() = default;		
 		virtual void Draw(glm::mat4&viewProj) = 0;
 		virtual void ResetVertices(Renderer::LineVertex* vertices, uint32_t vertexCount) = 0;

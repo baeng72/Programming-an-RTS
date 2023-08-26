@@ -22,7 +22,7 @@ namespace Vulkan {
 		VkPipeline pipeline;
 		
 	public:
-		VulkanLine(Renderer::RenderDevice* pdevice,Renderer::LineVertex*vertices,uint32_t vertexCount, float lineWidth);
+		VulkanLine(Renderer::RenderDevice* pdevice,Renderer::LineVertex*vertices,uint32_t vertexCount, float lineWidth,bool isLineList);
 		virtual ~VulkanLine();		
 		virtual void Draw(glm::mat4&viewProj) override;
 		virtual void ResetVertices(Renderer::LineVertex* vertices, uint32_t vertexCount)override;
