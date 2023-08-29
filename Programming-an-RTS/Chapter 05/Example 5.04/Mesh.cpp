@@ -36,9 +36,9 @@ void MESH::Release()
 bool MESH::Load( Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager> shaderManager, const char* pfilename) {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
-	std::unique_ptr<Renderer::Model> model = std::unique_ptr<Renderer::Model>(Renderer::Model::Create(pdevice, pfilename));
-	_mesh = std::unique_ptr<Renderer::Mesh>(model->GetMesh(Renderer::MeshType::position_normal_uv, 0));
-	_texture = std::unique_ptr<Renderer::Texture>(model->GetTexture(Renderer::TextureType::diffuse, 0));
+	std::unique_ptr<Mesh::Model> model = std::unique_ptr<Mesh::Model>(Mesh::Model::Create(pdevice, pfilename));
+	_mesh = std::unique_ptr<Mesh::Mesh>(model->GetMesh(Mesh::MeshType::position_normal_uv, 0));
+	_texture = std::unique_ptr<Renderer::Texture>(model->GetTexture(Mesh::TextureType::diffuse, 0));
 	_xform = model->GetMeshXForm(0);
 	uint32_t stride = 0;
 	uint32_t count = 0;

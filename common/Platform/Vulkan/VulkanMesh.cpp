@@ -3,17 +3,53 @@
 #include "VulkanMesh.h"
 #include "VulkState.h"
 #include "VulkSwapchain.h"
-Renderer::Mesh* Renderer::Mesh::Create(RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize) {
-	return new Vulkan::VulkanMesh(pdevice, pvertices, vertSize, pindices, indSize);
+#include "../meshoptimizer/src/meshoptimizer.h"
+namespace Mesh {
+	Mesh* Mesh::Create(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize) {
+		return new Vulkan::VulkanMesh(pdevice, pvertices, vertSize, pindices, indSize);
+	}
 }
 namespace Vulkan {
-	
+	VulkanMesh::VulkanMesh(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertStride, uint32_t vertSize, uint32_t* pindices, uint32_t indSize,bool optimize) {
+		if (optimize) {
+			uint32_t indCount = indSize / sizeof(uint32_t);
+			uint32_t vertCount = vertSize / vertStride;
+			std::vector<uint32_t> indices(pindices, pindices + indCount);
+
+			std::vector<unsigned int> remap(indCount); // allocate temporary memory for the remap table
+			size_t vertex_count = meshopt_generateVertexRemap(remap.data(), pindices, indCount, pvertices, vertCount, vertStride);
+			std::vector<uint32_t> progressiveIndices(indCount);
+			meshopt_remapIndexBuffer(progressiveIndices.data(), pindices, indCount, remap.data());
+			std::vector<float> progressiveVertices(vertCount * vertStride);
+			meshopt_remapVertexBuffer(progressiveVertices.data(), pvertices, vertCount, vertStride, remap.data());
+			Create(progressiveVertices.data(), vertSize, progressiveIndices.data(), indSize);
+		}
+		else {
+			Create(pvertices, vertSize, pindices, indSize);
+		}
+	}
 	VulkanMesh::VulkanMesh(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize):_pdevice(pdevice)
 	{
 
+		Create(pvertices, vertSize, pindices, indSize);
+	}
+
+	
+	VulkanMesh::~VulkanMesh()
+	{
+		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
+		Vulkan::VulkContext& context = *contextptr;
+		
+		Vulkan::cleanupBuffer(context.device, _vertexBuffer);
+		Vulkan::cleanupBuffer(context.device, _indexBuffer);
+	}
+
+	void VulkanMesh::Create(float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize) {
 		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
 		Vulkan::VulkContext& context = *contextptr;
 		{
+
+
 			std::vector<uint32_t> vertexLocations;
 			Vulkan::VertexBufferBuilder::begin(context.device, context.queue, context.commandBuffer, context.memoryProperties)
 				.AddVertices(vertSize, pvertices)
@@ -27,14 +63,7 @@ namespace Vulkan {
 			_indexCount = indSize / sizeof(uint32_t);
 		}
 	}
-	VulkanMesh::~VulkanMesh()
-	{
-		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
-		Vulkan::VulkContext& context = *contextptr;
-		
-		Vulkan::cleanupBuffer(context.device, _vertexBuffer);
-		Vulkan::cleanupBuffer(context.device, _indexBuffer);
-	}
+
 	void VulkanMesh::Render(Renderer::Shader*pshader)
 	{
 		pshader->Bind();

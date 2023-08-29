@@ -1,12 +1,13 @@
 #pragma once
 #include<string>
 #include "../Core/defines.h"
-#include "RenderDevice.h"
+#include "../Renderer/RenderDevice.h"
 #include "Mesh.h"
-#include "Texture.h"
-#include "Material.h"
+#include "ProgressiveMesh.h"
+#include "../Renderer/Texture.h"
 
-namespace Renderer {
+
+namespace Mesh {
 	struct ModelMaterial {
 		std::string name;
 		glm::vec4 ambient;
@@ -21,16 +22,17 @@ namespace Renderer {
 	enum class TextureType{diffuse};
 	class Model {		
 	public:
-		static Model * Create(RenderDevice* pdevice,const char * pmodelPath);
+		static Model * Create(Renderer::RenderDevice* pdevice,const char * pmodelPath);
 		virtual ~Model() = default;
 		virtual uint32_t GetMeshCount() = 0;
 		virtual Mesh* GetMesh(MeshType meshType,uint32_t i) = 0;
+		virtual ProgressiveMesh* GetProgressiveMesh(MeshType meshType, uint32_t i) = 0;
 		virtual float* GetMeshRawVertices(uint32_t i,uint32_t &stride,uint32_t&count ) = 0;
 		virtual uint32_t* GetMeshRawIndices(uint32_t i, uint32_t& count) = 0;
 		virtual glm::mat4 GetMeshXForm(uint32_t i) = 0;
 		virtual uint32_t GetMeshMaterialIndex(uint32_t i) = 0;
 		virtual uint32_t GetTextureCount(TextureType type) = 0;
-		virtual Texture* GetTexture(TextureType type, uint32_t i) = 0;
+		virtual Renderer::Texture* GetTexture(TextureType type, uint32_t i) = 0;
 		virtual uint32_t GetMaterialCount() = 0;
 		virtual ModelMaterial* GetMaterial(uint32_t i) = 0;
 	};

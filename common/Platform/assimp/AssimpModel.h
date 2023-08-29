@@ -1,15 +1,16 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include "../../Renderer/Model.h"
-#include "../../Renderer/Mesh.h"
+#include "../../Mesh/Model.h"
+#include "../../Mesh/Mesh.h"
+#include "../../mesh/ProgressiveMesh.h"
 #include "../../Renderer/Shader.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
 namespace Assimp {
-	class AssimpModel : public Renderer::Model {
+	class AssimpModel : public Mesh::Model {
 		Renderer::RenderDevice* _pdevice;
 		
 		glm::mat4 _xform;
@@ -38,7 +39,7 @@ namespace Assimp {
 			std::vector<uint32_t> indices;	
 			uint32_t materialIndex;
 		};
-		std::vector<Renderer::ModelMaterial> _materials;
+		std::vector<Mesh::ModelMaterial> _materials;
 
 		
 		std::vector<AssimpPrimitive> _primitives;
@@ -59,14 +60,15 @@ namespace Assimp {
 		AssimpModel(Renderer::RenderDevice* device,const char*pmodelPath);
 		virtual ~AssimpModel();
 		virtual uint32_t GetMeshCount() override;
-		virtual Renderer::Mesh* GetMesh(Renderer::MeshType meshType,uint32_t i) override;
+		virtual Mesh::Mesh* GetMesh(Mesh::MeshType meshType,uint32_t i) override;
+		virtual Mesh::ProgressiveMesh* GetProgressiveMesh(Mesh::MeshType meshType, uint32_t i) override;
 		virtual float* GetMeshRawVertices(uint32_t i, uint32_t &stride, uint32_t& count) override;
 		virtual uint32_t* GetMeshRawIndices(uint32_t i, uint32_t& count) override;
 		virtual glm::mat4 GetMeshXForm(uint32_t i) override;
 		virtual uint32_t GetMeshMaterialIndex(uint32_t i) override;
-		virtual uint32_t GetTextureCount(Renderer::TextureType type) override;
-		virtual Renderer::Texture* GetTexture(Renderer::TextureType type, uint32_t i) override;
+		virtual uint32_t GetTextureCount(Mesh::TextureType type) override;
+		virtual Renderer::Texture* GetTexture(Mesh::TextureType type, uint32_t i) override;
 		virtual uint32_t GetMaterialCount() override;
-		virtual Renderer::ModelMaterial* GetMaterial(uint32_t i) override;
+		virtual Mesh::ModelMaterial* GetMaterial(uint32_t i) override;
 	};
 }

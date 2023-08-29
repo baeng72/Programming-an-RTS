@@ -73,3 +73,6 @@ add_subdirectory(freetype)
 
 #assimp
 add_subdirectory(assimp)
+
+#meshoptimizer
+add_subdirectory(meshoptimizer)

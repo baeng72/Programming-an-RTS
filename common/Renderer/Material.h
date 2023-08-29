@@ -8,7 +8,7 @@ namespace Renderer {
 		
 	public:
 		enum class MaterialType { DiffuseColor, DiffuseTexture, DiffuseColorArray, DiffuseTextureArray, };
-		static Material* Create(RenderDevice* pdevice,Material::MaterialType type);
+		static Material* Create(RenderDevice* pdevice, Material::MaterialType type);
 		virtual ~Material()=default;
 		virtual void SetAttributes(void* ptr, uint32_t size) = 0;		//pass a buffer of 1 or more elements (32-bit size) that holds triangle index
 		virtual void SetData(void* ptr, uint32_t size)=0;				//pass in a buffer of some structure holding material info, each shader will determine what the type is

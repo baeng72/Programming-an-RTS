@@ -25,3 +25,7 @@
 [submodule "assimp"]
 	path = ThirdParty/assimp
 	url = https://github.com/assimp/assimp.git
+
+[submodule "meshoptimizer"]
+	path = ThirdParty/meshoptimizer
+	url = https://github.com/zeux/meshoptimizer.git

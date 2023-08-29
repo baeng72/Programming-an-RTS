@@ -2,8 +2,14 @@
 
 #include "AssimpModel.h"
 #include "../../Core/Log.h"
-Renderer::Model* Renderer::Model::Create(RenderDevice* pdevice, const char *pmodelPath) {
-	return new Assimp::AssimpModel(pdevice, pmodelPath);
+//#define __OPTIMIZE__
+#ifdef __OPTIMIZE__
+#include "../meshoptimizer/src/meshoptimizer.h"
+#endif
+namespace Mesh {
+	Model* Model::Create(Renderer::RenderDevice* pdevice, const char* pmodelPath) {
+		return new Assimp::AssimpModel(pdevice, pmodelPath);
+	}
 }
 namespace Assimp {
 	AssimpModel::AssimpModel(Renderer::RenderDevice* device, const char* pmodelPath)
@@ -51,7 +57,7 @@ namespace Assimp {
 	void AssimpModel::ProcessMaterials(const aiScene* pscene)
 	{
 		for (uint32_t i = 0; i < pscene->mNumMaterials; i++) {
-			Renderer::ModelMaterial mat;
+			Mesh::ModelMaterial mat;
 			aiMaterial* pmat = pscene->mMaterials[i];
 			aiString name;
 			pmat->Get(AI_MATKEY_NAME, name);
@@ -130,8 +136,27 @@ namespace Assimp {
 			}
 		}
 
+		//uint32_t indCount = (uint32_t)inds.size();
+#ifdef __OPTIMIZE__
+		uint32_t vertStride = sizeof(AssimpVertex), vertCount = (uint32_t) verts.size();
+		float* pvertices = (float*)verts.data();
 		uint32_t indCount = (uint32_t)inds.size();
+		uint32_t* pindices = inds.data();
+		std::vector<uint32_t> indices(pindices, pindices + indCount);
+
+		std::vector<unsigned int> remap(indCount); // allocate temporary memory for the remap table
+		size_t vertex_count = meshopt_generateVertexRemap(remap.data(), pindices, indCount, pvertices, vertCount, vertStride);
+		std::vector<unsigned int> newIndices(indCount);
+		meshopt_remapIndexBuffer(newIndices.data(), pindices, indCount, remap.data());
+		std::vector<float> newVertices(vertStride * vertCount);
+		meshopt_remapVertexBuffer(newVertices.data(), pvertices, vertCount, vertStride, remap.data());
+		inds = newIndices;
+		for (uint32_t i = 0; i < vertCount; i++) {
+			AssimpVertex* ptr = reinterpret_cast<AssimpVertex*>(newVertices.data() + i * sizeof(AssimpVertex));
+			verts[i] = *ptr;
+		}
 		
+#endif
 		AssimpPrimitive primitive = { pmesh->mName.C_Str(), verts,inds,pmesh->mMaterialIndex };
 		_primitives.push_back(primitive);
 		_materialIndices.push_back(pmesh->mMaterialIndex);
@@ -150,9 +175,9 @@ namespace Assimp {
 	{
 		return (uint32_t)_primitives.size();
 	}
-	Renderer::Mesh* AssimpModel::GetMesh(Renderer::MeshType meshType,uint32_t i)
+	Mesh::Mesh* AssimpModel::GetMesh(Mesh::MeshType meshType,uint32_t i)
 	{
-		if (meshType == Renderer::MeshType::position_normal) {
+		if (meshType == Mesh::MeshType::position_normal) {
 			struct PosNorm {
 				glm::vec3 pos;
 				glm::vec3 norm;
@@ -163,12 +188,34 @@ namespace Assimp {
 			}
 			uint32_t vertSize = (uint32_t)(sizeof(PosNorm) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
-			return Renderer::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
 		}
-		if (meshType == Renderer::MeshType::position_normal_uv) {
+		if (meshType == Mesh::MeshType::position_normal_uv) {
 			uint32_t vertSize = (uint32_t)(sizeof(AssimpVertex) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
-			return Renderer::Mesh::Create(_pdevice, (float*)_primitives[i].vertices.data(), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+			return Mesh::Mesh::Create(_pdevice, (float*)_primitives[i].vertices.data(), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+		}
+		return nullptr;
+	}
+	Mesh::ProgressiveMesh* AssimpModel::GetProgressiveMesh(Mesh::MeshType meshType, uint32_t i)
+	{
+		if (meshType == Mesh::MeshType::position_normal) {
+			struct PosNorm {
+				glm::vec3 pos;
+				glm::vec3 norm;
+			};
+			std::vector<PosNorm> vertices(_primitives[i].vertices.size());
+			for (size_t v = 0; v < _primitives[i].vertices.size(); v++) {
+				vertices[v] = { _primitives[i].vertices[v].position,_primitives[i].vertices[v].normal };
+			}
+			uint32_t vertSize = (uint32_t)(sizeof(PosNorm) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::ProgressiveMesh::Create(_pdevice, (float*)vertices.data(), vertSize,sizeof(PosNorm), (uint32_t*)_primitives[i].indices.data(), indSize);
+		}
+		if (meshType == Mesh::MeshType::position_normal_uv) {
+			uint32_t vertSize = (uint32_t)(sizeof(AssimpVertex) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::ProgressiveMesh::Create(_pdevice, (float*)_primitives[i].vertices.data(), vertSize,sizeof(AssimpVertex), (uint32_t*)_primitives[i].indices.data(), indSize);
 		}
 		return nullptr;
 	}
@@ -191,16 +238,16 @@ namespace Assimp {
 	uint32_t AssimpModel::GetMeshMaterialIndex(uint32_t i) {
 		return _materialIndices[i];
 	}
-	uint32_t AssimpModel::GetTextureCount(Renderer::TextureType type)
+	uint32_t AssimpModel::GetTextureCount(Mesh::TextureType type)
 	{
-		if (type == Renderer::TextureType::diffuse) {
+		if (type == Mesh::TextureType::diffuse) {
 			return (uint32_t)_diffuseTextures.size();
 		}
 		return 0;
 	}
-	Renderer::Texture* AssimpModel::GetTexture(Renderer::TextureType type, uint32_t i)
+	Renderer::Texture* AssimpModel::GetTexture(Mesh::TextureType type, uint32_t i)
 	{
-		if (type == Renderer::TextureType::diffuse) {
+		if (type == Mesh::TextureType::diffuse) {
 			std::string textpath = _path + _diffuseTextures[i];
 			return Renderer::Texture::Create(_pdevice, textpath.c_str());
 		}
@@ -210,7 +257,7 @@ namespace Assimp {
 	{
 		return (uint32_t)_materials.size();
 	}
-	Renderer::ModelMaterial* AssimpModel::GetMaterial(uint32_t i)
+	Mesh::ModelMaterial* AssimpModel::GetMaterial(uint32_t i)
 	{
 		return &_materials[i];
 	}

@@ -17,7 +17,7 @@ class APPLICATION : public Application {
 	CAMERA _camera;
 	std::vector<glm::mat4> _xforms;
 	std::vector<glm::vec4> _meshColors;
-	std::vector<std::unique_ptr<Renderer::Mesh>> _meshes;
+	std::vector<std::unique_ptr<Mesh::Mesh>> _meshes;
 	std::unique_ptr<Renderer::ShaderManager> _shadermanager;
 	std::unique_ptr<Renderer::Shader> _shader;
 	Renderer::DirectionalLight _light;
@@ -45,13 +45,13 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 
-	std::unique_ptr<Renderer::Model> model = std::unique_ptr<Renderer::Model>(Renderer::Model::Create(_device.get(), "../../../../Resources/Chapter 05/Example 5.01/meshes/terrain.x"));
+	std::unique_ptr<Mesh::Model> model = std::unique_ptr<Mesh::Model>(Mesh::Model::Create(_device.get(), "../../../../Resources/Chapter 05/Example 5.01/meshes/terrain.x"));
 	auto meshCount = model->GetMeshCount();
 	_meshes.resize(meshCount);
 	_meshColors.resize(meshCount);
 	_xforms.resize(meshCount);
 	for (uint32_t i = 0; i < meshCount; i++) {
-		_meshes[i] = std::unique_ptr<Renderer::Mesh>(model->GetMesh(Renderer::MeshType::position_normal, i));
+		_meshes[i] = std::unique_ptr<Mesh::Mesh>(model->GetMesh(Mesh::MeshType::position_normal, i));
 		auto matIdx = model->GetMeshMaterialIndex(i);
 		auto mat = model->GetMaterial(i);
 		_meshColors[i] = mat->diffuse;

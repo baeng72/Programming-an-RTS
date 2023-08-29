@@ -1,7 +1,7 @@
 #include "ShapeUtils.h"
 
-namespace Renderer {
-	Shape* Shape::Create(RenderDevice* pdevice) {
+namespace  Mesh {
+	Shape* Shape::Create(Renderer::RenderDevice* pdevice) {
 		return new Utils::ShapeUtils(pdevice);
 	}
 }
@@ -17,7 +17,7 @@ namespace Utils {
 	{
 	}
 
-	Renderer::Mesh* ShapeUtils::CreateCube(float side) {
+	Mesh::Mesh* ShapeUtils::CreateCube(float side) {
 		struct PosNormUV {
 			vec3 pos;
 			vec3 norm;
@@ -97,11 +97,11 @@ namespace Utils {
 
 		uint32_t vertSize = (uint32_t)(sizeof(PosNormUV) * vertices.size());
 		uint32_t indSize = (uint32_t)(sizeof(uint32_t) * indices.size());
-		Renderer::Mesh* pmesh = Renderer::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, indices.data(), indSize);
+		Mesh::Mesh* pmesh = Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, indices.data(), indSize);
 		return pmesh;
 	}
 
-	Renderer::Mesh* ShapeUtils::CreateSphere(float radius, int32_t slices, int32_t stacks)
+	Mesh::Mesh* ShapeUtils::CreateSphere(float radius, int32_t slices, int32_t stacks)
 	{
 		struct PosNormUV {
 			vec3 pos;
@@ -200,7 +200,7 @@ namespace Utils {
 
 		uint32_t vertSize = (uint32_t)(sizeof(PosNormUV) * vertices.size());
 		uint32_t indSize = (uint32_t)(sizeof(uint32_t) * indices.size());
-		Renderer::Mesh* pmesh = Renderer::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, indices.data(), indSize);
+		Mesh::Mesh* pmesh = Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, indices.data(), indSize);
 		return pmesh;
 	}
 

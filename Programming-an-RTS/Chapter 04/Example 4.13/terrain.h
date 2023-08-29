@@ -1,9 +1,5 @@
 #pragma once
-#include "../../../common/common.h"
-#include "../../../common/Renderer/RenderDevice.h"
-#include "../../../common/Renderer/ShaderManager.h"
-#include "../../../common/Renderer/Shader.h"
-#include "../../../common/Renderer/Mesh.h"
+#include <common.h>
 #include "heightMap.h"
 #include "object.h"
 #include <glm/glm.hpp>
@@ -28,7 +24,7 @@ struct TERRAINVertex {
 
 struct PATCH {
 	Renderer::RenderDevice* _pdevice;
-	std::unique_ptr<Renderer::Mesh>	_mesh;
+	std::unique_ptr<Mesh::Mesh>	_mesh;
 	PATCH();
 	~PATCH();
 	bool CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevice);

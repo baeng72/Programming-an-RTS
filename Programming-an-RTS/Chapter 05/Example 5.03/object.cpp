@@ -2,7 +2,7 @@
 
 std::vector<MESH*> objectMeshes;
 
-std::vector<std::unique_ptr<Renderer::Mesh>> shapeMeshes;
+std::vector<std::unique_ptr<Mesh::Mesh>> shapeMeshes;
 
 std::unique_ptr<Renderer::Shader> shapeShader;
 
@@ -14,10 +14,10 @@ bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Rendere
 	MESH* ring = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.03/objects/ring.x");
 	objectMeshes.push_back(ring);
 
-	std::unique_ptr<Renderer::Shape> shape;
-	shape.reset(Renderer::Shape::Create(pdevice));
-	shapeMeshes.push_back(std::unique_ptr<Renderer::Mesh>(shape->CreateCube(1.f)));
-	shapeMeshes.push_back(std::unique_ptr<Renderer::Mesh>(shape->CreateSphere(1.f, 12, 12)));
+	std::unique_ptr<Mesh::Shape> shape;
+	shape.reset(Mesh::Shape::Create(pdevice));
+	shapeMeshes.push_back(std::unique_ptr<Mesh::Mesh>(shape->CreateCube(1.f)));
+	shapeMeshes.push_back(std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(1.f, 12, 12)));
 	
 
 	shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.03/shaders/shape.glsl",false)));

@@ -46,12 +46,12 @@ void MESH::Release()
 bool MESH::Load( Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager> shaderManager, const char* pfilename) {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
-	std::unique_ptr<Renderer::Model> model = std::unique_ptr<Renderer::Model>(Renderer::Model::Create(pdevice, pfilename));
+	std::unique_ptr<Mesh::Model> model = std::unique_ptr<Mesh::Model>(Mesh::Model::Create(pdevice, pfilename));
 	uint32_t meshCount = model->GetMeshCount();
 	_meshes.resize(meshCount);
 	_xforms.resize(meshCount);
 	for (uint32_t i = 0; i < meshCount; i++) {
-		_meshes[i] = std::unique_ptr<Renderer::Mesh>(model->GetMesh(Renderer::MeshType::position_normal, i));
+		_meshes[i] = std::unique_ptr<Mesh::Mesh>(model->GetMesh(Mesh::MeshType::position_normal, i));
 		_xforms[i] = model->GetMeshXForm(i);
 
 	}

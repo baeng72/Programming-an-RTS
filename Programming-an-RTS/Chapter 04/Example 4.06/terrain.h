@@ -20,7 +20,7 @@ struct TERRAINVertex {
 
 struct PATCH {
 	Renderer::RenderDevice* _pdevice;
-	std::unique_ptr<Renderer::Mesh>	_mesh;
+	std::unique_ptr<Mesh::Mesh>	_mesh;
 	PATCH();
 	~PATCH();
 	bool CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevice);

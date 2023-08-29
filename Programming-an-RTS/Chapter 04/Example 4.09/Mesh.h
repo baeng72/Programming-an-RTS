@@ -4,7 +4,7 @@
 class MESH {
 	Renderer::RenderDevice* _pdevice;
 	std::shared_ptr<Renderer::ShaderManager> _shaderManager;
-	std::unique_ptr<Renderer::Mesh> _mesh;
+	std::unique_ptr<Mesh::Mesh> _mesh;
 	std::unique_ptr<Renderer::Texture> _texture;
 	
 	std::unique_ptr<Renderer::Shader> _shader;
