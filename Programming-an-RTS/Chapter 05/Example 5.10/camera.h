@@ -2,7 +2,7 @@
 #include <common.h>
 #include "mouse.h"
 #include "terrain.h"
-class MOUSE;
+
 class CAMERA {
 	friend class APPLICATION;
 	Window* _pwindow;
@@ -11,10 +11,10 @@ class CAMERA {
 	float _radius;
 	float _fov;
 public:
-	vec3 _eye;
-	vec3 _focus;
-	vec3 _right;
-	vec3 _look;
+	glm::vec3 _eye;
+	glm::vec3 _focus;
+	glm::vec3 _right;
+	glm::vec3 _look;
 
 	Plane _frustum[6];
 public:
@@ -30,12 +30,12 @@ public:
 	void ChangeRadius(float f);
 
 	//Calculate Eye position etc
-	void Update(MOUSE & mouse, TERRAIN & terrain,float delta);
+	void Update(MOUSE&mouse, TERRAIN&terrain,float delta);
 	void CalculateFrustum(mat4& projection, mat4& view);
 	bool Cull(BBOX& bBox);
 	bool Cull(BSPHERE& bSphere);
 
 	//Calculate matrices
-	mat4 GetViewMatrix();
-	mat4 GetProjectionMatrix();
+	glm::mat4 GetViewMatrix();
+	glm::mat4 GetProjectionMatrix();
 };

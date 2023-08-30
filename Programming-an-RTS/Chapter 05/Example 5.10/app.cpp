@@ -31,7 +31,7 @@ public:
 APPLICATION::APPLICATION() {
 	_wireframe = false;	
 	_snapTime = 0.f;
-	srand(11678390);
+	srand(2);
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -54,22 +54,22 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_light.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
 	_light.diffuse = glm::vec4(0.9f, 0.9f, 0.9f, 1.f);
 	_light.specular = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
-	_light.direction = glm::normalize(glm::vec3(0.7f, -0.3f, 0.f));
+	_light.direction = glm::normalize(vec3(1.f, 0.6f, 0.5f));
 	LoadObjectResources(_device.get(), _shadermanager);
 	
-	_terrain.Init(_device.get(), _shadermanager, INTPOINT(100, 100));
+	_terrain.Init(_device.get(),GetWindowPtr(), _shadermanager, INTPOINT(100, 100));
 
 	_mouse.Init(_device.get(),_shadermanager, GetWindowPtr());
 
 	_camera.Init(GetWindowPtr());
 	_camera._focus = vec3(50, 10, -50);
 	_camera._fov = 0.6f;
+	_camera._radius = 50.f;
 	
 	return true;
 }
 
 void APPLICATION::Update(float deltaTime) {
-	
 	_camera.Update(_mouse, _terrain, deltaTime);
 	_mouse.Update(_terrain);
 	if (IsKeyPressed(KEY_ESCAPE))
@@ -83,7 +83,7 @@ void APPLICATION::Update(float deltaTime) {
 	}
 	else if (IsKeyPressed(KEY_SPACE)) {
 		//Generate random terrain		
-		_terrain.GenerateRandomTerrain(3);		
+		_terrain.GenerateRandomTerrain(GetWindowPtr(),9);		
 	}
 	else if (_mouse.ClickRight()) {
 		float currTicks = _device->GetCurrentTicks();
@@ -119,7 +119,7 @@ void APPLICATION::Render() {
 	
 	_device->StartRender();		
 
-	_terrain.Render(_camera, _light);
+	_terrain.Render(viewProj, matWorld, _light);
 
 	_font->Render();
 	_mouse.Paint(viewProj,_light);
@@ -138,7 +138,7 @@ void APPLICATION::Cleanup() {
 
 int main() {
 	APPLICATION app;
-	if (app.Init(800, 600, "Example 5.9: Second look at the Terrain")) {
+	if (app.Init(800, 600, "Example 5.10: Lighting the Terrain")) {
 		app.Run(); 
 	}
 	return 0;

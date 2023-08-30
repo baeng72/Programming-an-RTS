@@ -14,7 +14,8 @@ struct RAY {
 	float Intersect(BBOX bBox);
 	float Intersect(BSPHERE bSphere);
 	float Intersect(MESH *pMesh);
-	
+	float Intersect(std::vector<vec3>& vertices, std::vector<uint32_t>& indices);
+	float Intersect(std::vector<vec3>& vertices, std::vector<uint32_t>& indices,uint32_t&face,vec2&bary);
 };
 
 
@@ -47,6 +48,6 @@ public:
 	bool PressInRect(Rect& dst);
 	void Update(TERRAIN&terrain);
 	void Paint(mat4&matVP,Renderer::DirectionalLight&light);
-	RAY GetRay(glm::mat4& matProj, glm::mat4& matView, glm::mat4& matWorld);
+	RAY GetRay(mat4& matProj, mat4& matView, mat4& matWorld);
 	void CalculateMappos(mat4&matProj,mat4&matView,TERRAIN& terrain);
 };

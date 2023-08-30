@@ -2,9 +2,7 @@
 
 #include "heightMap.h"
 #include "object.h"
-#include "camera.h"
-
-
+#include "mouse.h"
 
 struct TERRAINVertex {
 	glm::vec3 position;
@@ -12,13 +10,13 @@ struct TERRAINVertex {
 	glm::vec2 uv;
 	glm::vec2 uvAlpha;
 	TERRAINVertex() {
-		position = normal = glm::vec3(0.f);
-		uv = glm::vec2(0.f);
-		uvAlpha = glm::vec2(0.f);
+		position = normal = vec3(0.f);
+		uv = vec2(0.f);
+		uvAlpha = vec2(0.f);
 	}
-	TERRAINVertex(glm::vec3& pos, glm::vec2& tex,glm::vec2& tex2) {
+	TERRAINVertex(vec3& pos,vec3&norm, vec2& tex,vec2& tex2) {
 		position = pos;
-		normal = glm::vec3(0.f,1.f,0.f);
+		normal = norm;
 		uv = tex;
 		uvAlpha = tex2;
 	}
@@ -27,7 +25,7 @@ struct TERRAINVertex {
 struct PATCH {
 	Renderer::RenderDevice* _pdevice;
 	std::unique_ptr<Mesh::Mesh>	_mesh;
-	std::vector<TERRAINVertex> _vertices;
+	std::vector<vec3> _vertices;
 	std::vector<uint32_t> _indices;
 	Rect _mapRect;
 	BBOX _BBox;
@@ -36,7 +34,7 @@ struct PATCH {
 	bool CreateMesh(TERRAIN&t, Rect source, Renderer::RenderDevice* pdevice);
 	void Render(Renderer::Shader * pshader);
 	void Release();
-	float Intersect(vec3 org, vec3 dir,uint32_t&face, vec2& hitUV);
+	
 
 };
 constexpr int numNeighbors = 8;
@@ -76,24 +74,27 @@ class TERRAIN {
 	std::unique_ptr<HEIGHTMAP> _heightMap;
 	std::vector<PATCH*> _patches;
 	std::shared_ptr<Renderer::ShaderManager> _shaderManager;
-	std::vector<std::unique_ptr<Renderer::Texture>> _diffuseMaps;	
+	std::vector<std::unique_ptr<Renderer::Texture>> _diffuseMaps;
 	std::unique_ptr<Renderer::Texture> _alphaMap;
+	std::unique_ptr<Renderer::Texture> _lightMap;
 	std::unique_ptr<Renderer::Shader> _shader;
+	std::unique_ptr<Renderer::Font> _font;
 	std::vector<OBJECT> _objects;
 	
+	vec3 _dirToSun;
 public:
 	MAPTILE* _pMaptiles;
 public:
 	TERRAIN();
 	void Cleanup();
-	void Init(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager> manager, INTPOINT size_);
-	void GenerateRandomTerrain(int numPatches);
+	void Init(Renderer::RenderDevice* pdevice,Window*pwindow, std::shared_ptr<Renderer::ShaderManager> manager, INTPOINT size_);
+	void GenerateRandomTerrain(Window*pwindow,int numPatches);
 	void CreatePatches(int numPatches);
 	void CalculateAlphaMaps();
-	void CalculateLightMap();
-	
-	void Render(CAMERA&camera,Renderer::DirectionalLight&light);
-	
+	void CalculateLightMap(Window*pwindow);
+	void Render(mat4&viewProj, mat4&model, Renderer::DirectionalLight&light);
+	void Progress(const char* ptext, float prc);
+	vec3 GetNormal(int x, int y);
 	void Release();
 	void SetWireframe(bool wireframe);
 	void AddObject(int type, INTPOINT mappos);

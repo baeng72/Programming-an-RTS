@@ -1,0 +1,21 @@
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                    Terrain Object Pixexlshader                       //
+//                                                                      //
+//                    Written by C. Granberg, 2006                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+
+
+sampler diffuseText;
+sampler light;
+
+float4 Main(float2 UV : TEXCOORD0, float2 worldUV : TEXCOORD1, float shade : TEXCOORD2) : COLOR
+{
+    //Sample the textures
+    float4 col  = tex2D(diffuseText, UV);
+    float4 l    = tex2D(light, worldUV); 
+ 
+    //Return result
+    return col * shade * l;
+}

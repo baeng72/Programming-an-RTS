@@ -39,7 +39,7 @@ bool PATCH::CreateMesh(TERRAIN&t, Rect source, Renderer::RenderDevice* pdevice)
 			MAPTILE* ptile = t.GetTile(x, z);
 			glm::vec3 pos = glm::vec3(x, ptile->_height, -z);
 
-			vertices[z0 * (width + 1) + x0] = TERRAINVertex(pos,uv,alphaUV);
+			vertices[z0 * (width + 1) + x0] = TERRAINVertex(pos,t.GetNormal(x,z), uv,alphaUV);
 
 			//Calculate bounding box bounds...
 			_BBox.min.x = std::min(_BBox.min.x, pos.x);
@@ -107,7 +107,10 @@ bool PATCH::CreateMesh(TERRAIN&t, Rect source, Renderer::RenderDevice* pdevice)
 		}
 		vertices[i].normal = glm::normalize(n);
 	}
-	_vertices = vertices;
+	_vertices.resize(vertices.size());
+	for (size_t i = 0; i < vertices.size();i++) {
+		_vertices[i] = vertices[i].position;
+	}
 	_indices = indices;
 	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount * sizeof(uint32_t)));
 	
@@ -119,34 +122,7 @@ void PATCH::Release() {
 	_mesh.reset();
 }
 
-float PATCH::Intersect(vec3 org, vec3 dir,uint32_t &face,vec2&hitUV)
-{
-	bool hit = false;
-	float dist = INFINITY;
-	uint32_t hitTri = UINT32_MAX;
-	uint32_t currTri = 0;
-	for (size_t f = 0; f < _indices.size(); f += 3) {
-		uint32_t i0 = _indices[f + 0];
-		uint32_t i1 = _indices[f + 1];
-		uint32_t i2 = _indices[f + 2];
-		vec3 v0 = _vertices[i0].position;
-		vec3 v1 = _vertices[i1].position;
-		vec3 v2 = _vertices[i2].position;
-		vec2 bary;
-		float currDist = 0.f;
 
-		if (glm::intersectRayTriangle(org, dir, v0, v1, v2, bary, currDist)) {
-			if (currDist < dist) {
-				hit = true;
-				face = hitTri = currTri;
-				dist = currDist;
-				hitUV = bary;
-			}
-		}
-		currTri++;
-	}
-	return dist;
-}
 
 void PATCH::Render(Renderer::Shader* pshader)
 {
@@ -164,7 +140,6 @@ TERRAIN::TERRAIN()
 void TERRAIN::Cleanup()
 {
 }
-
 void TERRAIN::Release() {
 	_pdevice->Wait();//who needs synchronisation when you can block GPU?
 	for (int i = 0; i < _patches.size(); i++) {
@@ -185,7 +160,7 @@ void TERRAIN::SetWireframe(bool wireframe)
 	_shader->SetWireframe(wireframe);	
 }
 
-void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager> shaderManager, INTPOINT size_)
+void TERRAIN::Init(Renderer::RenderDevice* pdevice, Window* pwindow, std::shared_ptr<Renderer::ShaderManager> shaderManager, INTPOINT size_)
 {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
@@ -198,25 +173,33 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	memset(_pMaptiles, 0, sizeof(MAPTILE) * _size.x * _size.y);
 
 	//Load Textures
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 05/Example 5.09/textures/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 05/Example 5.09/textures/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 05/Example 5.09/textures/snow.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 05/Example 5.10/textures/grass.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 05/Example 5.10/textures/mountain.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 05/Example 5.10/textures/snow.jpg")));
 	
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.10/Shaders/terrain.glsl",false)));
+
+
 	
 
-	GenerateRandomTerrain(3);
+	_font.reset(Renderer::Font::Create());
+	_font->Init(_pdevice, "../../../../Resources/Fonts/arialn.ttf", 18);
+	_dirToSun = glm::normalize(vec3(1.f, 0.6f, 0.5f));
+
+
+	GenerateRandomTerrain(pwindow, 9);
 }
 
-void TERRAIN::GenerateRandomTerrain(int numPatches)
+void TERRAIN::GenerateRandomTerrain(Window* pwindow, int numPatches)
 {
 	Release();
 
 	//Create two heightmaps and multiply them
 
 	_heightMap = std::make_unique<HEIGHTMAP>(_size, 20.f);
-	HEIGHTMAP hm2(_size, 30.f);
+	HEIGHTMAP hm2(_size, 2.f);
 
-	_heightMap->CreateRandomHeightMap(rand() % 2000, 1.0f, 0.7f, 8);
+	_heightMap->CreateRandomHeightMap(rand() % 2000, 2.0f, 0.7f, 8);
 	hm2.CreateRandomHeightMap(rand() % 2000, 2.5f, 0.8f, 3);
 	hm2.Cap(hm2._maxHeight * 0.4f);
 
@@ -244,7 +227,7 @@ void TERRAIN::GenerateRandomTerrain(int numPatches)
 		
 		CalculateAlphaMaps();
 		
-	
+		CalculateLightMap(pwindow);
 
 	
 }
@@ -304,18 +287,105 @@ void TERRAIN::CalculateAlphaMaps() {
 	}
 	//create a new texture
 	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
-	std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
-	_shader->SetTextures(textures.data(), 4);
+	/*std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
+	_shader->SetTextures(textures.data(), 4);*/
 
 }
 
-void TERRAIN::Render(CAMERA&camera,Renderer::DirectionalLight&light)
+void TERRAIN::CalculateLightMap(Window* pwindow)
 {
-	mat4 matProj = camera.GetProjectionMatrix();
-	mat4 matView = camera.GetViewMatrix();
-	mat4 model = glm::mat4(1.f);
-	mat4 matVP = matProj * matView;
-	Renderer::FlatShaderDirectionalUBO ubo = { matVP,light };
+	constexpr int LMAP_DIM = 256;
+	uint8_t* map = new uint8_t[LMAP_DIM * LMAP_DIM];
+	memset(map, 255, LMAP_DIM * LMAP_DIM);
+	for (int y = 0; y < LMAP_DIM; y++) {
+		
+		Progress("Calculating Lightmap",y / (float)LMAP_DIM);
+		for (int x = 0; x < LMAP_DIM; x++) {
+			float terrain_x = (float)_size.x * (x / (float)LMAP_DIM);
+			float terrain_z = (float)_size.y * (y / (float)LMAP_DIM);
+			pwindow->OnUpdate();//poll events
+			//Find patch that the terrain_x, terrain_z is over
+			bool done = false;
+			for (int p = 0; p < _patches.size() && !done; p++) {
+				Rect mr = _patches[p]->_mapRect;
+
+				//Focus within patch maprect or not?
+				if (terrain_x >= mr.left && terrain_x < mr.right &&
+					terrain_z >= mr.top && terrain_z < mr.bottom) {
+					//Collect only the closest intersection
+					RAY rayTop(glm::vec3(terrain_x, 10000.f, -terrain_z), glm::vec3(0.f, -1.f, 0.f));
+					float dist = rayTop.Intersect(_patches[p]->_vertices, _patches[p]->_indices);					
+					if (dist >= 0.f) {
+						RAY ray(vec3(terrain_x, 10000.f - dist + 0.01f, -terrain_z), _dirToSun);
+						for (int p2 = 0; p2 < _patches.size() && !done; p2++) {
+							if (ray.Intersect(_patches[p2]->_BBox) >= 0) {
+								if (ray.Intersect(_patches[p2]->_vertices,_patches[p]->_indices) >= 0.f) {//in shadow
+									done = true;
+									map[y * LMAP_DIM + x] = 128;
+								}
+							}
+						}
+						done = true;
+					}
+				}
+			}
+		}
+
+	}
+	//Smooth lightmap
+	for (int i = 0; i < 3; i++) {
+		
+		Progress("Smoothing the LightMap", i / 3.f);
+		uint8_t* tmpBytes = new uint8_t[LMAP_DIM * LMAP_DIM];
+		memcpy(tmpBytes, map, LMAP_DIM * LMAP_DIM);
+
+		for (int y = 1; y < LMAP_DIM-1; y++) {
+			pwindow->OnUpdate();//poll events
+			for (int x = 1; x < LMAP_DIM-1; x++) {
+				long index = y * LMAP_DIM + x;
+				uint8_t b1 = map[index];
+				uint8_t b2 = map[index - 1];
+				uint8_t b3 = map[index - LMAP_DIM];
+				uint8_t b4 = map[index + 1];
+				uint8_t b5 = map[index + LMAP_DIM];
+
+				tmpBytes[index] = (uint8_t)((b1 + b2 + b3 + b4 + b5) / 5);
+			}
+		}
+		memcpy(map, tmpBytes, LMAP_DIM * LMAP_DIM);
+		delete[] tmpBytes;
+	}
+	_lightMap.reset(Renderer::Texture::Create(_pdevice, LMAP_DIM,LMAP_DIM, 1, (uint8_t*)map));
+	std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get(),_lightMap.get() };
+	_shader->SetTextures(textures.data(), 5);
+}
+
+void TERRAIN::Progress(const char*ptext, float prc)
+{
+	if (prc < 0.01f)
+		prc = 0.01f;
+	_pdevice->StartRender();
+	Rect rc = { 200,250,600,300 };
+	float width, height;
+	_font->GetTextSize(ptext, width, height);
+	_font->Draw(ptext, (int)(rc.Width() / 2 - width / 2), (int)(rc.Height() / 2 - height / 2), Color(0.f, 0.f, 0.f, 1.f));
+	_font->Render();
+	//Progress Bar
+	Rect r;
+	r = { 200,300,600,340 };
+	_pdevice->Clear(r, Color(0.f, 0.f, 0.f, 1.f));
+	r = { 202,302,598,338 };
+	_pdevice->Clear(r, Color(1.f));
+	r = { 202,302,202 + (int)(396 * prc),338 };
+	_pdevice->Clear(r, Color(0.f, 1.f, 0.f, 1.f));
+
+	_pdevice->EndRender();
+}
+
+void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLight&light)
+{
+	light.direction = _dirToSun;
+	Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
 	int uboid = 0;
 	
 
@@ -330,7 +400,7 @@ void TERRAIN::Render(CAMERA&camera,Renderer::DirectionalLight&light)
 
 	//render object
 	for (int i = 0; i < _objects.size(); i++) {
-		_objects[i].Render(matVP, light);
+		_objects[i].Render(viewProj, light);
 	}
 }
 
@@ -674,3 +744,28 @@ void TERRAIN::LoadTerrain(const char* pfilename)
 }
 
 
+vec3 TERRAIN::GetNormal(int x, int y) {
+	//Neighboring map nodes (D, B, C, F, H, G)
+	INTPOINT mp[] = {
+		INTPOINT(x-1,y),	INTPOINT(x,y-1),
+		INTPOINT(x+1,y-1),	INTPOINT(x+1,y),
+		INTPOINT(x,y+1),	INTPOINT(x-1,y+1)
+	};
+
+	//if there's an inavlida map node return (0, 1, 0)
+	if (!Within(mp[0]) || !Within(mp[1]) || !Within(mp[2]) ||
+		!Within(mp[3]) || !Within(mp[4]) || !Within(mp[5]))
+		return vec3(0.f, 1.f, 0.f);
+
+	//Calculate the normals of the 6 neighboring planes
+	vec3 normal = vec3(0.f);
+
+	for (int i = 0; i < 6; i++) {
+		vec3 v1 = GetWorldPos(INTPOINT(x, y));
+		vec3 v2 = GetWorldPos(mp[i]);
+		vec3 v3 = GetWorldPos(mp[(i + 1) % 6]);
+		vec3 norm = glm::cross(v2 - v1, v3 - v1);
+		normal += norm;
+	}
+	return glm::normalize(normal);
+}

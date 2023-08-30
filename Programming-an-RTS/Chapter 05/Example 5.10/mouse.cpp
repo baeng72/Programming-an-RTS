@@ -20,7 +20,7 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice,  std::shared_ptr<Renderer::Sha
 	x = width / 2;
 	y = height / 2;
 	pwindow->ShowCursor(false);
-	std::unique_ptr<Renderer::Image> image = std::unique_ptr<Renderer::Image>(Renderer::Image::Create("../../../../Resources/Chapter 05/Example 5.03/cursors/cursor.png"));
+	std::unique_ptr<Renderer::Image> image = std::unique_ptr<Renderer::Image>(Renderer::Image::Create("../../../../Resources/Chapter 05/Example 5.10/cursor/cursor.png"));
 	uint32_t* pixels = (uint32_t*)image->GetPixels();
 	int channels;
 	image->GetSize(width, height, channels);
@@ -57,7 +57,7 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice,  std::shared_ptr<Renderer::Sha
 	std::unique_ptr<Mesh::Shape> shape;
 	shape.reset(Mesh::Shape::Create(pdevice));
 	_sphereMesh = std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(0.2f, 5, 5));
-	_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.09/shaders/shape.glsl",false)));
+	_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.10/shaders/shape.glsl",false)));
 }
 
 void MOUSE::Update(TERRAIN&terrain) {
@@ -96,10 +96,10 @@ void MOUSE::Paint(mat4&matVP, Renderer::DirectionalLight& light) {
 	}ubo = { matVP,light };
 	_sphereShader->SetUniformData("UBO",&ubo, sizeof(UBO));
 	_sphereMesh->Render(_sphereShader.get());
-	_sprite->Draw(_textures[_type].get(), glm::vec3(x, y, 0.f));
+	_sprite->Draw(_textures[_type].get(), vec3(x, y, 0.f));
 }
 
-RAY MOUSE::GetRay(glm::mat4& matProj, glm::mat4& matView, glm::mat4& matWorld)
+RAY MOUSE::GetRay(mat4& matProj, mat4& matView, mat4& matWorld)
 {
 	float width = (float)(_viewport.right - _viewport.left);
 	float height = (float)(_viewport.bottom - _viewport.top);
@@ -135,7 +135,7 @@ void MOUSE::CalculateMappos(mat4&matProj,mat4&matView,TERRAIN& terrain)
 	for (int i = 0; i < terrain._patches.size(); i++) {
 		uint32_t face=0;
 		vec2 hitUV;
-		float dist = terrain._patches[i]->Intersect(ray.org, ray.dir,face,hitUV);
+		float dist = ray.Intersect(terrain._patches[i]->_vertices,terrain._patches[i]->_indices,face,hitUV);
 		if (dist > 0.f && dist < minDistance) {
 			minDistance = dist;
 			int tiles = face / 2;//two faces to each map tile
@@ -270,6 +270,60 @@ float RAY::Intersect(MESHINSTANCE iMesh)
 				hitTri = currTri;
 				dist = currDist;
 			}
+		}
+		currTri++;
+	}
+	return hit ? dist : -1.f;
+}
+
+float RAY::Intersect(std::vector<vec3>& vertices, std::vector<uint32_t>& indices) {
+	bool hit = false;
+	float dist = INFINITY;
+	uint32_t hitTri = UINT32_MAX;
+	uint32_t currTri = 0;
+	for (size_t f = 0; f < indices.size(); f += 3) {
+		uint32_t i0 = indices[f + 0];
+		uint32_t i1 = indices[f + 1];
+		uint32_t i2 = indices[f + 2];
+		vec3 v0 = vertices[i0];
+		vec3 v1 = vertices[i1];
+		vec3 v2 = vertices[i2];
+		vec2 bary;
+		float currDist = 0.f;
+
+		if (glm::intersectRayTriangle(org, dir, v0, v1, v2, bary, currDist)) {
+			//if (currDist < dist) {
+				hit = true;
+				hitTri = currTri;
+				dist = std::min(dist, currDist);
+			//}
+		}
+		currTri++;
+	}
+	return hit ? dist : -1.f;
+}
+
+float RAY::Intersect(std::vector<vec3>& vertices, std::vector<uint32_t>& indices, uint32_t& face, vec2& bary) {
+	bool hit = false;
+	float dist = INFINITY;
+	uint32_t hitTri = UINT32_MAX;
+	uint32_t currTri = 0;
+	for (size_t f = 0; f < indices.size(); f += 3) {
+		uint32_t i0 = indices[f + 0];
+		uint32_t i1 = indices[f + 1];
+		uint32_t i2 = indices[f + 2];
+		vec3 v0 = vertices[i0];
+		vec3 v1 = vertices[i1];
+		vec3 v2 = vertices[i2];
+		
+		float currDist = 0.f;
+
+		if (glm::intersectRayTriangle(org, dir, v0, v1, v2, bary, currDist)) {
+			//if (currDist < dist) {
+			hit = true;
+			face = hitTri = currTri;
+			dist = std::min(dist, currDist);
+			//}
 		}
 		currTri++;
 	}

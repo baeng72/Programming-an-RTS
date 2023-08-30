@@ -58,7 +58,7 @@ void CAMERA::ChangeRadius(float f)
 
 
 
-void CAMERA::Update(MOUSE & mouse, TERRAIN & terrain, float delta)
+void CAMERA::Update(MOUSE&mouse, TERRAIN&terrain, float delta)
 {
 	//Restrict focus movement to xz plane
 	_right.y = _look.y = 0.f;
@@ -114,11 +114,12 @@ void CAMERA::Update(MOUSE & mouse, TERRAIN & terrain, float delta)
 		if (_focus.x >= mr.left && _focus.x < mr.right &&
 			-_focus.z >= mr.top && -_focus.z < mr.bottom) {
 			//Collect only the closest intersections
+			
 			vec3 org = vec3(_focus.x, 10000.f, _focus.z);
 			vec3 dir = vec3(0.f, -1.f, 0.f);
-			uint32_t face;
-			vec2 hitUV;
-			float dist = terrain._patches[p]->Intersect(org, dir,face,hitUV);
+			RAY ray(org, dir);
+			
+			float dist = ray.Intersect(terrain._patches[p]->_vertices,terrain._patches[p]->_indices);
 			if (dist > 0.f) {
 				_focus.y = 10000.f - dist;
 			}
