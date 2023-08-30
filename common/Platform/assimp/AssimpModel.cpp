@@ -188,12 +188,12 @@ namespace Assimp {
 			}
 			uint32_t vertSize = (uint32_t)(sizeof(PosNorm) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
-			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(),sizeof(PosNorm), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
 		}
 		if (meshType == Mesh::MeshType::position_normal_uv) {
 			uint32_t vertSize = (uint32_t)(sizeof(AssimpVertex) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
-			return Mesh::Mesh::Create(_pdevice, (float*)_primitives[i].vertices.data(), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+			return Mesh::Mesh::Create(_pdevice, (float*)_primitives[i].vertices.data(),sizeof(AssimpVertex), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
 		}
 		return nullptr;
 	}

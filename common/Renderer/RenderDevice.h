@@ -3,7 +3,7 @@
 #include "../Core/defines.h"
 #include "../Core/types.h"
 namespace Renderer {
-	
+
 	class RenderDevice {
 	public:
 		virtual ~RenderDevice() = default;
@@ -22,6 +22,7 @@ namespace Renderer {
 		virtual void SetClearColor(float r, float g, float b, float a) = 0;
 		virtual void Clear(Rect& r, Color clr) = 0;
 		virtual void SetViewport(ViewPort& vp)=0;
+		virtual float GetCurrentTicks() = 0;
 		static RenderDevice* Create(void* nativeWidowHandle);
 	};
 }

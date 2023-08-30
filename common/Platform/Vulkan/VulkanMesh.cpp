@@ -8,9 +8,12 @@ namespace Mesh {
 	Mesh* Mesh::Create(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize) {
 		return new Vulkan::VulkanMesh(pdevice, pvertices, vertSize, pindices, indSize);
 	}
+	Mesh* Mesh::Create(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertStride, uint32_t vertSize, uint32_t* pindices, uint32_t indSize,bool optimize) {
+		return new Vulkan::VulkanMesh(pdevice, pvertices, vertStride, vertSize, pindices, indSize,optimize);
+	}
 }
 namespace Vulkan {
-	VulkanMesh::VulkanMesh(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertStride, uint32_t vertSize, uint32_t* pindices, uint32_t indSize,bool optimize) {
+	VulkanMesh::VulkanMesh(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertStride, uint32_t vertSize, uint32_t* pindices, uint32_t indSize,bool optimize) :_pdevice(pdevice) {
 		if (optimize) {
 			uint32_t indCount = indSize / sizeof(uint32_t);
 			uint32_t vertCount = vertSize / vertStride;

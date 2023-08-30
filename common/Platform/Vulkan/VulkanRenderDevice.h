@@ -36,6 +36,7 @@ namespace Vulkan {
 		virtual void SetClearColor(float r, float g, float b, float a) override;
 		virtual void Clear(Rect& r, Color clr) override;
 		virtual void SetViewport(ViewPort& vp)override;
+		virtual float GetCurrentTicks()override { return glfwGetTime(); }
 		
 	};
 }
