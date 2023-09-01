@@ -1,4 +1,4 @@
-set(EXE_NAME "Example_03")
+set(EXE_NAME "Example_301")
 file(GLOB SRC_FILES *.c?? *.h??)
 add_executable(${EXE_NAME} ${SRC_FILES})
 

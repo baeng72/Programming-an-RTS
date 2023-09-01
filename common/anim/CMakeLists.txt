@@ -1,15 +1,14 @@
-message("Core CMakeLists.txt")
-file(GLOB CORE_FILES "*.cpp" "*.h")
+message("ANIM CMakeLists.txt")
+file(GLOB ANIM_FILES  "*.cpp" "*.h")
 
-#source_group(PLATFORM FILES ${PLATFORM_FILES})
-# foreach(FILE ${CORE_FILES}) 
+# foreach(FILE ${STB_FILES}) 
     # # Get the directory of the source file
     # get_filename_component(PARENT_DIR "${FILE}" DIRECTORY)
-
+	# get_filename_component(PARENT_DIR "${PARENT_DIR}" DIRECTORY)
+	# #message("Parent Dir:" "${PARENT_DIR}")
     # # Remove common directory prefix to make the group
-    # string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}" "" GROUP "${PARENT_DIR}")
-
-    # # Make sure we are using windows slashes
+    # string(REPLACE "${PARENT_DIR}" "" GROUP "${CMAKE_CURRENT_SOURCE_DIR}")
+	# # Make sure we are using windows slashes
     # string(REPLACE "/" "\\" GROUP "${GROUP}")
 	# message("File: " "${FILE}")
     # # Group into "Source Files" and "Header Files"
@@ -18,10 +17,11 @@ file(GLOB CORE_FILES "*.cpp" "*.h")
     # elseif("${FILE}" MATCHES ".*\\.h")
        # set(GROUP "Header Files${GROUP}")
     # endif()
-
+	# message("${GROUP}")
     # source_group("${GROUP}" FILES "${FILE}")
 # endforeach()
 
+set(ANIM_FILES ${ANIM_FILES} PARENT_SCOPE)
 
-set(CORE_FILES ${CORE_FILES} PARENT_SCOPE)
-#message("${CORE_FILES}")
+
+

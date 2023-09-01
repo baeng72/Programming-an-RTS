@@ -1,12 +1,17 @@
-cmake_minimum_required(VERSION 3.2)
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+cmake_minimum_required(VERSION 3.8)
+
 project(Programming-an-RTS)
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/")
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+# GLFW options
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "")
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "")
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "")
 set(GLFW_INSTALL OFF CACHE BOOL "")
+# GLSLANG options
 set(ENABLE_GLSLANG_BINARIES  OFF  CACHE BOOL "")
 set(ENABLE_HLSL              OFF  CACHE BOOL "")
 set(ENABLE_CTEST             OFF  CACHE BOOL "")
@@ -27,6 +32,34 @@ include_directories(build/ThirdParty/assimp/include)
 
 add_subdirectory(ThirdParty)
 
+set_property(TARGET assimp          PROPERTY FOLDER "ThirdParty/assimp")
+set_property(TARGET unit          PROPERTY FOLDER "ThirdParty/assimp")
+set_property(TARGET uninstall          PROPERTY FOLDER "ThirdParty/assimp")
+set_property(TARGET freetype          PROPERTY FOLDER "ThirdParty")
+set_property(TARGET glfw          PROPERTY FOLDER "ThirdParty/glfw")
+set_property(TARGET update_mappings          PROPERTY FOLDER "ThirdParty/glfw")
+set_property(TARGET glm          PROPERTY FOLDER "ThirdParty")
+set_property(TARGET GenericCodeGen       PROPERTY FOLDER "ThirdParty/glslang")
+set_property(TARGET glslang       PROPERTY FOLDER "ThirdParty/glslang")
+set_property(TARGET glslang-default-resource-limits       PROPERTY FOLDER "ThirdParty/glslang")
+set_property(TARGET OGLCompiler   PROPERTY FOLDER "ThirdParty/glslang")
+set_property(TARGET OSDependent   PROPERTY FOLDER "ThirdParty/glslang")
+set_property(TARGET MachineIndependent   PROPERTY FOLDER "ThirdParty/glslang")
+set_property(TARGET SPIRV         PROPERTY FOLDER "ThirdParty/glslang")
+set_property(TARGET spirv-reflect-static         PROPERTY FOLDER "ThirdParty")
+set_property(TARGET meshoptimizer          PROPERTY FOLDER "ThirdParty")
+set_property(TARGET spdlog          PROPERTY FOLDER "ThirdParty")
+set_property(TARGET stb          PROPERTY FOLDER "ThirdParty")
+set_property(TARGET VulkanMemoryAllocator          PROPERTY FOLDER "ThirdParty")
+if(WIN32)
+#set_property(TARGET zlib          PROPERTY FOLDER "ThirdPartyLibraries")
+set_property(TARGET zlibstatic    PROPERTY FOLDER "ThirdParty")
+set_property(TARGET UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTY FOLDER "ThirdParty")
+endif()
+
+
+
+
 find_package(Vulkan)
 include_directories(AFTER ${Vulkan_INCLUDE_DIRS})
 #include_directories(Vulkan_INCLUDE_DIRS)
@@ -40,19 +73,6 @@ link_libraries(spirv-reflect-static)
 add_subdirectory(common)
 include_directories(common)
 add_subdirectory(Programming-an-RTS)
-#set(GLM_DIR "${CMAKE_SOURCE_DIR}/ThirdParty/glm")
-#message("GLM dir: " "${GLM_DIR}")
-#include_directories(INTERFACE "${GLM_DIR}") 
-#set(GLSLANG_DIR "${CMAKE_SOURCE_DIR}/ThirdParty/glslang")
-#message("GLSLANG_DIR" "${GLSLANG_DIR}")
-#add_subdirectory("${GLSLANG_DIR}")
-#include_directories(STATIC "${GLSLANG_DIR}")
-#SET(SPIRV_REFLECT_DIR "${CMAKE_SOURCE_DIR}/ThirdParty/SPIRV-Reflect")
-#message("SPIRV-Reflect DIR: " "${SPIRV_REFLECT_DIR}")
-#add_subdirectory("${SPIRV_REFLECT_DIR}")
-#include_directories(STATIC "${SPIRV_REFLECT_DIR}")
-#set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/Output")
-#message("Output dir:" "${OUTPUT_DIR}")
-#file(MAKE_DIRECTORY "${OUTPUT_DIR}")
-#set(BUILD_DIR "${CMAKE_SOURCE_DIR}/Build")
-#file(MAKE_DIRECTORY "${BUILD_DIR}")
+
+
+
