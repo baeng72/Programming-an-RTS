@@ -1,7 +1,10 @@
 #pragma once
-
+#include <unordered_map>
 #include "AssimpModel.h"
 #include "../../Core/Log.h"
+
+#include "../../anim/pose.h"
+#include "../../anim/clip.h"
 //#define __OPTIMIZE__
 #ifdef __OPTIMIZE__
 #include "../meshoptimizer/src/meshoptimizer.h"
@@ -32,6 +35,8 @@ namespace Assimp {
 			ProcessNode(pscene->mRootNode, pscene, glm::mat4(1.f), &_rootNode);
 			_xform = _rootNode.nodeXForm;//probably not true for a lot of models
 			
+			_boneCount = 0;
+			ProcessBoneHierarchy(_rootNode, -1);
 			
 		}
 		else {
@@ -84,18 +89,19 @@ namespace Assimp {
 			_materials.push_back(mat);
 		}
 	}
-	void AssimpModel::ProcessNode(aiNode* pnode, const aiScene* pscene, glm::mat4& parentXForm, AssimpNode* pcurrentNode) {
+	void AssimpModel::ProcessNode(aiNode* pnode, const aiScene* pscene, mat4&parentXForm,AssimpNode* pcurrentNode) {
 		AssimpNode& currentNode = *pcurrentNode;
 		glm::mat4 localXForm = AssimpToGLM(pnode->mTransformation);
-		glm::mat4 nodeXForm = localXForm * parentXForm;
+		glm::mat4 nodeXForm = parentXForm * localXForm;
 
-		AssimpNode node{ pnode->mName.C_Str(),nodeXForm };
+		AssimpNode node{ pnode->mName.C_Str(),localXForm,nodeXForm };
 		currentNode = node;
 
 		for (uint32_t i = 0; i < pnode->mNumMeshes; i++) {
 			aiMesh* pmesh = pscene->mMeshes[pnode->mMeshes[i]];
 			ProcessMesh(pmesh, pscene);
 		}
+		
 		currentNode.children.resize(pnode->mNumChildren);
 		for (uint32_t i = 0; i < pnode->mNumChildren; i++) {
 			ProcessNode(pnode->mChildren[i], pscene, currentNode.nodeXForm, &currentNode.children[i]);
@@ -161,6 +167,24 @@ namespace Assimp {
 		_primitives.push_back(primitive);
 		_materialIndices.push_back(pmesh->mMaterialIndex);
 		
+		auto numBones = pmesh->mNumBones;
+		//_nameList.resize(numBones);
+		_boneNames.resize(numBones);
+		_boneOffsets.resize(numBones);
+		_boneHierarchy.resize(numBones);
+		_boneXForms.resize(numBones);
+		_bones.resize(numBones);
+		
+		//std::unordered_map<std::string, mat4> offsetMap;
+		for (unsigned int boneId = 0; boneId < numBones; boneId++) {
+			aiBone* pbone = pmesh->mBones[boneId];
+			mat4 offset = AssimpToGLM(pbone->mOffsetMatrix);
+			auto name = pbone->mName.C_Str();
+			_boneMap[name] = offset;
+			//offsetMap[name] = offset;
+			//_nameList[boneId] = name;
+			//_boneOffsets[boneId] = offset;
+		}
 	}
 	void AssimpModel::ProcessTextureTypes(aiMaterial* pmat, aiTextureType type, std::vector<std::string>& textureNames)
 	{
@@ -171,6 +195,35 @@ namespace Assimp {
 			textureNames.push_back(str.C_Str());
 		}
 	}
+
+
+	void AssimpModel::ProcessBoneHierarchy(AssimpNode& node, int parentID) {
+		if (_boneMap.find(node.name) != _boneMap.end()) {
+			int boneID = _boneCount++;
+			_boneHierarchy[boneID] = parentID;
+			_boneXForms[boneID] = node.localXForm;
+			_boneNames[boneID] = node.name;
+			_boneOffsets[boneID] = _boneMap[node.name];
+			_bones[boneID] = mat4ToTransform(node.localXForm);
+			/*mat4 offset = _boneMap[node.name];
+			mat4 invoffset = glm::inverse(offset);
+			mat4 xform = node.nodeXForm;
+			mat4 invxform = glm::inverse(xform);
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 4; j++) {
+					if (offset[i][j] != invxform[i][j]) {
+						int z = 0;
+					}
+				}
+			}*/
+			parentID = boneID;
+			
+		}
+		for (auto child : node.children) {
+			ProcessBoneHierarchy(child, parentID);
+		}
+	}
+
 	uint32_t AssimpModel::GetMeshCount()
 	{
 		return (uint32_t)_primitives.size();
@@ -261,4 +314,25 @@ namespace Assimp {
 	{
 		return &_materials[i];
 	}
+
+	uint32_t AssimpModel::GetBoneCount(uint32_t i)
+	{
+		return _boneCount;
+	}
+
+	void AssimpModel::GetBoneNames(uint32_t i, std::vector<std::string>& boneNames)
+	{
+		boneNames = _boneNames;
+	}
+
+	void AssimpModel::GetBoneXForms(uint32_t i, std::vector<mat4>& boneXForms)
+	{
+		boneXForms = _boneXForms;
+	}
+
+	void AssimpModel::GetBoneHierarchy(uint32_t i, std::vector<int>& boneHierarchy)
+	{
+		boneHierarchy = _boneHierarchy;
+	}
+	
 }

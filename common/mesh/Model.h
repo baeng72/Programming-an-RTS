@@ -18,6 +18,7 @@ namespace Mesh {
 		std::vector<std::string> normalTextures;
 		std::vector < std::string> specularTextures;
 	};
+	
 	enum class MeshType{position,position_normal,position_normal_uv};
 	enum class TextureType{diffuse};
 	class Model {		
@@ -35,5 +36,9 @@ namespace Mesh {
 		virtual Renderer::Texture* GetTexture(TextureType type, uint32_t i) = 0;
 		virtual uint32_t GetMaterialCount() = 0;
 		virtual ModelMaterial* GetMaterial(uint32_t i) = 0;
+		virtual uint32_t GetBoneCount(uint32_t i) = 0;
+		virtual void GetBoneNames(uint32_t i,std::vector<std::string>& boneNames)=0;
+		virtual void GetBoneXForms(uint32_t i, std::vector<mat4>& boneXForms) = 0;
+		virtual void GetBoneHierarchy(uint32_t i,std::vector<int>& boneHierarchy) = 0;
 	};
 }

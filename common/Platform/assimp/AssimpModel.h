@@ -5,6 +5,7 @@
 #include "../../Mesh/Mesh.h"
 #include "../../mesh/ProgressiveMesh.h"
 #include "../../Renderer/Shader.h"
+#include "../../anim/pose.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -46,14 +47,31 @@ namespace Assimp {
 		std::vector<uint32_t> _materialIndices;
 		struct AssimpNode {
 			std::string name;
+			mat4 localXForm;
 			glm::mat4 nodeXForm;
 			std::vector<AssimpNode> children;
 		};
 		AssimpNode _rootNode;
+		//struct BoneInfo {
+		//	int32_t id;//id in bone matrices
+		//	int32_t parentID;
+		//	glm::mat4 xform;//local transformation
+		//	glm::mat4 offset;//offset matri transforms vertices from model to bone space
+		//};
+		//
+		std::unordered_map<std::string, mat4> _boneMap;
+		int _boneCount;
+		//std::vector<std::string> _nameList;
+		std::vector<int> _boneHierarchy;
+		std::vector<mat4> _boneOffsets;
+		std::vector<mat4> _boneXForms;
+		std::vector<std::string> _boneNames;
+		std::vector<Transform> _bones;
 		glm::mat4 AssimpToGLM(aiMatrix4x4& mat);
 		void ProcessMaterials(const aiScene* pscene);
 		void ProcessNode(aiNode* pnode, const aiScene* pscene, glm::mat4& parentXForm, AssimpNode* currentNode);
 		void ProcessMesh(aiMesh* pmesh, const aiScene* pscene);
+		void ProcessBoneHierarchy(AssimpNode& node, int parentID);
 		void ProcessTextureTypes(aiMaterial* pmat, aiTextureType type, std::vector<std::string>& textureNames);
 
 	public:
@@ -70,5 +88,9 @@ namespace Assimp {
 		virtual Renderer::Texture* GetTexture(Mesh::TextureType type, uint32_t i) override;
 		virtual uint32_t GetMaterialCount() override;
 		virtual Mesh::ModelMaterial* GetMaterial(uint32_t i) override;
+		virtual uint32_t GetBoneCount(uint32_t i) override;
+		virtual void GetBoneNames(uint32_t i,std::vector<std::string>& boneNames) override;
+		virtual void GetBoneXForms(uint32_t i,std::vector<mat4>& boneXForms)override;
+		virtual void GetBoneHierarchy(uint32_t i,std::vector<int>& boneHierarchy) override;
 	};
 }

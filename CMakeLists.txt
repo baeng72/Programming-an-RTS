@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 
-project(Programming-an-RTS)
+project(Programming-an-RTS VERSION 0.1)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 

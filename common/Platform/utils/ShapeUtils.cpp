@@ -127,7 +127,7 @@ namespace Utils {
 		float nx, ny, nz, lengthInv = 1.f / radius;		//normal
 		
 		float deltaSlice = glm::pi<float>() / (float)slices;
-		float deltaStack = glm::pi<float>() / (float) stacks;
+		float deltaStack = 2.f * glm::pi<float>() / (float) stacks;
 		
 		float sliceAngle;
 		float stackAngle;
@@ -189,7 +189,7 @@ namespace Utils {
 					indices.push_back(k1 + 1);
 				}
 
-				if (i != (stacks - 1))
+				if (i != (slices - 1))
 				{
 					indices.push_back(k1 + 1);
 					indices.push_back(k2);
