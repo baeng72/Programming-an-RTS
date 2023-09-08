@@ -23,7 +23,9 @@ bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Rendere
 	shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.04/shaders/shape.glsl",false)));
 
 	line.reset(Renderer::Line2D::Create(pdevice));
-
+	int width, height;
+	pdevice->GetDimensions(&width, &height);
+	line->Update(width, height);
 	return true;
 }
 
@@ -166,7 +168,7 @@ void OBJECT::PaintSelected(mat4&matVP,vec4&viewport)
 		vec2 corner1[] = { vec2(ptMin.x,ptMin.y + s),		vec2(ptMin.x, ptMin.y),		vec2(ptMin.x + s, ptMin.y) };
 		vec2 corner2[] = { vec2(ptMax.x - s,ptMin.y),		vec2(ptMax.x, ptMin.y),		vec2(ptMax.x, ptMin.y + s) };
 		vec2 corner3[] = { vec2(ptMax.x,ptMax.y - s),		vec2(ptMax.x, ptMax.y),		vec2(ptMax.x - s, ptMax.y) };
-		vec2 corner4[] = { vec2(ptMin.x + s,ptMax.y),		vec2(ptMin.x, ptMax.y),		vec2(ptMin.x - s, ptMax.y - s) };
+		vec2 corner4[] = { vec2(ptMin.x + s,ptMax.y),		vec2(ptMin.x, ptMax.y),		vec2(ptMin.x, ptMax.y - s) };
 
 		//Draw the 4 corners
 		line->Draw(corner1, 3, vec4(1.f), 2);

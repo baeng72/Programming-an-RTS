@@ -6,11 +6,14 @@
 #include "Core/log.h"
 #include "Core/Timer.h"
 
+//Mesh/model loading stuff
 #include "mesh/Model.h"
 #include "mesh/Mesh.h"
 #include "mesh/ProgressiveMesh.h"
+#include "mesh/AnimatedMesh.h"
 #include "mesh/Shape.h"
 
+//Rendering stuff
 #include "Renderer/RenderDevice.h"
 #include "Renderer/Font.h"
 #include "Renderer/Sprite.h"
@@ -23,3 +26,4 @@
 #include "Renderer/Shader.h"
 #include "Renderer/Image.h"
 #include "Renderer/Line2D.h"
+

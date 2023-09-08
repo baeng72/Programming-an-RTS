@@ -203,7 +203,7 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 05/Example 5.09/textures/snow.jpg")));
 	
 	
-
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.09/Shaders/terrain.glsl", false)));
 	GenerateRandomTerrain(3);
 }
 

@@ -5,7 +5,7 @@
 #include "../../Mesh/Mesh.h"
 #include "../../mesh/ProgressiveMesh.h"
 #include "../../Renderer/Shader.h"
-#include "../../anim/pose.h"
+
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -18,21 +18,34 @@ namespace Assimp {
 		std::string _path;
 		
 
-		std::vector<std::string> _diffuseTextures;
+		
 
 		struct AssimpVertex {
 			glm::vec3 position;
 			glm::vec3 normal;
 			glm::vec2 uv;
+			glm::vec3 tangent;
+			glm::vec3 bitangent;
+			glm::ivec4 boneIDs;
+			glm::vec4 weights;
 			AssimpVertex() {
 				position = normal = glm::vec3(0.f);
 				uv = glm::vec2(0.f);
+				tangent = bitangent = vec3(0.f);
+				boneIDs = ivec4(-1);
+				weights = vec4(0.f);
+				
 			}
-			AssimpVertex(glm::vec3& pos, glm::vec3& norm, glm::vec2& tex) {
+			AssimpVertex(glm::vec3& pos, glm::vec3& norm, glm::vec2& tex,vec3&tan,vec3&bitan,ivec4&bones,vec4&ws) {
 				position = pos;
 				normal = norm;
 				uv = tex;
+				tangent = tan;
+				bitangent = bitan;
+				boneIDs = bones;
+				weights = ws;
 			}
+
 		};
 		struct AssimpPrimitive {
 			std::string name;
@@ -40,7 +53,7 @@ namespace Assimp {
 			std::vector<uint32_t> indices;	
 			uint32_t materialIndex;
 		};
-		std::vector<Mesh::ModelMaterial> _materials;
+		std::vector<Mesh::Material> _materials;
 
 		
 		std::vector<AssimpPrimitive> _primitives;
@@ -66,14 +79,20 @@ namespace Assimp {
 		std::vector<mat4> _boneOffsets;
 		std::vector<mat4> _boneXForms;
 		std::vector<std::string> _boneNames;
-		std::vector<Transform> _bones;
-		glm::mat4 AssimpToGLM(aiMatrix4x4& mat);
+		std::vector<Mesh::Skeleton> _skeletons;
+		std::vector<Mesh::AnimationClip> _animations;
+		
 		void ProcessMaterials(const aiScene* pscene);
 		void ProcessNode(aiNode* pnode, const aiScene* pscene, glm::mat4& parentXForm, AssimpNode* currentNode);
 		void ProcessMesh(aiMesh* pmesh, const aiScene* pscene);
 		void ProcessBoneHierarchy(AssimpNode& node, int parentID);
 		void ProcessTextureTypes(aiMaterial* pmat, aiTextureType type, std::vector<std::string>& textureNames);
-
+		void ProcessAnimations(const aiScene* pscene);
+		
+		//conversion helpers
+		glm::mat4 AssimpToGLM(aiMatrix4x4& mat);
+		vec3 AssimpToGLM(aiVector3D& vec);
+		quat AssimpToGLM(aiQuaternion& qu);
 	public:
 		AssimpModel(Renderer::RenderDevice* device,const char*pmodelPath);
 		virtual ~AssimpModel();
@@ -84,13 +103,17 @@ namespace Assimp {
 		virtual uint32_t* GetMeshRawIndices(uint32_t i, uint32_t& count) override;
 		virtual glm::mat4 GetMeshXForm(uint32_t i) override;
 		virtual uint32_t GetMeshMaterialIndex(uint32_t i) override;
-		virtual uint32_t GetTextureCount(Mesh::TextureType type) override;
-		virtual Renderer::Texture* GetTexture(Mesh::TextureType type, uint32_t i) override;
+		virtual uint32_t GetTextureCount(uint32_t matId,Mesh::TextureType type) override;
+		virtual Renderer::Texture* GetTexture(uint32_t matId,Mesh::TextureType type, uint32_t i) override;
 		virtual uint32_t GetMaterialCount() override;
-		virtual Mesh::ModelMaterial* GetMaterial(uint32_t i) override;
+		virtual Mesh::Material* GetMaterial(uint32_t i) override;
 		virtual uint32_t GetBoneCount(uint32_t i) override;
 		virtual void GetBoneNames(uint32_t i,std::vector<std::string>& boneNames) override;
 		virtual void GetBoneXForms(uint32_t i,std::vector<mat4>& boneXForms)override;
+		virtual void GetBoneInvBindXForms(uint32_t i, std::vector<mat4>& invBindXForms) override;
 		virtual void GetBoneHierarchy(uint32_t i,std::vector<int>& boneHierarchy) override;
+		virtual uint32_t GetAnimationCount(uint32_t i) override;
+		virtual void GetAnimation(uint32_t i, uint32_t aniIdx, Mesh::AnimationClip& animation) override;
+		virtual Mesh::AnimatedMesh* GetAnimatedMesh(Mesh::MeshType, uint32_t i)override;
 	};
 }

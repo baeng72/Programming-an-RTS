@@ -1,3 +1,4 @@
 *.cap
 *.log
 /build*
+/temp*

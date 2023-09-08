@@ -32,7 +32,7 @@ class MESH {
 	Renderer::RenderDevice* _pdevice;
 	std::shared_ptr<Renderer::ShaderManager> _shaderManager;
 	std::vector<std::unique_ptr<Mesh::Mesh>> _meshes;
-	std::vector<Mesh::ModelMaterial> _materials;
+	std::vector<Mesh::Material> _materials;
 	std::unique_ptr<Renderer::Shader> _shader;
 	std::vector<mat4> _xforms;
 	void LoadShader();

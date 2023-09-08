@@ -68,6 +68,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_mouse.Init(_device.get(), GetWindowPtr());
 
 	_line.reset(Renderer::Line2D::Create(_device.get()));
+	_line->Update(width, height);
 
 	_gnomes.push_back(OBJECT(GNOME, vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.3f, 0.3f, 0.3f), "Sgt. Salty"));
 	_gnomes.push_back(OBJECT(GNOME, vec3(2.0f, 0.0f, 0.0f), vec3(0.0f, 0.6f, 0.0f), vec3(0.3f, 0.3f, 0.3f), "Gnomad"));
@@ -135,6 +136,8 @@ void APPLICATION::Select(mat4&matProj,mat4&matView,vec4&viewport) {
 			//Select any gnomes inside our rectangle
 			for (int i = 0; i < _gnomes.size(); i++) {
 				INTPOINT p = GetScreenPos(_gnomes[i].GetPosition(), matVP, viewport);
+				if (p.inRect(selRect))
+					_gnomes[i]._selected = true;
 			}
 		}
 	}
@@ -194,6 +197,8 @@ void APPLICATION::Render() {
 
 	int gnome = GetGnome(matProj, matView);
 
+	Select(matProj, matView, viewport);
+
 	if (gnome != -1) {
 		_fontMouse->Draw(_gnomes[gnome]._name.c_str(), _mouse.x + 2, _mouse.y + 24, Color(0.f, 0.f, 0.f, 1.f));
 		_fontMouse->Draw(_gnomes[gnome]._name.c_str(), _mouse.x, _mouse.y + 22, Color(1.f, 1.f, 1.f, 1.f));
@@ -213,6 +218,7 @@ void APPLICATION::Render() {
 	else if (_intersectType == 2) {
 		_font->Draw("Sphere Intersection Test", 500, 10, Color(1.f));
 	}
+	
 	_font->Render();
 	_mouse.Paint();
 	_device->EndRender();

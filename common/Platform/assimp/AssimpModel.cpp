@@ -3,8 +3,6 @@
 #include "AssimpModel.h"
 #include "../../Core/Log.h"
 
-#include "../../anim/pose.h"
-#include "../../anim/clip.h"
 //#define __OPTIMIZE__
 #ifdef __OPTIMIZE__
 #include "../meshoptimizer/src/meshoptimizer.h"
@@ -32,12 +30,53 @@ namespace Assimp {
 			_path = filename.substr(0, filename.find_last_of("/\\") + 1);
 			ProcessMaterials(pscene);
 
+			
+
 			ProcessNode(pscene->mRootNode, pscene, glm::mat4(1.f), &_rootNode);
 			_xform = _rootNode.nodeXForm;//probably not true for a lot of models
 			
 			_boneCount = 0;
 			ProcessBoneHierarchy(_rootNode, -1);
+			Mesh::Skeleton skel;
+			skel.boneNames = _boneNames;
+			skel.boneHierarchy = _boneHierarchy;
+			skel.boneInvBindMatrices = _boneOffsets;
+			skel.bonePoseMatrices = _boneXForms;
+			_skeletons.push_back(skel);
+			//do skinning vertex stuff
+			{
+				for (unsigned int i = 0; i < pscene->mNumMeshes; i++) {
+					auto &primitive = _primitives[i];
+					auto pmesh = pscene->mMeshes[i];
+					auto numBones = pmesh->mNumBones;
+					
+					for (unsigned int boneId = 0; boneId < numBones; boneId++) {
+						aiBone* pbone = pmesh->mBones[boneId];
+						auto name = pbone->mName.C_Str();
+						auto boneIndex = std::distance(_boneNames.begin(), std::find(_boneNames.begin(), _boneNames.end(), name));
+						//assign any bone weights and stuff
+						unsigned int boneWeightCount = pbone->mNumWeights;
+						auto weights = pbone->mWeights;
+						for (unsigned int boneWeightID = 0; boneWeightID < boneWeightCount; ++boneWeightID) {
+							auto vertexId = weights[boneWeightID].mVertexId;
+							if (vertexId == 0) {
+								int z = 0;
+							}
+							float weight = weights[boneWeightID].mWeight;
+							AssimpVertex& vert = primitive.vertices[vertexId];
+							for (int i = 0; i < 4; ++i) {
+								if (vert.boneIDs[i] < 0) {
+									vert.boneIDs[i] = (int)boneIndex;
+									vert.weights[i] = weight;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
 			
+			ProcessAnimations(pscene);
 		}
 		else {
 			LOG_CRITICAL("Error loading {0}", pmodelPath);
@@ -59,10 +98,18 @@ namespace Assimp {
 
 		return gmat;
 	}
+
+	vec3 AssimpModel::AssimpToGLM(aiVector3D& vec) {
+		return vec3(vec.x, vec.y, vec.z);
+	}
+	quat AssimpModel::AssimpToGLM(aiQuaternion& qu) {
+		return quat(qu.w, qu.x, qu.y, qu.z);
+	}
+
 	void AssimpModel::ProcessMaterials(const aiScene* pscene)
 	{
 		for (uint32_t i = 0; i < pscene->mNumMaterials; i++) {
-			Mesh::ModelMaterial mat;
+			Mesh::Material mat;
 			aiMaterial* pmat = pscene->mMaterials[i];
 			aiString name;
 			pmat->Get(AI_MATKEY_NAME, name);
@@ -81,7 +128,7 @@ namespace Assimp {
 			mat.emissive = glm::vec4(emissive.r, emissive.g, emissive.b, 1.f);
 			//get any diffuse textures					
 			ProcessTextureTypes(pmat, aiTextureType_DIFFUSE, mat.diffuseTextures);
-			_diffuseTextures = mat.diffuseTextures;
+			
 			//get any normal textures
 			ProcessTextureTypes(pmat, aiTextureType_NORMALS, mat.normalTextures);
 			//get any specular textures
@@ -129,8 +176,22 @@ namespace Assimp {
 				ux = pmesh->mTextureCoords[0][i].x;
 				uy = 1.f - pmesh->mTextureCoords[0][i].y;
 			}
+			float tx=0.f, ty=0.f, tz=0.f;
+			float btx = 0.f, bty = 0.f, btz = 0.f;
+			if (pmesh->HasTangentsAndBitangents()) {
+				//tangent
+				tx = pmesh->mTangents[i].x;
+				ty = pmesh->mTangents[i].y;
+				tz = pmesh->mTangents[i].z;
+				//bitangent
+				btx = pmesh->mBitangents[i].x;
+				bty = pmesh->mBitangents[i].y;
+				btz = pmesh->mBitangents[i].z;
+			}
+
+
 			glm::vec3 norm = -1.f * glm::normalize(glm::vec3(nx, ny, nz));
-			verts[i] = AssimpVertex(glm::vec3(x, y, z), norm, glm::vec2(ux, uy));
+			verts[i] = AssimpVertex(glm::vec3(x, y, z), norm, glm::vec2(ux, uy),vec3(tx,ty,tz),vec3(btx,bty,btz),ivec4(-1),vec4(0.f));
 		}
 		
 		
@@ -173,7 +234,7 @@ namespace Assimp {
 		_boneOffsets.resize(numBones);
 		_boneHierarchy.resize(numBones);
 		_boneXForms.resize(numBones);
-		_bones.resize(numBones);
+		
 		
 		//std::unordered_map<std::string, mat4> offsetMap;
 		for (unsigned int boneId = 0; boneId < numBones; boneId++) {
@@ -181,10 +242,9 @@ namespace Assimp {
 			mat4 offset = AssimpToGLM(pbone->mOffsetMatrix);
 			auto name = pbone->mName.C_Str();
 			_boneMap[name] = offset;
-			//offsetMap[name] = offset;
-			//_nameList[boneId] = name;
-			//_boneOffsets[boneId] = offset;
+			
 		}
+		
 	}
 	void AssimpModel::ProcessTextureTypes(aiMaterial* pmat, aiTextureType type, std::vector<std::string>& textureNames)
 	{
@@ -192,7 +252,65 @@ namespace Assimp {
 		for (uint32_t i = 0; i < texCount; i++) {
 			aiString str;
 			pmat->GetTexture(type, i, &str);
-			textureNames.push_back(str.C_Str());
+			std::string filename = str.C_Str();
+			auto pos = filename.find(".dds");
+			if (pos != std::string::npos) {
+				filename.replace(pos, 4, ".png");
+			}
+			textureNames.push_back(filename);
+		}
+	}
+
+	void AssimpModel::ProcessAnimations(const aiScene* pscene)
+	{
+		unsigned int animationCount = pscene->mNumAnimations;
+		_animations.resize(animationCount);
+		for (unsigned int aniIdx = 0; aniIdx < animationCount; ++aniIdx) {
+			auto panimation = pscene->mAnimations[aniIdx];
+			const std::string name = panimation->mName.C_Str();
+			_animations[aniIdx].name = name;
+			float duration = (float)panimation->mDuration;
+			float ticksPerSecond = (float)panimation->mTicksPerSecond > 0.0f ? (float)panimation->mTicksPerSecond : 30.0f;
+			_animations[aniIdx].ticksPerSecond = ticksPerSecond;
+			unsigned int channelCount = panimation->mNumChannels;
+			_animations[aniIdx].channels.resize(_boneCount);//assimp doesn't load bones that have no vertices attached, so ignore?
+			for (unsigned int chIdx = 0; chIdx < channelCount; ++chIdx) {
+				
+				auto pchannel = panimation->mChannels[chIdx];
+				const std::string chname = pchannel->mNodeName.data;
+				if (std::find(_boneNames.begin(), _boneNames.end(),chname) == _boneNames.end())
+					continue;
+				size_t channelId = std::distance(_boneNames.begin(), std::find(_boneNames.begin(), _boneNames.end(), chname));
+				auto& dstchannel = _animations[aniIdx].channels[channelId];//this may not be correct channel (bone), need to compare name with hierarchy
+				unsigned int positionCount = pchannel->mNumPositionKeys;
+				dstchannel.positions.resize(positionCount);
+				dstchannel.positionTimes.resize(positionCount);
+				for (unsigned int p = 0; p < positionCount; ++p) {
+					float time = (float)pchannel->mPositionKeys[p].mTime;
+					vec3 position = AssimpToGLM(pchannel->mPositionKeys[p].mValue);
+					dstchannel.positions[p] = position;
+					dstchannel.positionTimes[p] = time;
+				}
+				unsigned int rotationCount = pchannel->mNumRotationKeys;
+				dstchannel.rotations.resize(rotationCount);
+				dstchannel.rotationTimes.resize(rotationCount);
+				for (unsigned int r = 0; r < rotationCount; ++r) {
+					float time = (float)pchannel->mRotationKeys[r].mTime;
+					quat rotation = AssimpToGLM(pchannel->mRotationKeys[r].mValue);
+					dstchannel.rotations[r] = rotation;
+					dstchannel.rotationTimes[r] = time;
+				}
+				unsigned int scaleCount = pchannel->mNumScalingKeys;
+				dstchannel.scales.resize(scaleCount);
+				dstchannel.scaleTimes.resize(scaleCount);
+				for (unsigned int s = 0; s < scaleCount; ++s) {
+					float time = (float)pchannel->mScalingKeys[s].mTime;
+					vec3 scale = AssimpToGLM(pchannel->mScalingKeys[s].mValue);
+					dstchannel.scales[s] = scale;
+					dstchannel.scaleTimes[s] = time;
+				}
+				
+			}
 		}
 	}
 
@@ -204,7 +322,7 @@ namespace Assimp {
 			_boneXForms[boneID] = node.localXForm;
 			_boneNames[boneID] = node.name;
 			_boneOffsets[boneID] = _boneMap[node.name];
-			_bones[boneID] = mat4ToTransform(node.localXForm);
+			
 			/*mat4 offset = _boneMap[node.name];
 			mat4 invoffset = glm::inverse(offset);
 			mat4 xform = node.nodeXForm;
@@ -243,10 +361,126 @@ namespace Assimp {
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
 			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(),sizeof(PosNorm), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
 		}
-		if (meshType == Mesh::MeshType::position_normal_uv) {
+		else if (meshType == Mesh::MeshType::position_normal_uv) {
+			struct PosNormUV {
+				vec3 pos;
+				vec3 norm;
+				vec2 uv;
+			};
+			std::vector<PosNormUV> vertices(_primitives[i].vertices.size());
+			for (size_t v = 0; v < _primitives[i].vertices.size(); v++) {
+				vertices[v] = { _primitives[i].vertices[v].position,_primitives[i].vertices[v].normal,_primitives[i].vertices[v].uv };
+			}
+			uint32_t vertSize = (uint32_t)(sizeof(PosNormUV) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(),sizeof(PosNormUV), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+		}
+		else if (meshType == Mesh::MeshType::pos_norm_uv_bones) {
+			struct PosNormUVBones {
+				vec3 pos;
+				vec3 norm;
+				vec2 uv;
+				ivec4 bones;
+				vec4 weights;
+			};
+			std::vector<PosNormUVBones> vertices(_primitives[i].vertices.size());
+			for (size_t v = 0; v < _primitives[i].vertices.size(); v++) {
+				vertices[v] = { _primitives[i].vertices[v].position,_primitives[i].vertices[v].normal,_primitives[i].vertices[v].uv,_primitives[i].vertices[v].boneIDs,_primitives[i].vertices[v].weights };
+			}
+			uint32_t vertSize = (uint32_t)(sizeof(PosNormUVBones) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), sizeof(PosNormUVBones), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+		}
+		else if (meshType == Mesh::MeshType::pos_norm_uv_tan) {
+			struct PosNormUVTan {
+				vec3 pos;
+				vec3 norm;
+				vec2 uv;
+				vec3 tangent;
+				vec3 bitangent;
+			};
+			std::vector<PosNormUVTan> vertices(_primitives[i].vertices.size());
+			for (size_t v = 0; v < _primitives[i].vertices.size(); v++) {
+				vertices[v] = { _primitives[i].vertices[v].position,_primitives[i].vertices[v].normal,_primitives[i].vertices[v].uv,_primitives[i].vertices[v].tangent,_primitives[i].vertices[v].bitangent };
+			}
+			uint32_t vertSize = (uint32_t)(sizeof(PosNormUVTan) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), sizeof(PosNormUVTan), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+		}
+		else if (meshType == Mesh::MeshType::pos_norm_uv_tan_bones) {
 			uint32_t vertSize = (uint32_t)(sizeof(AssimpVertex) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
-			return Mesh::Mesh::Create(_pdevice, (float*)_primitives[i].vertices.data(),sizeof(AssimpVertex), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+			return Mesh::Mesh::Create(_pdevice, (float*)_primitives[i].vertices.data(), sizeof(AssimpVertex), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+		}
+		return nullptr;
+	}
+	Mesh::AnimatedMesh* AssimpModel::GetAnimatedMesh(Mesh::MeshType meshType, uint32_t i)
+	{
+		auto skel = _skeletons[i];
+		auto animations = _animations;
+		if (meshType == Mesh::MeshType::position_normal) {
+			struct PosNorm {
+				glm::vec3 pos;
+				glm::vec3 norm;
+			};
+			std::vector<PosNorm> vertices(_primitives[i].vertices.size());
+			for (size_t v = 0; v < _primitives[i].vertices.size(); v++) {
+				vertices[v] = { _primitives[i].vertices[v].position,_primitives[i].vertices[v].normal };
+			}
+			uint32_t vertSize = (uint32_t)(sizeof(PosNorm) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::AnimatedMesh::Create(_pdevice, (float*)vertices.data(), vertSize,sizeof(PosNorm), (uint32_t*)_primitives[i].indices.data(), indSize,skel,animations);
+		}
+		else if (meshType == Mesh::MeshType::position_normal_uv) {
+			struct PosNormUV {
+				vec3 pos;
+				vec3 norm;
+				vec2 uv;
+			};
+			std::vector<PosNormUV> vertices(_primitives[i].vertices.size());
+			for (size_t v = 0; v < _primitives[i].vertices.size(); v++) {
+				vertices[v] = { _primitives[i].vertices[v].position,_primitives[i].vertices[v].normal,_primitives[i].vertices[v].uv };
+			}
+			uint32_t vertSize = (uint32_t)(sizeof(PosNormUV) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::AnimatedMesh::Create(_pdevice, (float*)vertices.data(), vertSize,sizeof(PosNormUV), (uint32_t*)_primitives[i].indices.data(), indSize, skel, animations);
+		}
+		else if (meshType == Mesh::MeshType::pos_norm_uv_bones) {
+			struct PosNormUVBones {
+				vec3 pos;
+				vec3 norm;
+				vec2 uv;
+				ivec4 bones;
+				vec4 weights;
+			};
+			std::vector<PosNormUVBones> vertices(_primitives[i].vertices.size());
+			for (size_t v = 0; v < _primitives[i].vertices.size(); v++) {
+				vertices[v] = { _primitives[i].vertices[v].position,_primitives[i].vertices[v].normal,_primitives[i].vertices[v].uv,_primitives[i].vertices[v].boneIDs,_primitives[i].vertices[v].weights };
+			}
+			uint32_t vertSize = (uint32_t)(sizeof(PosNormUVBones) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::AnimatedMesh::Create(_pdevice, (float*)vertices.data(), vertSize, sizeof(PosNormUVBones), (uint32_t*)_primitives[i].indices.data(), indSize, skel, animations);
+		}
+		else if (meshType == Mesh::MeshType::pos_norm_uv_tan) {
+			struct PosNormUVTan {
+				vec3 pos;
+				vec3 norm;
+				vec2 uv;
+				vec3 tangent;
+				vec3 bitangent;
+			};
+			std::vector<PosNormUVTan> vertices(_primitives[i].vertices.size());
+			for (size_t v = 0; v < _primitives[i].vertices.size(); v++) {
+				vertices[v] = { _primitives[i].vertices[v].position,_primitives[i].vertices[v].normal,_primitives[i].vertices[v].uv,_primitives[i].vertices[v].tangent,_primitives[i].vertices[v].bitangent};
+			}
+			uint32_t vertSize = (uint32_t)(sizeof(PosNormUVTan) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::AnimatedMesh::Create(_pdevice, (float*)vertices.data(), vertSize, sizeof(PosNormUVTan), (uint32_t*)_primitives[i].indices.data(), indSize, skel, animations);
+		}
+		else {
+			uint32_t vertSize = (uint32_t)(sizeof(AssimpVertex) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::AnimatedMesh::Create(_pdevice, (float*)_primitives[i].vertices.data(), vertSize, sizeof(AssimpVertex), (uint32_t*)_primitives[i].indices.data(), indSize, skel, animations);
 		}
 		return nullptr;
 	}
@@ -263,12 +497,58 @@ namespace Assimp {
 			}
 			uint32_t vertSize = (uint32_t)(sizeof(PosNorm) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
-			return Mesh::ProgressiveMesh::Create(_pdevice, (float*)vertices.data(), vertSize,sizeof(PosNorm), (uint32_t*)_primitives[i].indices.data(), indSize);
+			return Mesh::ProgressiveMesh::Create(_pdevice, (float*)vertices.data(), vertSize, sizeof(PosNorm), (uint32_t*)_primitives[i].indices.data(), indSize);
 		}
-		if (meshType == Mesh::MeshType::position_normal_uv) {
+		else if (meshType == Mesh::MeshType::position_normal_uv) {
+			struct PosNormUV {
+				vec3 pos;
+				vec3 norm;
+				vec2 uv;
+			};
+			std::vector<PosNormUV> vertices(_primitives[i].vertices.size());
+			for (size_t v = 0; v < _primitives[i].vertices.size(); v++) {
+				vertices[v] = { _primitives[i].vertices[v].position,_primitives[i].vertices[v].normal,_primitives[i].vertices[v].uv };
+			}
+			uint32_t vertSize = (uint32_t)(sizeof(PosNormUV) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::ProgressiveMesh::Create(_pdevice, (float*)vertices.data(), vertSize, sizeof(PosNormUV), (uint32_t*)_primitives[i].indices.data(), indSize);
+		}
+		else if (meshType == Mesh::MeshType::pos_norm_uv_bones) {
+			struct PosNormUVBones {
+				vec3 pos;
+				vec3 norm;
+				vec2 uv;
+				ivec4 bones;
+				vec4 weights;
+			};
+			std::vector<PosNormUVBones> vertices(_primitives[i].vertices.size());
+			for (size_t v = 0; v < _primitives[i].vertices.size(); v++) {
+				vertices[v] = { _primitives[i].vertices[v].position,_primitives[i].vertices[v].normal,_primitives[i].vertices[v].uv,_primitives[i].vertices[v].boneIDs,_primitives[i].vertices[v].weights };
+			}
+			uint32_t vertSize = (uint32_t)(sizeof(PosNormUVBones) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::ProgressiveMesh::Create(_pdevice, (float*)vertices.data(), vertSize, sizeof(PosNormUVBones), (uint32_t*)_primitives[i].indices.data(), indSize);
+		}
+		else if (meshType == Mesh::MeshType::pos_norm_uv_tan) {
+			struct PosNormUVTan {
+				vec3 pos;
+				vec3 norm;
+				vec2 uv;
+				vec3 tangent;
+				vec3 bitangent;
+			};
+			std::vector<PosNormUVTan> vertices(_primitives[i].vertices.size());
+			for (size_t v = 0; v < _primitives[i].vertices.size(); v++) {
+				vertices[v] = { _primitives[i].vertices[v].position,_primitives[i].vertices[v].normal,_primitives[i].vertices[v].uv,_primitives[i].vertices[v].tangent,_primitives[i].vertices[v].bitangent };
+			}
+			uint32_t vertSize = (uint32_t)(sizeof(PosNormUVTan) * _primitives[i].vertices.size());
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
+			return Mesh::ProgressiveMesh::Create(_pdevice, (float*)vertices.data(), vertSize, sizeof(PosNormUVTan), (uint32_t*)_primitives[i].indices.data(), indSize);
+		}
+		else {
 			uint32_t vertSize = (uint32_t)(sizeof(AssimpVertex) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
-			return Mesh::ProgressiveMesh::Create(_pdevice, (float*)_primitives[i].vertices.data(), vertSize,sizeof(AssimpVertex), (uint32_t*)_primitives[i].indices.data(), indSize);
+			return Mesh::ProgressiveMesh::Create(_pdevice, (float*)_primitives[i].vertices.data(), vertSize, sizeof(AssimpVertex), (uint32_t*)_primitives[i].indices.data(), indSize);
 		}
 		return nullptr;
 	}
@@ -291,17 +571,17 @@ namespace Assimp {
 	uint32_t AssimpModel::GetMeshMaterialIndex(uint32_t i) {
 		return _materialIndices[i];
 	}
-	uint32_t AssimpModel::GetTextureCount(Mesh::TextureType type)
+	uint32_t AssimpModel::GetTextureCount(uint32_t matId,Mesh::TextureType type)
 	{
 		if (type == Mesh::TextureType::diffuse) {
-			return (uint32_t)_diffuseTextures.size();
+			return (uint32_t)_materials[matId].diffuseTextures.size();
 		}
 		return 0;
 	}
-	Renderer::Texture* AssimpModel::GetTexture(Mesh::TextureType type, uint32_t i)
+	Renderer::Texture* AssimpModel::GetTexture(uint32_t matId,Mesh::TextureType type, uint32_t i)
 	{
 		if (type == Mesh::TextureType::diffuse) {
-			std::string textpath = _path + _diffuseTextures[i];
+			std::string textpath = _path + _materials[matId].diffuseTextures[i];
 			return Renderer::Texture::Create(_pdevice, textpath.c_str());
 		}
 		return nullptr;
@@ -310,7 +590,7 @@ namespace Assimp {
 	{
 		return (uint32_t)_materials.size();
 	}
-	Mesh::ModelMaterial* AssimpModel::GetMaterial(uint32_t i)
+	Mesh::Material* AssimpModel::GetMaterial(uint32_t i)
 	{
 		return &_materials[i];
 	}
@@ -329,10 +609,22 @@ namespace Assimp {
 	{
 		boneXForms = _boneXForms;
 	}
-
+	void AssimpModel::GetBoneInvBindXForms(uint32_t i, std::vector<mat4>& boneInvBindXForms) {
+		boneInvBindXForms = _boneOffsets;
+	}
 	void AssimpModel::GetBoneHierarchy(uint32_t i, std::vector<int>& boneHierarchy)
 	{
 		boneHierarchy = _boneHierarchy;
+	}
+
+	uint32_t AssimpModel::GetAnimationCount(uint32_t i)
+	{
+		return (uint32_t)_animations.size();
+	}
+
+	void AssimpModel::GetAnimation(uint32_t i, uint32_t aniIdx, Mesh::AnimationClip& animation)
+	{
+		animation = _animations[aniIdx];
 	}
 	
 }

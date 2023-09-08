@@ -34,23 +34,32 @@ namespace Vulkan {
 		auto& uboSetBindings = _pShaderData->uboSetBindings;
 		auto& uniformBuffer = _pShaderData->uniformBuffer;
 		//need a descriptor set
-		for (auto&uboBinding:uboSetBindings) {
-			uint32_t set = uboBinding >> 16;
-			uint32_t binding = uboBinding & 0xFF;		
+		if (uboSetBindings.size() > 0) {
+			uint32_t set = uboSetBindings[0] >> 16;
+			std::vector<VkDescriptorBufferInfo> bufferInfos(16);
 			auto uniupdated = DescriptorSetUpdater::begin(context.pLayoutCache, layouts[set], sets[set]);
-			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = uniformBuffer.buffer;
-			bufferInfo.offset = offset;
-			auto& name = _pShaderData->uboNames[index];
-			VkDeviceSize size = _pShaderData->uboSizeMap[name];
-			bufferInfo.range = size;
-			index++;
-			offset += size;
+			for (auto& uboBinding : uboSetBindings) {
+				uint32_t set = uboBinding >> 16;
+				uint32_t binding = uboBinding & 0xFF;
+				
+				
+				bufferInfos[binding].buffer = uniformBuffer.buffer;
+				bufferInfos[binding].offset = offset;
+				
+				auto& name = _pShaderData->uboNames[index];
+				VkDeviceSize size = _pShaderData->uboSizeMap[name];
+				bufferInfos[binding].range = size;
+				index++;
+				offset += size;
 
-			uniupdated.AddBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &bufferInfo);
+				uniupdated.AddBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &bufferInfos[binding]);
 
+				
+			}
 			uniupdated.update();
+			
 		}
+
 		
 	}
 	Vulkan::VulkanShader::~VulkanShader()

@@ -229,7 +229,7 @@ void APPLICATION::Cleanup() {
 
 int main() {
 	APPLICATION app;
-	if (app.Init(800, 600, "Example 5.4: RTS Unit Selection Example")) {
+	if (app.Init(800, 600, "Example 5.5: Viewport Rendering")) {
 		app.Run();
 	}
 	return 0;
