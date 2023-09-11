@@ -1,7 +1,7 @@
 #pragma once
 #include <common.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Mesh.h"
+
 #include "camera.h"
 
 class APPLICATION : public Application {

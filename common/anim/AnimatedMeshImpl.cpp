@@ -308,6 +308,26 @@ namespace Animation {
 	void AnimatedMeshImpl::GetPoseXForms(std::vector<mat4>& poseXForms) {
 		poseXForms = _poseXForms;
 	}
+	void AnimatedMeshImpl::GetBoneNames(std::vector<std::string>& boneNames)
+	{
+		boneNames = _skeleton.boneNames;
+	}
+	int AnimatedMeshImpl::GetBoneIndex(const char* boneName)
+	{
+		auto it = std::find(_skeleton.boneNames.begin(), _skeleton.boneNames.end(), boneName);
+		if (it != _skeleton.boneNames.end())
+			return (int)std::distance(_skeleton.boneNames.begin(), it);
+		return -1;
+	}
+	int AnimatedMeshImpl::GetBonePoseXForm(int boneID, mat4& xform)
+	{
+		if (boneID >= 0 && boneID < _poseXForms.size()) {
+			xform = _poseXForms[boneID];
+			return boneID;
+		}
+		xform = glm::mat4(1.f);
+		return -1;
+	}
 	void AnimatedMeshImpl::GetPose(std::vector<mat4>& pose)
 	{
 		pose = _matrixPalette;

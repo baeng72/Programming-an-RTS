@@ -337,6 +337,10 @@ namespace Assimp {
 			parentID = boneID;
 			
 		}
+		else {
+			//unused bone
+			int z = 0;
+		}
 		for (auto child : node.children) {
 			ProcessBoneHierarchy(child, parentID);
 		}

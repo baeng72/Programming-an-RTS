@@ -46,6 +46,9 @@ namespace Animation {
 		virtual void GetPose(std::vector<mat4>& poseXForms)override;
 		virtual void GetBindPose(std::vector<mat4>& poseXForms) override;
 		virtual void GetAnimations(std::vector<Mesh::AnimationClip>& animations)override;
+		virtual void GetBoneNames(std::vector<std::string>& boneNames)override;
+		virtual int GetBoneIndex(const char* boneName) override;
+		virtual int GetBonePoseXForm(int boneID, mat4& xform) override;
 	};
 }
 

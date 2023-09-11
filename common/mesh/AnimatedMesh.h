@@ -16,6 +16,9 @@ namespace Mesh {
 		virtual void GetPose(std::vector<mat4>& poseXForms) = 0;
 		virtual void GetBindPose(std::vector<mat4>& poseXForms) = 0;
 		virtual void GetAnimations(std::vector<AnimationClip>& animations) = 0;
+		virtual void GetBoneNames(std::vector<std::string>& boneNames) = 0;
+		virtual int GetBoneIndex(const char* boneName) = 0;
+		virtual int GetBonePoseXForm(int boneID, mat4& xform) = 0;
 	};
 }
 
