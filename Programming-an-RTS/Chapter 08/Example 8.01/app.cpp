@@ -1,20 +1,22 @@
 #pragma once
 #include <common.h>
 #include"skinnedMesh.h"
-#include "Mesh.h"
+
 class APPLICATION : public Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;
 	std::shared_ptr<Renderer::ShaderManager> _shadermanager;
 	std::unique_ptr<Renderer::Font> _font;
 	Renderer::DirectionalLight _light;
 	SKINNEDMESH _skinnedMesh;
-	MESH _weapons[4];
-	int _activeWeapon;
 	float _angle;
-	std::vector<std::string> _animations;
-	int _activeAnimation;
-	int _hand;
-	vec3 _handOffset;
+	float _unitTime;
+	float _colFade;
+	vec4 _activeCol;
+	vec4 _lastCol;
+	vec4 _currentCol;
+	float _time;
+	float _pressTime;
+	int _col;
 public:
 	APPLICATION();
 	bool Init(int width, int height, const char* title);
@@ -27,7 +29,10 @@ public:
 
 APPLICATION::APPLICATION() {
 	_angle = 0.f;
-	_activeWeapon = 0;
+	_unitTime = _colFade = 0.f;
+	_currentCol = _lastCol = _activeCol = vec4(1.f, 0.f, 0.f, 1.f);
+	_time = _pressTime = 0.f;
+	_col = 0;
 }
 
 
@@ -40,9 +45,10 @@ bool APPLICATION::Init(int width, int height, const char* title){
 	
 
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
-	_device->EnableDepthBuffer(true);
-	_device->Init();
+	_device->EnableDepthBuffer(true);	
+	_device->Init();	
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
+
 	_shadermanager.reset(Renderer::ShaderManager::Create(_device.get()));
 
 	_font.reset(Renderer::Font::Create());
@@ -52,32 +58,54 @@ bool APPLICATION::Init(int width, int height, const char* title){
 	_light.diffuse = glm::vec4(0.9f, 0.9f, 0.9f, 1.f);
 	_light.specular = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
 	_light.direction = glm::normalize(glm::vec3(0.0f, -1.f, 0.f));	
-	_skinnedMesh.Load(_device.get(), _shadermanager,"../../../../Resources/Chapter 07/Example 7.04/mesh/drone.x");
-	_animations = _skinnedMesh.GetAnimations();
-	_activeAnimation = (int)_animations.size() - 3;
-	_skinnedMesh.SetAnimation(_animations[_activeAnimation].c_str());
-	_hand = _skinnedMesh.GetBoneIndex("Bone19");
-	_handOffset = vec3(.5f, 0.f, -0.07f);
-	//Load active weapons
-	_weapons[0].Load(_device.get(),_shadermanager, "../../../../Resources/Chapter 07/Example 7.04/mesh/club.x");
-	_weapons[1].Load(_device.get(), _shadermanager, "../../../../Resources/Chapter 07/Example 7.04/mesh/sword.x");
-	_weapons[2].Load(_device.get(), _shadermanager, "../../../../Resources/Chapter 07/Example 7.04/mesh/axe.x");
-	_weapons[3].Load(_device.get(), _shadermanager, "../../../../Resources/Chapter 07/Example 7.04/mesh/flowers.x");
-
+	_skinnedMesh.Load(_device.get(), _shadermanager,"../../../../Resources/Chapter 08/Example 8.01/units/magician.x");
+	
+	
+	_skinnedMesh.SetAnimation("Run");
+	
+	
 	return true;
 }
 
 void APPLICATION::Update(float deltaTime) {
 	if (IsKeyPressed(KEY_ESCAPE))
 		Quit();
-	_angle += deltaTime * 0.5f;
+	_time += deltaTime;
+	_angle += deltaTime * 0.2f;
+	_unitTime = deltaTime * 0.5f;
 	if (_angle > glm::pi<float>() * 2.f)
 		_angle -= glm::pi<float>() * 2.f;
 
+	//change color
+	_colFade += deltaTime * 0.4f;
+	if (_colFade > 1.f)
+		_colFade = 1.f;
+
+	_currentCol = _lastCol * (1.f - _colFade) + _activeCol * _colFade;
+
 	if (IsKeyPressed(KEY_SPACE)) {
-		_activeWeapon++;
-		if (_activeWeapon >= 4)
-			_activeWeapon = 0;
+		
+		_pressTime = _time;
+		_col++;
+		if (_col > 11)
+			_col = 0;
+		vec4 colors[] = {
+			vec4(1.0f, 0.0f, 0.0f, 1.0f),
+								  vec4(0.0f, 1.0f, 0.0f, 1.0f),
+								  vec4(0.0f, 0.0f, 1.0f, 1.0f),
+								  vec4(1.0f, 1.0f, 0.0f, 1.0f),
+								  vec4(1.0f, 0.0f, 1.0f, 1.0f),
+								  vec4(0.0f, 1.0f, 1.0f, 1.0f),
+								  vec4(0.5f, 0.25f, 0.0f, 1.0f),
+								  vec4(0.0f, 0.0f, 0.0f, 1.0f),
+								  vec4(1.0f, 0.5f, 0.0f, 1.0f),
+								  vec4(0.0f, 0.25f, 0.0f, 1.0f),
+								  vec4(0.25f, 0.0f, 0.0f, 1.0f),
+								  vec4(0.0f, 0.0f, 0.25f, 1.0f)
+		};
+		_lastCol = _currentCol;
+		_activeCol = colors[_col];
+		_colFade = 0.f;
 		Sleep(100);
 	}
 	_skinnedMesh.SetPose(deltaTime*0.5f);
@@ -97,24 +125,18 @@ inline glm::mat4 D3DXOrthoLH(float width, float height, float zn, float zf) {
 
 void APPLICATION::Render() {
 	_device->StartRender();
+	Rect r = { 0,200,_width,400 };
+	Color c = _currentCol;
+	_device->Clear(r, c);
 	mat4 matView = glm::lookAtLH(vec3(0.f, 10.f, -50.f), vec3(0.f, 4.f, 0.f), vec3(0.f, 1.f, 0.f));
 	mat4 matProj = D3DXOrthoLH(10.f, 9.f, 0.1f, 1000.f);
 	mat4 matVP = matProj * matView;
-	//Set Skeelton to 
-	vec3 dir = _light.direction;
-	
-	mat4 matWorld = glm::rotate(glm::scale(glm::mat4(1.f), vec3(1.3f)), _angle, vec3(0.f, 1.f, 0.f));
-	
-	
-	_skinnedMesh.Render(matVP, matWorld, _light);
-	if (_hand >= 0) {
-		mat4 boneMatrix = _skinnedMesh.GetBoneXForm(_hand);
-		mat4 offset = translate(mat4(1.f), _handOffset);
-		mat4 weaponXForm = matWorld * boneMatrix * offset;
-		_weapons[_activeWeapon].Render(matVP, weaponXForm, _light);
-	}
-	
-	_font->Draw("Space: Change Weapon", 10, 10, Color(0.f, 0.f, 0.f, 1.f));
+
+	//Set Skeleton to 		
+	mat4 matWorld = glm::rotate(glm::scale(glm::mat4(1.f), vec3(1.3f)), _angle, vec3(0.f, 1.f, 0.f));		
+	_skinnedMesh.Render(matVP, matWorld, _light,_currentCol);
+		
+	_font->Draw("Space: Change team color", 10, 10, Color(0.f, 0.f, 0.f, 1.f));
 	
 	_font->Render();
 	_device->EndRender();
@@ -130,7 +152,7 @@ void APPLICATION::Cleanup() {
 
 int main() {
 	APPLICATION app;
-	if (app.Init(800, 600, "Example 7.4: Placing a Weapon in the hand")) {
+	if (app.Init(800, 600, "Example 8.1: Team Color")) {
 		app.Run();
 	}
 	return 0;
