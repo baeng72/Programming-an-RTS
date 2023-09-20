@@ -122,7 +122,7 @@ void APPLICATION::Cleanup() {
 
 int main() {
 	APPLICATION app;
-	if (app.Init(800, 600, "Example 5.2: Mouse Example")) {
+	if (app.Init(800, 600, "Example 4.5: Tilebased Texturing")) {
 		app.Run();
 	}
 	return 0;

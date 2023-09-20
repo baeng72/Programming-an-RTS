@@ -24,8 +24,8 @@ layout(set=0,binding=0) uniform UBO{
 	DirectionalLight light;
 };
 
-layout(set=0,binding=1) uniform skeleton{
-	mat4 bones[18];
+layout(set=1,binding=0) readonly buffer skeleton{
+	mat4 bones[];
 };
 
 layout (push_constant) uniform PushConst{	
@@ -69,7 +69,7 @@ layout (push_constant) uniform PushConst{
 	vec4 color;
 };
 
-layout (set=1,binding=0) uniform sampler2D texmap;
+layout (set=2,binding=0) uniform sampler2D texmap;
 
 
 void main(){

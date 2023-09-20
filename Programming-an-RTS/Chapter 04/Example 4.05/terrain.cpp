@@ -104,7 +104,7 @@ bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevi
 	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount*sizeof(uint32_t)));
 	_shader.reset(Renderer::Shader::Create(pdevice, shaderData));
 	int colorid = 0;
-	_shader->SetStorage(colorid, _attrBuffer.get());
+	_shader->SetStorageBuffer(colorid, _attrBuffer.get());
 	std::vector<Renderer::Texture*> tex;
 	for (auto& t : textures)
 	{

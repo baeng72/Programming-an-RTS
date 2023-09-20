@@ -1,17 +1,17 @@
 #pragma once
 #include "VulkanBuffer.h"
 #include "VulkState.h"
-Renderer::Buffer* Renderer::Buffer::Create(Renderer::RenderDevice* pdevice,uint32_t size,bool isUniform,bool isDynamic) {
-	return new Vulkan::VulkanBufferImpl(pdevice,nullptr,size,isUniform,isDynamic);
+Renderer::Buffer* Renderer::Buffer::Create(Renderer::RenderDevice* pdevice,uint32_t size,uint32_t count,bool isUniform,bool isDynamic) {
+	return new Vulkan::VulkanBufferImpl(pdevice,nullptr,size,count,isUniform,isDynamic);
 }
-Renderer::Buffer* Renderer::Buffer::Create(Renderer::RenderDevice* pdevice, void*ptr,uint32_t size,bool isUniform,bool isDynamic) {
-	return new Vulkan::VulkanBufferImpl(pdevice, ptr, size,isUniform,isDynamic);
+Renderer::Buffer* Renderer::Buffer::Create(Renderer::RenderDevice* pdevice, void*ptr,uint32_t size,uint32_t count,bool isUniform,bool isDynamic) {
+	return new Vulkan::VulkanBufferImpl(pdevice, ptr, size,count,isUniform,isDynamic);
 }
 namespace Vulkan {
 	
 	
 	
-	VulkanBufferImpl::VulkanBufferImpl(Renderer::RenderDevice* pdevice, void* ptr, uint32_t size,bool isUniform,bool isDynamic):_pdevice(pdevice)
+	VulkanBufferImpl::VulkanBufferImpl(Renderer::RenderDevice* pdevice, void* ptr, uint32_t size,uint32_t count,bool isUniform,bool isDynamic):_pdevice(pdevice)
 	{
 		VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 		if (isDynamic) {
@@ -31,7 +31,7 @@ namespace Vulkan {
 		Vulkan::VulkContext& context = *contextptr;
 		std::vector<UniformBufferInfo> bufferInfo;
 		UniformBufferBuilder::begin(context.device, context.deviceProperties, context.memoryProperties, descriptorType,true)
-			.AddBuffer((VkDeviceSize)size, 1, 1)
+			.AddBuffer((VkDeviceSize)size, count, 1)
 			.build(_data.buffer,bufferInfo);
 		_data.ptr = bufferInfo[0].ptr;
 		_data.size = size;
@@ -47,9 +47,10 @@ namespace Vulkan {
 		Vulkan::cleanupBuffer(context.device, _data.buffer);
 	}
 
-	void VulkanBufferImpl::Set(void* ptr, uint32_t size)
+	void VulkanBufferImpl::Set(void* ptr, uint32_t size,uint32_t offset)
 	{
-		memcpy(_data.ptr, ptr, size);
+		void* dstptr = (void*)((uint8_t*)_data.ptr + offset);
+		memcpy(dstptr, ptr, size);
 	}
 
 	void* VulkanBufferImpl::GetNativeHandle() const
@@ -60,6 +61,10 @@ namespace Vulkan {
 	uint32_t VulkanBufferImpl::GetSize() const
 	{
 		return _data.size;
+	}
+
+	void* VulkanBufferImpl::GetPtr()const {
+		return _data.ptr;
 	}
 
 }

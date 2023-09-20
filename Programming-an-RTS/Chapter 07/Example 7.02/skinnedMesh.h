@@ -8,6 +8,7 @@ class SKINNEDMESH {
 	std::unique_ptr<Renderer::Shader> _sphereShader;
 	std::unique_ptr<Mesh::Mesh> _sphere;
 	std::unique_ptr<Mesh::AnimatedMesh> _animatedMesh;
+	std::unique_ptr<Mesh::AnimationController> _animationController;
 	int _boneCount;
 	std::vector<mat4> _boneXForms;
 	std::vector<std::string> _boneNames;

@@ -21,6 +21,7 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 	model->GetBoneHierarchy(0, _boneHierarchy);
 	
 	_animatedMesh = std::unique_ptr<Mesh::AnimatedMesh>(model->GetAnimatedMesh(Mesh::MeshType::pos_norm_uv_bones, 0));
+	_animationController = std::unique_ptr<Mesh::AnimationController>(_animatedMesh->GetController());
 	//copy animations
 	uint32_t animationCount = model->GetAnimationCount(0);
 	_animations.resize(animationCount);
@@ -45,7 +46,8 @@ void SKINNEDMESH::Update() {
 
 void SKINNEDMESH::SetPose(float time)
 {
-	_animatedMesh->SetPose(time*300.f);
+	_time += time * 300.f;
+	_animationController->SetPose(_time);
 	
 }
 
@@ -57,7 +59,7 @@ void SKINNEDMESH::SetAnimation(const char* pname)
 			break;
 		}
 	}
-	_animatedMesh->SetAnimation(_currAnimation, false);
+	_animationController->SetAnimation(_currAnimation, false);
 	_time = 0.f;
 }
 
@@ -84,7 +86,7 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 	
 	_sphereShader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	std::vector<mat4> poseXForms;
-	_animatedMesh->GetPoseXForms(poseXForms);
+	_animationController->GetPoseXForms(poseXForms);
 	
 	for (int i = 0; i < _boneCount; i++) {
 		int parentID = _boneHierarchy[i];

@@ -4,6 +4,7 @@
 #include "Light.h"
 #include "Texture.h"
 namespace Renderer {
+	enum class ShaderStorageType { Uniform, UniformDynamic, Storage, StorageDynamic, Texture, TextureArray };
 	enum ShaderAttrFlagBits {
 		SHADER_ATTR_UBO	= 0x0000001,		//uniform buffer
 		SHADER_ATTR_STORAGE	= 0x000002,		//storage buffer
@@ -46,7 +47,7 @@ namespace Renderer {
 		virtual ~ShaderManager() = default;
 		virtual void* GetShaderDataByName(const char*name) = 0;
 		//virtual void* GetShaderData(const char* shaderPath) = 0;
-		virtual void* CreateShaderData(const char* shaderPath, bool cullBackFaces = true, bool enableBlend = true) = 0;
+		virtual void* CreateShaderData(const char* shaderPath, bool cullBackFaces = true, bool enableBlend = true,  ShaderStorageType* ptypes = nullptr, uint32_t numtypes=0) = 0;
 		//virtual void* GetShaderAttribute(ShaderAttrData&data) = 0;		
 	};
 }

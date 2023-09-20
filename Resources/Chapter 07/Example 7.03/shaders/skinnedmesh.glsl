@@ -24,7 +24,7 @@ layout(set=0,binding=0) uniform UBO{
 	DirectionalLight light;
 };
 
-layout(set=0,binding=1) uniform skeleton{
+layout(set=1,binding=0) uniform skeleton{
 	mat4 bones[18];
 };
 
@@ -63,7 +63,7 @@ layout(set=0,binding=0) uniform UBO{
 	DirectionalLight light;
 };
 
-layout (set=1,binding=0) uniform sampler2D texmap;
+layout (set=2,binding=0) uniform sampler2D texmap;
 
 
 void main(){

@@ -38,15 +38,24 @@ namespace Vulkan {
 		VkPipeline		filledPipeline;
 		VkPipeline		wireframePipeline;
 		VkShaderStageFlags pushConstStages;
-		Vulkan::Buffer	uniformBuffer;		
+		Vulkan::Buffer	uniformBuffer;	
+		
 		std::vector<std::string> uboNames;
 		std::vector<uint32_t> uboSetBindings;
 		std::unordered_map<std::string, void*> uboMap;
 		std::unordered_map<std::string, VkDeviceSize> uboSizeMap;
+		std::vector<std::string> uniformDynamicNames;
+		std::vector<uint32_t> uniformDynamicSetBindings;
+		std::unordered_map<std::string, void*> uniformDynamicMap;
+		std::unordered_map<std::string, VkDeviceSize> uniformDynamicSizeMap;
 		std::vector<std::string> storageNames;
 		std::vector<uint32_t> storageSetBindings;
 		std::unordered_map<std::string, void*>storageMap;
 		std::unordered_map<std::string, VkDeviceSize> storageSizeMap;
+		std::vector<std::string> storageDynamicNames;
+		std::vector<uint32_t> storageSetDynamicBindings;
+		std::unordered_map<std::string, void*>storageDynamicMap;
+		std::unordered_map<std::string, VkDeviceSize> storageDynamicSizeMap;
 		std::vector<std::string> imageNames;
 		std::vector<uint32_t> imageSetBindings;
 		std::vector<uint32_t> imageCounts;
@@ -61,7 +70,7 @@ namespace Vulkan {
 		//std::unordered_map<std::string,VulkanShaderData> _wireframeShaderList;
 		//std::unordered_map<std::tuple<uint32_t,uint32_t,uint32_t>,VulkanDescriptorData,std::key_hash> _shaderAttrMap;
 		void CompileShaders();
-		void CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,bool cullBackFaces,bool enableBlend);
+		void CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,bool cullBackFaces,bool enableBlend, Renderer::ShaderStorageType* ptypes, uint32_t numtypes);
 		std::string readFile(const std::string& filepath);
 		std::unordered_map<VkShaderStageFlagBits, std::string> PreProcess(const std::string& src);
 		VkShaderStageFlagBits ShaderTypeFromString(const std::string& type);
@@ -69,7 +78,7 @@ namespace Vulkan {
 		VulkanShaderManager(Renderer::RenderDevice* pdevice);
 		virtual ~VulkanShaderManager();
 		virtual void* GetShaderDataByName(const char*pname) override;
-		virtual void* CreateShaderData(const char* shaderPath,bool cullBackFaces=true,bool enableBlend=true) override;		
+		virtual void* CreateShaderData(const char* shaderPath,bool cullBackFaces=true,bool enableBlend=true,Renderer::ShaderStorageType * ptypes = nullptr, uint32_t numtypes=0) override;
 		//virtual void* GetShaderAttribute(Renderer::ShaderAttrData& data)override;
 		
 	};

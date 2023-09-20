@@ -59,6 +59,7 @@ namespace Vulkan {
 			uniupdated.update();
 			
 		}
+		
 
 		
 	}
@@ -71,13 +72,13 @@ namespace Vulkan {
 		
 	}
 	
-	void VulkanShader::Bind()
+	void VulkanShader::Bind(uint32_t* pdynoffsets, uint32_t dynoffcount)
 	{
 
 		Vulkan::VulkFrameData* framedataptr = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
 		Vulkan::VulkFrameData& framedata = *framedataptr;
 
-		vkCmdBindDescriptorSets(framedata.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pShaderData->pipelineLayout, 0, (uint32_t)_descriptorSets.size(), _descriptorSets.data(), 0, nullptr);
+		vkCmdBindDescriptorSets(framedata.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pShaderData->pipelineLayout, 0, (uint32_t)_descriptorSets.size(), _descriptorSets.data(), dynoffcount, pdynoffsets);
 		vkCmdBindPipeline(framedata.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pShaderData->pipeline);
 	}
 
@@ -94,38 +95,100 @@ namespace Vulkan {
 		_pShaderData->pipeline = wireframe ? _pShaderData->wireframePipeline : _pShaderData->filledPipeline;
 	}
 
-	bool VulkanShader::SetUniformData(uint32_t i, void*ptr,uint32_t len)
+	bool VulkanShader::SetUniformBuffer(uint32_t i, Renderer::Buffer* pbuffer,bool dynamic)
 	{
-		assert(i < _pShaderData->uboNames.size());
-		if (i < _pShaderData->uboNames.size()) {
-			auto& name = _pShaderData->uboNames[i];
-			VkDeviceSize size = _pShaderData->uboSizeMap[name];
-			void* pdst = _pShaderData->uboMap[name];
-			memcpy(pdst, ptr, std::min(len,(uint32_t) size));
+		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
+		Vulkan::VulkContext& context = *contextptr;
+		VulkanBufferData* pdata = (VulkanBufferData*)pbuffer->GetNativeHandle();
+		//need to update descriptor
+		if (i >= 0) {
+			uint32_t setBinding = dynamic ? _pShaderData->uniformDynamicSetBindings[i] : _pShaderData->uboSetBindings[i];
+			uint32_t set = setBinding >> 16;
+			uint32_t binding = setBinding & 0x00FF;
+			VkDescriptorBufferInfo bufferInfo{};
+			bufferInfo.buffer = pdata->buffer.buffer;
+			bufferInfo.offset = 0;	//may not be true ?
+			bufferInfo.range = pdata->size;
+			DescriptorSetUpdater::begin(context.pLayoutCache, _pShaderData->descriptorSetLayouts[set], _descriptorSets[set])
+				.AddBinding(binding, pdata->descriptorType, &bufferInfo)
+				.update();
+			if (dynamic) {
+				_pShaderData->uniformDynamicMap[_pShaderData->uniformDynamicNames[i]] = pdata->ptr;
+				_pShaderData->uniformDynamicSizeMap[_pShaderData->uniformDynamicNames[i]] = pdata->size;
+			}
+			else {
+				_pShaderData->uboMap[_pShaderData->uboNames[i]] = pdata->ptr;//use an array and index using id?
+				_pShaderData->uboSizeMap[_pShaderData->uboNames[i]] = pdata->size;
+			}
 			return true;
 		}
 		return false;
 	}
 
-	bool VulkanShader::SetUniformData(const char* pname, void* ptr, uint32_t len)
+	bool VulkanShader::SetUniformBuffer(const char* pname, Renderer::Buffer* pbuffer,bool dynamic)
 	{
-		std::string name = pname;
-		auto& names = _pShaderData->uboNames;
-		ASSERT(std::find(names.begin(), names.end(), name) != names.end(),"Unknown shader name!");
-		if (_pShaderData->uboMap.find(name) != _pShaderData->uboMap.end()) {
-			VkDeviceSize size = _pShaderData->uboSizeMap[name];
-			void* pdst = _pShaderData->uboMap[name];
-			memcpy(pdst, ptr, std::min(len,(uint32_t) size));
-			return true;
+		uint32_t id = GetUniformId(pname,dynamic);
+		return SetUniformBuffer(id, pbuffer,dynamic);
+	}
 
+	bool VulkanShader::SetUniformData(uint32_t i, void*ptr,uint32_t len,bool dynamic)
+	{
+		if (dynamic) {
+			assert(i < _pShaderData->uniformDynamicNames.size());
+			if (i < _pShaderData->uniformDynamicNames.size()) {
+				auto& name = _pShaderData->uniformDynamicNames[i];
+				VkDeviceSize size = _pShaderData->uniformDynamicSizeMap[name];
+				void* pdst = _pShaderData->uniformDynamicMap[name];
+				memcpy(pdst, ptr, std::min(len, (uint32_t)size));
+				return true;
+			}
+		}
+		else {
+			assert(i < _pShaderData->uboNames.size());
+			if (i < _pShaderData->uboNames.size()) {
+				auto& name = _pShaderData->uboNames[i];
+				VkDeviceSize size = _pShaderData->uboSizeMap[name];
+				void* pdst = _pShaderData->uboMap[name];
+				memcpy(pdst, ptr, std::min(len, (uint32_t)size));
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool VulkanShader::SetUniformData(const char* pname, void* ptr, uint32_t len,bool dynamic)
+	{
+
+		std::string name = pname;
+		if (dynamic) {
+			auto& names = _pShaderData->uniformDynamicNames;
+			ASSERT(std::find(names.begin(), names.end(), name) != names.end(), "Unknown shader name!");
+			if (_pShaderData->uniformDynamicMap.find(name) != _pShaderData->uniformDynamicMap.end()) {
+				VkDeviceSize size = _pShaderData->uniformDynamicSizeMap[name];
+				void* pdst = _pShaderData->uniformDynamicMap[name];
+				memcpy(pdst, ptr, std::min(len, (uint32_t)size));
+				return true;
+
+			}
+		}
+		else {
+			auto& names = _pShaderData->uboNames;
+			ASSERT(std::find(names.begin(), names.end(), name) != names.end(), "Unknown shader name!");
+			if (_pShaderData->uboMap.find(name) != _pShaderData->uboMap.end()) {
+				VkDeviceSize size = _pShaderData->uboSizeMap[name];
+				void* pdst = _pShaderData->uboMap[name];
+				memcpy(pdst, ptr, std::min(len, (uint32_t)size));
+				return true;
+
+			}
 		}
 		return false;
 	}
 
 	
-	uint32_t VulkanShader::GetUniformId(const char* pname)
+	uint32_t VulkanShader::GetUniformId(const char* pname,bool dynamic)
 	{
-		auto& names = _pShaderData->uboNames;
+		auto& names = dynamic ? _pShaderData->uniformDynamicNames : _pShaderData->uboNames;
 		ASSERT(std::find(names.begin(), names.end(), pname) != names.end(), "Unkown uniform name!");		
 		return (uint32_t)std::distance(names.begin(),std::find(names.begin(), names.end(), pname));
 	}
@@ -160,7 +223,7 @@ namespace Vulkan {
 
 	bool VulkanShader::SetTexture(const char* pname, Renderer::Texture** pptexture, uint32_t count)
 	{
-		uint32_t id = GetStorageId(pname);
+		uint32_t id = GetTextureId(pname);
 		return SetTexture(id, pptexture,count);
 	}
 
@@ -208,14 +271,14 @@ namespace Vulkan {
 		return (uint32_t)std::distance(names.begin(), std::find(names.begin(), names.end(), pname));
 	}
 
-	bool VulkanShader::SetStorage(uint32_t i, Renderer::Buffer* pbuffer)
+	bool VulkanShader::SetStorageBuffer(uint32_t i, Renderer::Buffer* pbuffer,bool dynamic)
 	{
 		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
 		Vulkan::VulkContext& context = *contextptr;
 		VulkanBufferData* pdata = (VulkanBufferData*)pbuffer->GetNativeHandle();
 		//need to update descriptor
 		if (i >= 0) {
-			uint32_t setBinding = _pShaderData->storageSetBindings[i];
+			uint32_t setBinding = dynamic ? _pShaderData->storageSetDynamicBindings[i] : _pShaderData->storageSetBindings[i];
 			uint32_t set = setBinding >> 16;
 			uint32_t binding = setBinding & 0x00FF;
 			VkDescriptorBufferInfo bufferInfo{};
@@ -225,50 +288,85 @@ namespace Vulkan {
 			DescriptorSetUpdater::begin(context.pLayoutCache, _pShaderData->descriptorSetLayouts[set], _descriptorSets[set])
 				.AddBinding(binding, pdata->descriptorType, &bufferInfo)
 				.update();
-			_pShaderData->storageMap[_pShaderData->storageNames[i]] = pdata->ptr;//use an array and index using id?
-			_pShaderData->storageSizeMap[_pShaderData->storageNames[i]] = pdata->size;
+			if (dynamic) {
+				_pShaderData->storageDynamicMap[_pShaderData->storageDynamicNames[i]] = pdata->ptr;
+				_pShaderData->storageDynamicSizeMap[_pShaderData->storageDynamicNames[i]] = pdata->size;
+			}
+			else {
+				 _pShaderData->storageMap[_pShaderData->storageNames[i]] = pdata->ptr;//use an array and index using id?
+				_pShaderData->storageSizeMap[_pShaderData->storageNames[i]] = pdata->size;
+			}
 			return true;
 		}
 		return false;
 	}
 
-	bool VulkanShader::SetStorage(const char* pname, Renderer::Buffer* pbuffer)
+	bool VulkanShader::SetStorageBuffer(const char* pname, Renderer::Buffer* pbuffer,bool dynamic)
 	{
 		//need to update descriptor
-		uint32_t id = GetStorageId(pname);
-		return SetStorage(id, pbuffer);		
+		uint32_t id = GetStorageId(pname,dynamic);
+		return SetStorageBuffer(id, pbuffer,dynamic);		
 	}
 
-	bool VulkanShader::SetStorageData(uint32_t i, void* ptr, uint32_t len)
+	bool VulkanShader::SetStorageData(uint32_t i, void* ptr, uint32_t len,bool dynamic)
 	{
-		assert(i < (uint32_t)_pShaderData->storageNames.size());
-		if (i < (uint32_t)_pShaderData->storageNames.size()) {
-			auto& name = _pShaderData->storageNames[i];
-			VkDeviceSize size = _pShaderData->storageSizeMap[name];
-			void* pdst = _pShaderData->storageMap[name];
-			memcpy(pdst, ptr, std::min(len, (uint32_t)size));
-			return true;
+		if (dynamic) {
+			assert(i < (uint32_t)_pShaderData->storageDynamicNames.size());
+			if (i < (uint32_t)_pShaderData->storageDynamicNames.size()) {
+				auto& name = _pShaderData->storageDynamicNames[i];
+				VkDeviceSize size = _pShaderData->storageDynamicSizeMap[name];
+				void* pdst = _pShaderData->storageDynamicMap[name];
+				memcpy(pdst, ptr, std::min(len, (uint32_t)size));
+				return true;
+			}
+		}
+		else {
+			assert(i < (uint32_t)_pShaderData->storageNames.size());
+			if (i < (uint32_t)_pShaderData->storageNames.size()) {
+				auto& name = _pShaderData->storageNames[i];
+				VkDeviceSize size = _pShaderData->storageSizeMap[name];
+				void* pdst = _pShaderData->storageMap[name];
+				memcpy(pdst, ptr, std::min(len, (uint32_t)size));
+				return true;
+			}
 		}
 		return false;
 	}
 
-	bool VulkanShader::SetStorageData(const char* pname, void* ptr, uint32_t len)
+	bool VulkanShader::SetStorageData(const char* pname, void* ptr, uint32_t len,bool dynamic)
 	{
-		uint32_t id = GetStorageId(pname);
-		if (id < (uint32_t)_pShaderData->storageNames.size()) {
-			SetStorageData(id, ptr, len);
-			return true;
+		uint32_t id = GetStorageId(pname,dynamic);
+		if (dynamic) {
+			if (id < (uint32_t)_pShaderData->storageDynamicNames.size()) {
+				SetStorageData(id, ptr, len,dynamic);
+				return true;
+			}
+		}
+		else {
+			if (id < (uint32_t)_pShaderData->storageNames.size()) {
+				SetStorageData(id, ptr, len,dynamic);
+				return true;
+			}
 		}
 		return false;
 	}
 
 	
 
-	uint32_t VulkanShader::GetStorageId(const char* pname)
+	uint32_t VulkanShader::GetStorageId(const char* pname,bool dynamic)
 	{
-		auto& names = _pShaderData->storageNames;
-		ASSERT(std::find(names.begin(), names.end(), pname) != names.end(), "Unkown storage name!");
-		return (uint32_t)std::distance(names.begin(), std::find(names.begin(), names.end(), pname));
+		uint32_t id = UINT32_MAX;
+		if (dynamic) {
+			auto& names = _pShaderData->storageDynamicNames;
+			ASSERT(std::find(names.begin(), names.end(), pname) != names.end(), "Unkown storage name!");
+			id = (uint32_t)std::distance(names.begin(), std::find(names.begin(), names.end(), pname));
+		}
+		else {
+			auto& names = _pShaderData->storageNames;
+			ASSERT(std::find(names.begin(), names.end(), pname) != names.end(), "Unkown storage name!");
+			id = (uint32_t)std::distance(names.begin(), std::find(names.begin(), names.end(), pname));
+		}
+		return id;
 	}
 	
 }

@@ -824,7 +824,7 @@ namespace Vulkan {
 		}
 		return size;
 	}
-	void VulkanShaderManager::CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,bool cullBackFaces, bool enableBlend)
+	void VulkanShaderManager::CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,bool cullBackFaces, bool enableBlend, Renderer::ShaderStorageType* ptypes, uint32_t numtypes)
 	{
 		LOG_INFO("Compiling shader {0}", name);
 		ShaderCompiler compiler;
@@ -872,9 +872,14 @@ namespace Vulkan {
 			}
 			ASSERT(stage == pair.first, "Invalid shader stage reflecting spirv!");
 			uint32_t descriptorSetCount = module.descriptor_set_count;
-			std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorSetLayoutBindings(descriptorSetCount);
-			std::vector<std::vector<std::string>> descriptorSetLayoutBindingNames(descriptorSetCount);
-			std::vector<std::vector<uint32_t>> descriptorSetLayoutBindingSizes(descriptorSetCount);
+			for (uint32_t i = 0; i < descriptorSetCount; i++) {
+				SpvReflectDescriptorSet& srcset = module.descriptor_sets[i];
+				maxSet = std::max(srcset.set + 1, maxSet);
+			}
+			std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorSetLayoutBindings(maxSet);
+			std::vector<std::vector<std::string>> descriptorSetLayoutBindingNames(maxSet);
+			std::vector<std::vector<uint32_t>> descriptorSetLayoutBindingSizes(maxSet);
+			//uint32_t typeIndex = 0;
 			for (uint32_t i = 0; i < descriptorSetCount; i++) {
 				SpvReflectDescriptorSet& srcset = module.descriptor_sets[i];
 				maxSet = std::max(srcset.set+1, maxSet);
@@ -889,6 +894,33 @@ namespace Vulkan {
 					SpvReflectDescriptorBinding& srcbinding = *srcset.bindings[j];
 					dstset[j].binding = srcbinding.binding;
 					dstset[j].descriptorType = (VkDescriptorType)srcbinding.descriptor_type;
+					/*if (ptypes) {
+						if(typeIndex>numtypes)
+							LOG_WARN("More shader storage types {0} than expected:{1}", typeIndex, numtypes);
+						switch (dstset[j].descriptorType) {
+						case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+							if (!(ptypes[typeIndex] != Renderer::ShaderStorageType::Uniform|| ptypes[typeIndex] != Renderer::ShaderStorageType::UniformDynamic))
+								LOG_WARN("Expected Uniform Type at shader index {0}", typeIndex);
+							break;
+						case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+							if (!(ptypes[typeIndex] != Renderer::ShaderStorageType::UniformDynamic|| ptypes[typeIndex] != Renderer::ShaderStorageType::StorageDynamic))
+								LOG_WARN("Expected Uniform Dynamic Type at shader index {0}", typeIndex);
+							break;
+						case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+							if (ptypes[typeIndex] != Renderer::ShaderStorageType::Storage)
+								LOG_WARN("Expected Storage Buffer Type at shader index {0}", typeIndex);
+							break;
+						case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+							if (ptypes[typeIndex] != Renderer::ShaderStorageType::StorageDynamic)
+								LOG_WARN("Expected Storage Buffer Dynamic Type at shader index {0}", typeIndex);
+							break;
+						case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+							if (ptypes[typeIndex] != Renderer::ShaderStorageType::Texture)
+								LOG_WARN("Expected Texture Type at shader index {0}", typeIndex);
+							break;
+						}
+					}
+					typeIndex++;*/
 					dstset[j].stageFlags = stage;
 					dstset[j].descriptorCount = srcbinding.count;
 					dstset[j].pImmutableSamplers = nullptr;
@@ -1009,7 +1041,9 @@ namespace Vulkan {
 		std::vector<std::vector<VkDescriptorSetLayoutBinding>> mergedBindings(maxSet);
 		std::vector<std::vector<std::string>> mergedNames(maxSet);
 		std::vector<std::vector<uint32_t>> mergedSizes(maxSet);
+		
 		for (auto& pair : shaderBindings) {
+			
 			VkShaderStageFlagBits stage = pair.first;
 			auto& setnames = shaderBindingNames[stage];
 			auto& setsizes = shaderBindingSizes[stage];
@@ -1030,6 +1064,7 @@ namespace Vulkan {
 				for (size_t j = 0; j < srcset.size(); j++) {
 					dstset[j].binding = srcset[j].binding;
 					dstset[j].descriptorCount = srcset[j].descriptorCount;
+					
 					dstset[j].descriptorType = srcset[j].descriptorType;
 					dstset[j].pImmutableSamplers = srcset[j].pImmutableSamplers;
 					dstset[j].stageFlags |= stage;
@@ -1052,6 +1087,48 @@ namespace Vulkan {
 				dstrange.size = srcrange.size;
 				dstrange.stageFlags |= stage;
 
+			}
+			
+		}
+		uint32_t typeIndex = 0;
+		//change dynamic types
+		for (auto& set : mergedBindings) {
+			for (auto& binding : set) {
+				VkDescriptorType descriptorType = binding.descriptorType;
+				if (ptypes) {
+					if (typeIndex > numtypes) {
+						LOG_WARN("More storage types {0} in shader than expected {1}.", typeIndex, numtypes);
+					}
+					switch (ptypes[typeIndex]) {
+					case Renderer::ShaderStorageType::Uniform:
+						if (descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+							LOG_WARN("Expected Uniform at {0}", typeIndex);
+						break;
+					case Renderer::ShaderStorageType::UniformDynamic:
+						if (!(descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER || descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC))
+							LOG_WARN("Expected Dynamic Uniform at {0}", typeIndex);
+						descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+						break;
+					case Renderer::ShaderStorageType::Storage:
+						if (descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
+							LOG_WARN("Expected Storage buffer at {0}", typeIndex);
+						break;
+					case Renderer::ShaderStorageType::StorageDynamic:
+						if (!(descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER || descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC))
+							LOG_WARN("Expected Dynamic Storage buffer at {0}", typeIndex);
+						descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+						break;
+					case Renderer::ShaderStorageType::Texture:
+						if (descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+							LOG_WARN("Expected Combined image sampler at {0}", typeIndex);
+						break;
+					default:
+						LOG_WARN("Unexpected shader type at {0}", typeIndex);
+						break;
+					}
+				}
+				typeIndex++;
+				binding.descriptorType = descriptorType;
 			}
 			
 		}
@@ -1142,9 +1219,15 @@ namespace Vulkan {
 		std::vector<VkDeviceSize> uniformSizes;
 		std::vector<std::string> uniformNames;
 		std::vector<uint32_t> uboSetBindings;
+		std::vector<VkDeviceSize> uniformDynamicSizes;
+		std::vector<std::string> uniformDynamicNames;
+		std::vector<uint32_t> uniformSetDynamicBindings;
 		std::vector<VkDeviceSize> storageSizes;
 		std::vector<std::string> storageNames;
 		std::vector<uint32_t> storageSetBindings;
+		std::vector<VkDeviceSize> storageDynamicSizes;
+		std::vector<std::string> storageDynamicNames;
+		std::vector<uint32_t> storageSetDynamicBindings;
 		std::vector<std::string> imageNames;
 		std::vector<uint32_t> imageSetBindings;
 		std::vector<uint32_t> imageCounts;
@@ -1158,10 +1241,20 @@ namespace Vulkan {
 					uniformNames.push_back(mergedNames[s][b]);					
 					uboSetBindings.push_back(setBinding);
 				}
+				else if (binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC) {
+					uniformDynamicSizes.push_back(mergedSizes[s][b]);//really only the size of 1 item in array
+					uniformDynamicNames.push_back(mergedNames[s][b]);
+					uniformSetDynamicBindings.push_back(setBinding);
+				}
 				else if (binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) {
 					storageSizes.push_back(mergedSizes[s][b]);
 					storageNames.push_back(mergedNames[s][b]);					
 					storageSetBindings.push_back(setBinding);
+				}
+				else if (binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC) {
+					storageDynamicSizes.push_back(mergedSizes[s][b]);
+					storageDynamicNames.push_back(mergedNames[s][b]);
+					storageSetDynamicBindings.push_back(setBinding);
 				}
 				else if (binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
 					imageNames.push_back(mergedNames[s][b]);
@@ -1179,49 +1272,40 @@ namespace Vulkan {
 				unibuilder.AddBuffer(size, 1, 1);
 			}
 			unibuilder.build(uniformBuffer, uboLayoutInfo);
-			
-			
+
+
 			std::unordered_map<std::string, void*> uboMap;
 			std::unordered_map<std::string, VkDeviceSize> uboSizeMap;
-			for (size_t i = 0; i < uniformNames.size();i++) {
+			for (size_t i = 0; i < uniformNames.size(); i++) {
 				uboMap[uniformNames[i]] = uboLayoutInfo[i].ptr;
 				uboSizeMap[uniformNames[i]] = uniformSizes[i];
 			}
 			_shaderList[name].uboMap = uboMap;
-			_shaderList[name].uboSizeMap = uboSizeMap;			
-			_shaderList[name].uboNames = uniformNames;
-			_shaderList[name].uboSetBindings = uboSetBindings;
+			_shaderList[name].uboSizeMap = uboSizeMap;
 			_shaderList[name].uniformBuffer = uniformBuffer;
-			_shaderList[name].imageNames = imageNames;
-			_shaderList[name].imageSetBindings = imageSetBindings;
-			_shaderList[name].imageCounts = imageCounts;
-			/*uint32_t index = 0;
-			VkDeviceSize offset = 0;
-			
-			for (auto&uboBinding:uboSetBindings) {
-				uint32_t set = uboBinding >> 16;
-				uint32_t binding = uboBinding & 0xFF;
-				auto uniupdated = DescriptorSetUpdater::begin(context.pLayoutCache, layouts[set], sets[set]);
-				VkDescriptorBufferInfo bufferInfo{};
-				bufferInfo.buffer = uniformBuffer.buffer;
-				bufferInfo.offset = offset;
-				VkDeviceSize size = uboLayoutInfo[index].objectCount * uboLayoutInfo[index].objectSize * uboLayoutInfo[index].repeatCount;
-				bufferInfo.range = size;
-				index++;
-				offset += size;
-
-				uniupdated.AddBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &bufferInfo);
-					
-				uniupdated.update();
-			}*/
 		}
+		_shaderList[name].uboNames = uniformNames;
+		_shaderList[name].uboSetBindings = uboSetBindings;
+		_shaderList[name].uniformDynamicNames = uniformDynamicNames;
+		_shaderList[name].uniformDynamicSetBindings = uniformSetDynamicBindings;
+		
+		_shaderList[name].imageNames = imageNames;
+		_shaderList[name].imageSetBindings = imageSetBindings;
+		_shaderList[name].imageCounts = imageCounts;
+			
+		
 		_shaderList[name].storageNames = storageNames;
 		_shaderList[name].storageSetBindings = storageSetBindings;
 		for (auto& name : storageNames) {//dummy values, do we need a map and not just an array?
 			_shaderList[name].storageMap[name] = nullptr;
 			_shaderList[name].storageSizeMap[name] = 0;
 		}
-		
+		_shaderList[name].storageDynamicNames = storageDynamicNames;
+		_shaderList[name].storageSetDynamicBindings = storageSetDynamicBindings;
+		for (auto& name : storageDynamicNames) {
+			_shaderList[name].storageDynamicMap[name] = nullptr;
+			_shaderList[name].storageSizeMap[name] = 0;
+		}
 		for (auto& pc : mergedPushConsts) {
 			_shaderList[name].pushConstStages = pc.stageFlags;
 		}
@@ -1269,7 +1353,7 @@ namespace Vulkan {
 			return VK_SHADER_STAGE_FRAGMENT_BIT;
 		return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 	}
-	void* VulkanShaderManager::CreateShaderData(const char* shaderPath,bool cullBackFaces,bool enableBlend) {
+	void* VulkanShaderManager::CreateShaderData(const char* shaderPath,bool cullBackFaces,bool enableBlend, Renderer::ShaderStorageType* ptypes, uint32_t numtypes) {
 		std::string filepath = shaderPath;
 		auto lastSlash = filepath.find_last_of("/\\");
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
@@ -1279,7 +1363,7 @@ namespace Vulkan {
 		if (_shaderList.find(name) == _shaderList.end()) {
 			std::string source = readFile(filepath);
 			const std::unordered_map<VkShaderStageFlagBits, std::string> shaderSources = PreProcess(source);
-			CompileShader(name,shaderSources,cullBackFaces,enableBlend);
+			CompileShader(name,shaderSources,cullBackFaces,enableBlend,ptypes,numtypes);
 		}
 		return &_shaderList[name];
 	}
