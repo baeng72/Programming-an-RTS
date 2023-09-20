@@ -173,11 +173,11 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice, Window* pwindow, std::shared
 	memset(_pMaptiles, 0, sizeof(MAPTILE) * _size.x * _size.y);
 
 	//Load Textures
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.01/textures/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.01/textures/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.01/textures/snow.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.02/textures/grass.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.02/textures/mountain.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.02/textures/snow.jpg")));
 	
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.01/Shaders/terrain.glsl",false)));
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.02/Shaders/terrain.glsl",false)));
 
 
 	
@@ -265,7 +265,7 @@ void TERRAIN::CreatePatches(int numPatches)
 
 void TERRAIN::CalculateAlphaMaps() {
 	//height ranges
-	
+	LOG_INFO("Terrain: Calculating AlphaMaps...");
 	constexpr int texWidth = 128;
 	constexpr int texHeight = 128;
 	//create one alpha map per diffuse map
@@ -300,6 +300,7 @@ void TERRAIN::CalculateAlphaMaps() {
 
 void TERRAIN::CalculateLightMap(Window* pwindow)
 {
+	LOG_INFO("Terrain: Calclating LightMap...");
 	constexpr int LMAP_DIM = 256;
 	uint8_t* map = new uint8_t[LMAP_DIM * LMAP_DIM];
 	memset(map, 255, LMAP_DIM * LMAP_DIM);

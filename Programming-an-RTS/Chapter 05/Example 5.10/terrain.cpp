@@ -183,7 +183,7 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice, Window* pwindow, std::shared
 	
 
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_pdevice, "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_pdevice, "../../../../Resources/Fonts/arialn.ttf", 40);
 	_dirToSun = glm::normalize(vec3(1.f, 0.6f, 0.5f));
 
 
@@ -368,7 +368,7 @@ void TERRAIN::Progress(const char*ptext, float prc)
 	Rect rc = { 200,250,600,300 };
 	float width, height;
 	_font->GetTextSize(ptext, width, height);
-	_font->Draw(ptext, (int)(rc.Width() / 2 - width / 2), (int)(rc.Height() / 2 - height / 2), Color(0.f, 0.f, 0.f, 1.f));
+	_font->Draw(ptext, (int)(rc.left+rc.Width() / 2 - width / 2), (int)(rc.top+rc.Height() / 2 - height / 2), Color(0.f, 0.f, 0.f, 1.f));
 	_font->Render();
 	//Progress Bar
 	Rect r;
