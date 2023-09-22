@@ -3,6 +3,7 @@
 #include <memory>
 #include "../../Mesh/Model.h"
 #include "../../Mesh/Mesh.h"
+#include "../../mesh/MultiMesh.h"
 #include "../../mesh/ProgressiveMesh.h"
 #include "../../Renderer/Shader.h"
 
@@ -115,5 +116,6 @@ namespace Assimp {
 		virtual uint32_t GetAnimationCount(uint32_t i) override;
 		virtual void GetAnimation(uint32_t i, uint32_t aniIdx, Mesh::AnimationClip& animation) override;
 		virtual Mesh::AnimatedMesh* GetAnimatedMesh(Mesh::MeshType, uint32_t i)override;
+		virtual Mesh::MultiMesh* GetMultiMesh(std::shared_ptr<Renderer::ShaderManager>& shaderManager) override;
 	};
 }

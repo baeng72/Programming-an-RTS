@@ -630,5 +630,51 @@ namespace Assimp {
 	{
 		animation = _animations[aniIdx];
 	}
+
+
+	Mesh::MultiMesh* AssimpModel::GetMultiMesh(std::shared_ptr<Renderer::ShaderManager>& shaderManager) {
+		//put together all the vertices
+		struct PosNormUV {
+			vec3 pos;
+			vec3 norm;
+			vec2 uv;
+		};
+		std::vector<PosNormUV> vertices;
+		std::vector<uint32_t> indices;
+		std::vector<Mesh::Primitive> primitives;
+		uint32_t vertexStart = 0;
+		
+		uint32_t vertexStride = sizeof(PosNormUV);
+		uint32_t indexStart = 0;
+		uint32_t indexCount = 0;
+		for (auto& prim : _primitives) {
+			Mesh::Primitive primitive;
+			primitive.vertexStart = vertexStart;
+			primitive.vertexCount = (uint32_t)prim.vertices.size();
+			primitive.indexStart = indexStart;
+			primitive.indexCount = (uint32_t)prim.indices.size();
+			primitive.materialIndex = prim.materialIndex;
+			primitive.name = prim.name;
+			primitives.push_back(primitive);
+			for (auto& vert : prim.vertices) {
+				
+				PosNormUV v = { vert.position,vert.normal,vert.uv };
+				vertices.push_back(v);				
+			}
+			for (auto& ind : prim.indices) {
+				indices.push_back(indexStart + ind);
+			}
+			vertexStart += (uint32_t)prim.vertices.size();
+			indexStart += (uint32_t)prim.indices.size();
+		}
+		std::vector<float> fvertices(vertices.size() * sizeof(PosNormUV));
+		memcpy(fvertices.data(), vertices.data(), vertices.size() * sizeof(PosNormUV));
+		std::vector<std::unique_ptr<Renderer::Texture>> textures(_materials.size());
+		for (size_t i = 0; i < _materials.size();i++) {
+			std::string textpath = _path + _materials[i].diffuseTextures[0];
+			textures[i] = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(_pdevice, textpath.c_str()));
+		}
+		return Mesh::MultiMesh::Create(_pdevice,shaderManager, _xform, fvertices, indices, vertexStride, primitives, textures);
+	}
 	
 }

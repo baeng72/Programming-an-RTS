@@ -26,14 +26,11 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 	};
 	struct UBO { Renderer::DirectionalLight light; } ubo = { light };
 	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-
-	int uboid = 0;
+	_shader->Bind();
 	for (size_t i = 0; i < _meshes.size(); i++) {
-
 		PushConst pushConst{ matViewProj, matWorld * _xforms[i],_materials[i].diffuse,_materials[i].specular };
-
 		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-		_meshes[i]->Render(_shader.get());
+		_meshes[i]->Render();
 	}
 }
 

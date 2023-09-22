@@ -14,6 +14,15 @@ namespace Mesh {
 		std::vector < std::string> specularTextures;
 	};
 
+	struct Primitive {
+		std::string name;
+		uint32_t vertexStart;		
+		uint32_t vertexCount;
+		uint32_t indexStart;
+		uint32_t indexCount;		
+		uint32_t materialIndex;
+	};
+
 	struct AnimationChannel {
 		std::vector<float> positionTimes;
 		std::vector<vec3> positions;

@@ -3,6 +3,7 @@
 #include "MeshTypes.h"
 #include "../Renderer/RenderDevice.h"
 #include "Mesh.h"
+#include "MultiMesh.h"
 #include "ProgressiveMesh.h"
 #include "AnimatedMesh.h"
 #include "../Renderer/Texture.h"
@@ -33,5 +34,6 @@ namespace Mesh {
 		virtual uint32_t GetAnimationCount(uint32_t i) = 0;
 		virtual void GetAnimation(uint32_t i, uint32_t aniIdx, AnimationClip& animation)=0;
 		virtual AnimatedMesh* GetAnimatedMesh(MeshType, uint32_t i) = 0;
+		virtual MultiMesh* GetMultiMesh(std::shared_ptr<Renderer::ShaderManager>& shaderManager) = 0;
 	};
 }

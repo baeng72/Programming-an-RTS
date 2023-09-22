@@ -9,6 +9,7 @@
 //Mesh/model loading stuff
 #include "mesh/Model.h"
 #include "mesh/Mesh.h"
+#include "mesh/MultiMesh.h"
 #include "mesh/ProgressiveMesh.h"
 #include "mesh/AnimatedMesh.h"
 #include "mesh/Shape.h"

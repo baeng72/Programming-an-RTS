@@ -33,6 +33,7 @@ class MESH {
 	std::shared_ptr<Renderer::ShaderManager> _shaderManager;
 	std::vector<std::unique_ptr<Mesh::Mesh>> _meshes;
 	std::vector<std::unique_ptr<Renderer::Texture>> _textures;
+	std::unique_ptr<Mesh::MultiMesh> _multiMesh;
 	std::vector<vec3> _vertices;
 	std::vector<uint32_t> _indices;
 	std::vector<std::unique_ptr<Renderer::Shader>> _shaders;

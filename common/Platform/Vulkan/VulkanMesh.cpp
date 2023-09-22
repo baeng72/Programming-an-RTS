@@ -67,9 +67,9 @@ namespace Vulkan {
 		}
 	}
 
-	void VulkanMesh::Render(Renderer::Shader*pshader)
+	void VulkanMesh::Render()
 	{
-		pshader->Bind();
+		
 		Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
 		Vulkan::VulkFrameData& frameData = *pframedata;
 		vkCmdBindIndexBuffer(frameData.cmd, _indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);

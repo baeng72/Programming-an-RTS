@@ -95,10 +95,10 @@ void PATCH::Release() {
 	_mesh.reset();
 }
 
-void PATCH::Render(Renderer::Shader* pshader)
+void PATCH::Render()
 {
-
-	_mesh->Render(pshader);
+	
+	_mesh->Render();
 }
 
 
@@ -196,7 +196,7 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	Renderer::FlatShaderPushConst pushConst{model };
 	
 	_shader->SetPushConstData(&pushConst,sizeof(pushConst));
-	
+	_shader->Bind();
 	for (size_t i = 0; i < _patches.size(); i++)
-		_patches[i]->Render(_shader.get());
+		_patches[i]->Render();
 }

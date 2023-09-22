@@ -90,10 +90,12 @@ void APPLICATION::Render() {
 
 	_device->StartRender();		
 	glm::mat4 model = glm::mat4(1.f);
+	_shader->Bind();
 	for (size_t i = 0; i < _meshes.size(); i++) {
 		PushConst pushConst = { _xforms[i],_meshColors[i] };
 		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-		_meshes[i]->Render(_shader.get());
+		
+		_meshes[i]->Render();
 	}
 
 	_device->EndRender();

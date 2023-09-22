@@ -148,10 +148,10 @@ float PATCH::Intersect(vec3 org, vec3 dir,uint32_t &face,vec2&hitUV)
 	return dist;
 }
 
-void PATCH::Render(Renderer::Shader* pshader)
+void PATCH::Render()
 {
 
-	_mesh->Render(pshader);
+	_mesh->Render();
 }
 
 
@@ -323,9 +323,9 @@ void TERRAIN::Render(CAMERA&camera,Renderer::DirectionalLight&light)
 	
 	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	
+	_shader->Bind();
 	for (size_t i = 0; i < _patches.size(); i++)
-		_patches[i]->Render(_shader.get());
+		_patches[i]->Render();
 	
 
 	//render object

@@ -32,7 +32,8 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 		auto& shader = _shaders[i];
 		shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 		shader->SetPushConstData(&pushConst, sizeof(pushConst));
-		mesh->Render(shader.get());
+		shader->Bind();
+		mesh->Render();
 	}
 }
 
@@ -48,13 +49,14 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 	}pushConst{ matWorld * _xform };
 
 	
-	for (size_t i = 0; i < _meshes.size();i++) {
+	/*for (size_t i = 0; i < _meshes.size();i++) {
 		auto& mesh = _meshes[i];
 		auto& shader = _shaders[i];
 		shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 		shader->SetPushConstData(&pushConst, sizeof(pushConst));
 		mesh->Render(shader.get());
-	}
+	}*/
+	_multiMesh->Render(&ubo, sizeof(ubo), &pushConst, sizeof(pushConst));
 }
 
 void MESH::Release()
@@ -68,6 +70,7 @@ bool MESH::Load(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::Shade
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
 	std::unique_ptr<Mesh::Model> model = std::unique_ptr<Mesh::Model>(Mesh::Model::Create(pdevice, pfilename));
+	_multiMesh = std::unique_ptr<Mesh::MultiMesh>(model->GetMultiMesh(shaderManager));
 	auto numMeshes = model->GetMeshCount();
 	_meshes.resize(numMeshes);
 	_textures.resize(numMeshes);

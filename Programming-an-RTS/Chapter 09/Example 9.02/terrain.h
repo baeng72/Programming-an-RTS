@@ -34,7 +34,7 @@ struct PATCH {
 	PATCH();
 	~PATCH();
 	bool CreateMesh(TERRAIN&t, Rect source, Renderer::RenderDevice* pdevice);
-	void Render(Renderer::Shader * pshader);
+	void Render();
 	void Release();
 	
 

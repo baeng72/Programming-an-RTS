@@ -99,10 +99,10 @@ void PATCH::Release() {
 	_mesh.reset();
 }
 
-void PATCH::Render(Renderer::Shader* pshader)
+void PATCH::Render()
 {
 
-	_mesh->Render(pshader);
+	_mesh->Render();
 }
 
 
@@ -249,14 +249,14 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	
 	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	
+	_shader->Bind();
 	for (size_t m = 0; m < _diffuseMaps.size(); m++) {
 		
 		//draw for each diffuse map, could do it in one draw call per patch passing a buffer or something?
 		
 		
 		for (size_t i = 0; i < _patches.size(); i++)
-			_patches[i]->Render(_shader.get());
+			_patches[i]->Render();
 	}
 
 	//render object

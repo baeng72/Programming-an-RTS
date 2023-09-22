@@ -15,6 +15,7 @@ class GLFW_Window : public Window {
 		float yoffset;
 		
 	}winData;
+	void SetWindowCenter();
 public:
 	GLFW_Window(uint32_t width, uint32_t height,const std::string&title);
 	virtual ~GLFW_Window();

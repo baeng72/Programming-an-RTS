@@ -24,7 +24,8 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 
 	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	_mesh->Render(_shader.get());
+	_shader->Bind();
+	_mesh->Render();
 }
 
 void MESH::Release()

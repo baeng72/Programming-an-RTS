@@ -100,7 +100,8 @@ void OBJECT::RenderBoundingVolume(int type,mat4 &matViewProj,Renderer::Direction
 		}pushConst = { world,Color(0.f,1.f,0.f,0.5f) };
 		shapeShader->SetUniformData(uboid, &ubo, sizeof(ubo));
 		shapeShader->SetPushConstData(&pushConst, sizeof(pushConst));
-		shapeMeshes[type - 1]->Render(shapeShader.get());
+		shapeShader->Bind();
+		shapeMeshes[type - 1]->Render();
 	}
 		break;
 
@@ -120,7 +121,8 @@ void OBJECT::RenderBoundingVolume(int type,mat4 &matViewProj,Renderer::Direction
 		}pushConst = { world,Color(0.f,1.f,0.f,0.5f) };
 		shapeShader->SetUniformData(uboid, &ubo, sizeof(ubo));
 		shapeShader->SetPushConstData(&pushConst, sizeof(pushConst));
-		shapeMeshes[type-1]->Render(shapeShader.get());
+		shapeShader->Bind();
+		shapeMeshes[type-1]->Render();
 	}
 		break;
 	}

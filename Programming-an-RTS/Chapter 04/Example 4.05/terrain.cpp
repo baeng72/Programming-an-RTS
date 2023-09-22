@@ -126,8 +126,8 @@ void PATCH::Render(glm::mat4&viewProj,glm::mat4&model, Renderer::DirectionalLigh
 
 	Renderer::FlatShaderPushConst pushConst{ model };
 	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	
-	_mesh->Render(_shader.get());
+	_shader->Bind();
+	_mesh->Render();
 }
 
 

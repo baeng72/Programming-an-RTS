@@ -95,7 +95,8 @@ void MOUSE::Paint(mat4&matVP, Renderer::DirectionalLight& light) {
 		Renderer::DirectionalLight light;
 	}ubo = { matVP,light };
 	_sphereShader->SetUniformData("UBO",&ubo, sizeof(UBO));
-	_sphereMesh->Render(_sphereShader.get());
+	_sphereShader->Bind();
+	_sphereMesh->Render();
 	_sprite->Draw(_textures[_type].get(), glm::vec3(x, y, 0.f));
 }
 

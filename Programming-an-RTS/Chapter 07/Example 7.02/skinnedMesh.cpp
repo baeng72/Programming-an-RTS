@@ -93,7 +93,8 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 		mat4 pxform = poseXForms[i];
 		pushConst.world = _xform * matWorld * pxform;// *r;
 		_sphereShader->SetPushConstData(&pushConst, sizeof(pushConst));
-		_sphere->Render(_sphereShader.get());
+		_sphereShader->Bind();
+		_sphere->Render();
 		if (parentID >= 0) {
 	
 			mat4 parentXForm = poseXForms[parentID];
