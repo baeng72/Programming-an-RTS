@@ -632,7 +632,7 @@ namespace Assimp {
 	}
 
 
-	Mesh::MultiMesh* AssimpModel::GetMultiMesh(std::shared_ptr<Renderer::ShaderManager>& shaderManager) {
+	Mesh::MultiMesh* AssimpModel::GetMultiMesh() {
 		//put together all the vertices
 		struct PosNormUV {
 			vec3 pos;
@@ -662,19 +662,24 @@ namespace Assimp {
 				vertices.push_back(v);				
 			}
 			for (auto& ind : prim.indices) {
-				indices.push_back(indexStart + ind);
+				indices.push_back(ind);
 			}
-			vertexStart += (uint32_t)prim.vertices.size();
-			indexStart += (uint32_t)prim.indices.size();
+			vertexStart = (uint32_t)prim.vertices.size();
+			indexStart = (uint32_t)prim.indices.size();
 		}
 		std::vector<float> fvertices(vertices.size() * sizeof(PosNormUV));
 		memcpy(fvertices.data(), vertices.data(), vertices.size() * sizeof(PosNormUV));
-		std::vector<std::unique_ptr<Renderer::Texture>> textures(_materials.size());
+	
+		return Mesh::MultiMesh::Create(_pdevice, _xform, fvertices, indices, vertexStride, primitives);
+	}
+
+	void AssimpModel::GetMultiMeshTextures(std::vector<Renderer::Texture*>& textures) {
+		//std::vector<std::unique_ptr<Renderer::Texture>> textures(_materials.size());
+		textures.resize(_materials.size());
 		for (size_t i = 0; i < _materials.size();i++) {
 			std::string textpath = _path + _materials[i].diffuseTextures[0];
-			textures[i] = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(_pdevice, textpath.c_str()));
+			textures[i] = (Renderer::Texture::Create(_pdevice, textpath.c_str()));
 		}
-		return Mesh::MultiMesh::Create(_pdevice,shaderManager, _xform, fvertices, indices, vertexStride, primitives, textures);
 	}
 	
 }

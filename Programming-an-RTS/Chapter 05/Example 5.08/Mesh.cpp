@@ -37,7 +37,8 @@ void MESH::RenderProgressive(mat4& matViewProj, mat4& matWorld, Renderer::Direct
 
 	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	_progressiveMesh->Render(_shader.get());
+	_shader->Bind();
+	_progressiveMesh->Render();
 }
 
 void MESH::Release()

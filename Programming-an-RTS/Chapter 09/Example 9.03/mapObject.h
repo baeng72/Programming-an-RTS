@@ -4,7 +4,7 @@
 #include "intpoint.h"
 #include "mouse.h"
 
-void LoadMapObjectResources(Renderer::RenderDevice* pdevice);
+void LoadMapObjectResources(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager> pshaderManager);
 void UnloadMapObjectResources();
 INTPOINT GetScreenPos(mat4&matVP,vec4&viewPort, vec3& pos);
 
@@ -25,7 +25,7 @@ public:
 	std::string _name;
 	MAPOBJECT* _pTarget;	//Used for targeting both units and buildings
 	vec3 _position;			//Actual world position
-	
+	Renderer::RenderDevice* _pDevice;
 	bool _isBuilding;
 public:
 	MAPOBJECT();		//set all variables to 0;
@@ -33,7 +33,7 @@ public:
 	void PaintSelected(mat4& matVP, vec4& viewport);			//Paint selected
 
 	//virtual function
-	virtual void Render(Renderer::Shader*pshader) = 0;
+	virtual void Render(mat4&matVP,Renderer::DirectionalLight&light) = 0;
 	virtual void Update(float deltaTime) = 0;
 	virtual BBOX GetBoundingBox() = 0;
 	virtual mat4 GetWorldMatrix() = 0;

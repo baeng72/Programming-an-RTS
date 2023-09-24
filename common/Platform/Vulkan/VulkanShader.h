@@ -4,14 +4,14 @@
 
 #include "VulkanEx.h"
 #include "VulkanShaderManager.h"
-
+#include "../../Core/hash.h"
 namespace Vulkan {
 	
 	class VulkanShader : public Renderer::Shader {
 		Renderer::RenderDevice* _pdevice;
 		VulkanShaderData* _pShaderData;
 		std::vector<VkDescriptorSet>  _descriptorSets;
-		
+		std::unordered_map<size_t, VkDescriptorSet> _textureDescriptors;
 	public:
 		VulkanShader(Renderer::RenderDevice* pdevice,void*shaderData);		
 		virtual ~VulkanShader();

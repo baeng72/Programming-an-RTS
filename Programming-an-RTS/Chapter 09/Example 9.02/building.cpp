@@ -2,7 +2,7 @@
 
 std::vector< std::unique_ptr<MESH>> buildingMeshes;
 
-void LoadBuildingResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager>&shaderManager) {
+void LoadBuildingResources(Renderer::RenderDevice* pdevice) {
 	std::vector<std::string> fnames = {
 		"meshes/townhall.x",
 		"meshes/barracks.x",
@@ -11,7 +11,7 @@ void LoadBuildingResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Rende
 	for (int i = 0; i < fnames.size(); i++) {
 		auto& fname = fnames[i];
 		std::string path = "../../../../Resources/Chapter 09/Example 9.02/" + fname;
-		buildingMeshes.push_back(std::make_unique<MESH>(pdevice, shaderManager, path.c_str(),true));
+		buildingMeshes.push_back(std::make_unique<MESH>(pdevice, path.c_str()));
 	}
 }
 
@@ -106,7 +106,7 @@ BUILDING::BUILDING(int type, INTPOINT mp, TERRAIN* terrain, bool affectTerrain)
 		}
 		_pTerrain->UpdatePathfinding(&GetMapRect(1));
 	}
-	_color = vec4(1.f);
+	
 }
 
 BUILDING::~BUILDING()
@@ -125,9 +125,9 @@ BUILDING::~BUILDING()
 	}
 }
 
-void BUILDING::Render(mat4& matVP,Renderer::DirectionalLight&light)
+void BUILDING::Render(Renderer::Shader*pshader)
 {
-	_meshInstance.Render(matVP, light,_teamColor,_color);
+	_meshInstance.Render(pshader);
 }
 
 void BUILDING::Update(float deltaTime)

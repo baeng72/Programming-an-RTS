@@ -2,10 +2,10 @@
 
 std::vector<MESH*> objectMeshes;
 
-bool LoadObjectResources(Renderer::RenderDevice* pdevice ){
-	MESH* tree = new MESH(pdevice,  "../../../../Resources/Chapter 09/Example 9.01/meshes/tree.x");
+bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager> shaderManager) {
+	MESH* tree = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 09/Example 9.01/meshes/tree.x");
 	objectMeshes.push_back(tree);
-	MESH* stone = new MESH(pdevice, "../../../../Resources/Chapter 09/Example 9.01/meshes/stone.x");
+	MESH* stone = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 09/Example 9.01/meshes/stone.x");
 	objectMeshes.push_back(stone);
 	return true;
 }
@@ -18,12 +18,12 @@ bool UnloadObjectResources() {
 	return true;
 }
 
-//void ObjectSetWireframe(bool wireframe)
-//{
-//	for (auto& object : objectMeshes) {
-//		object->SetWireframe(wireframe);
-//	}
-//}
+void ObjectSetWireframe(bool wireframe)
+{
+	for (auto& object : objectMeshes) {
+		object->SetWireframe(wireframe);
+	}
+}
 
 //////////////////////////////////////////////////////
 ///			OBJECT class
@@ -44,7 +44,6 @@ OBJECT::OBJECT(int t,INTPOINT mp, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca) {
 	_BBox = _meshInstance.GetBoundingBox();
 }
 
-void OBJECT::Render(Renderer::Shader*pshader) {
-	
-	_meshInstance.Render(pshader);
+void OBJECT::Render(glm::mat4& viewProj, Renderer::DirectionalLight& light) {
+	_meshInstance.Render(viewProj, light);//TODO: simple optimization, add function to shader manager to set ubo once, instance of setting for each shader instance
 }

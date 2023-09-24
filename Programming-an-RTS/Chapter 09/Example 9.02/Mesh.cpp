@@ -4,131 +4,64 @@
 
 
 MESH::MESH() :_pdevice(nullptr) {
-	_isBuilding = false;
+	
 }
 
-MESH::MESH(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager> shadermanager, const char* pfilename,bool isBuilding) : _pdevice(pdevice), _shaderManager(shadermanager) {
-	_isBuilding = isBuilding;
-	Load(pdevice, shadermanager, pfilename);
+MESH::MESH(Renderer::RenderDevice* pdevice, const char* pfilename) : _pdevice(pdevice) {	
+	Load(pdevice,  pfilename);
 }
 
 MESH::~MESH() {
 	Release();
 }
-void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::DirectionalLight& light,vec4&teamCol,vec4&col)
+
+
+void MESH::Render(Renderer::Shader* pshader,mat4&matWorld)
 {
-	Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
-	int uboid = 0;
-
-
-	struct PushConst {
-		mat4 matWorld;
-		vec4 teamCol;
-		vec4 col;
-	}pushConst{ matWorld * _xform,teamCol,col };
-
-	for (size_t i = 0; i < _meshes.size(); i++) {
-		auto& mesh = _meshes[i];
-		auto& shader = _shaders[i];
-		shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-		shader->SetPushConstData(&pushConst, sizeof(pushConst));
-		shader->Bind();
-		mesh->Render();
-	}
-}
-
-void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::DirectionalLight& light)
-{
-	Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
-	int uboid = 0;
-
-
-	struct PushConst {
-		mat4 matWorld;
-		
-	}pushConst{ matWorld * _xform };
-
 	
-	/*for (size_t i = 0; i < _meshes.size();i++) {
-		auto& mesh = _meshes[i];
-		auto& shader = _shaders[i];
-		shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-		shader->SetPushConstData(&pushConst, sizeof(pushConst));
-		mesh->Render(shader.get());
-	}*/
-	_multiMesh->Render(&ubo, sizeof(ubo), &pushConst, sizeof(pushConst));
+	struct PushConst {
+		mat4 world;
+	}pushConst = { matWorld*_xform };
+	pshader->SetPushConstData(&pushConst, sizeof(pushConst));
+	_multiMesh->Bind();
+	int texid = 0;
+	for (uint32_t i = 0; i < _parts; i++) {
+		pshader->SetTexture(texid,&_textures[i],1);
+		pshader->Bind();
+		_multiMesh->Render(i);
+	}
 }
 
 void MESH::Release()
 {
 	_pdevice->Wait();//who needs synchronisation when you can block GPU?
-	_meshes.clear();
+	for (auto& tex : _textures) {
+		delete tex;
+	}
 	_textures.clear();
+	//_meshes.clear();
+	//_textures.clear();
 }
 
-bool MESH::Load(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager> shaderManager, const char* pfilename) {
+bool MESH::Load(Renderer::RenderDevice* pdevice, const char* pfilename) {
 	_pdevice = pdevice;
-	_shaderManager = shaderManager;
+	//_shaderManager = shaderManager;
 	std::unique_ptr<Mesh::Model> model = std::unique_ptr<Mesh::Model>(Mesh::Model::Create(pdevice, pfilename));
-	_multiMesh = std::unique_ptr<Mesh::MultiMesh>(model->GetMultiMesh(shaderManager));
-	auto numMeshes = model->GetMeshCount();
-	_meshes.resize(numMeshes);
-	_textures.resize(numMeshes);
-	for (uint32_t i = 0; i < numMeshes; i++) {
-		auto mesh = std::unique_ptr<Mesh::Mesh>(model->GetMesh(Mesh::MeshType::position_normal_uv, i));
-		auto texture = std::unique_ptr<Renderer::Texture>(model->GetTexture(model->GetMeshMaterialIndex(i), Mesh::TextureType::diffuse, 0));
-		_meshes[i] = std::move(mesh);
-		_textures[i] = std::move(texture);
+	_multiMesh = std::unique_ptr<Mesh::MultiMesh>(model->GetMultiMesh());
+	_parts = _multiMesh->GetPartCount();
+	std::vector<Renderer::Texture*> textures;
+	model->GetMultiMeshTextures(textures);
+	_textures.resize(_parts);
+	for (uint32_t i = 0; i < _parts; i++) {
+		uint32_t matid = _multiMesh->GetMaterialIndex(i);
+		_textures[i] = textures[matid];
 	}
-	//_mesh = std::unique_ptr<Mesh::Mesh>(model->GetMesh(Mesh::MeshType::position_normal_uv, 0));
-	//_texture = std::unique_ptr<Renderer::Texture>(model->GetTexture(model->GetMeshMaterialIndex(0), Mesh::TextureType::diffuse, 0));
-	_xform = model->GetMeshXForm(0);
-	uint32_t stride = 0;
-	uint32_t count = 0;
-	for (uint32_t i = 0; i < numMeshes; i++) {
-		float* ptr = model->GetMeshRawVertices(i, stride, count);
-		_vertices.resize(count);
-		for (uint32_t i = 0; i < count; i++) {
-
-			_vertices[i].x = ptr[i * stride / sizeof(float) + 0];
-			_vertices[i].y = ptr[i * stride / sizeof(float) + 1];
-			_vertices[i].z = ptr[i * stride / sizeof(float) + 2];
-		}
-		auto inds = model->GetMeshRawIndices(i, count);
-		_indices.resize(count);
-		for (uint32_t i = 0; i < count; i++) {
-			_indices[i] = inds[i];
-		}
-	}
-	LoadShader();
+	_multiMesh->GetWorldXForm(_xform);
+	
 	return true;
 }
 
 
-
-
-
-void MESH::LoadShader()
-{
-	void* pshaderData = nullptr;
-	if (_isBuilding) {
-		
-		pshaderData= _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.02/shaders/object.glsl");
-	}
-	else {
-		pshaderData = _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.02/shaders/mesh.glsl");
-	}
-	_shaders.resize(_textures.size());
-	for (size_t i = 0; i < _textures.size(); i++) {
-		std::unique_ptr<Renderer::Shader> shader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(_pdevice, pshaderData));
-		_shaders[i] = std::move(shader);
-
-		int texid = 0;
-		std::vector<Renderer::Texture*> texture = { _textures[i].get() };
-		_shaders[i]->SetTexture(texid, texture.data(), 1);
-		
-	}
-}
 
 MESHINSTANCE::MESHINSTANCE()
 {
@@ -143,23 +76,12 @@ MESHINSTANCE::MESHINSTANCE(MESH* meshPtr)
 	_sca = glm::vec3(1.f);
 }
 
-void MESHINSTANCE::Render(glm::mat4& viewProj, Renderer::DirectionalLight& light,vec4& teamCol,vec4&col)
+
+
+void MESHINSTANCE::Render(Renderer::Shader*pshader)
 {
 	if (_mesh) {
-
-		
-		glm::mat4 world = GetWorldMatrix();
-		_mesh->Render(viewProj, world, light,teamCol,col);
-	}
-}
-
-void MESHINSTANCE::Render(glm::mat4& viewProj, Renderer::DirectionalLight& light)
-{
-	if (_mesh) {
-
-
-		glm::mat4 world = GetWorldMatrix();
-		_mesh->Render(viewProj, world, light);
+		_mesh->Render(pshader,GetWorldMatrix());
 	}
 }
 
@@ -182,42 +104,20 @@ mat4 MESHINSTANCE::GetWorldMatrix()
 
 BBOX MESHINSTANCE::GetBoundingBox()
 {
-	if (_mesh == nullptr || _mesh->_vertices.size() == 0)
-		return BBOX();
-	BBOX bBox(vec3(-10000.f), vec3(10000.f));
+	BBOX bBox = _mesh->GetBoundingBox();
 	mat4 world = GetWorldMatrix() * _mesh->_xform;
-	for (size_t i = 0; i < _mesh->_vertices.size(); i++) {
-		vec3 pos = _mesh->_vertices[i];
-		vec3 xpos = vec3(world * vec4(pos, 1.f));
-		//Check if vertex is outside the bounds 
-		//if so, then update bounding volume
-		bBox.min.x = std::min(bBox.min.x, xpos.x);
-		bBox.min.y = std::min(bBox.min.y, xpos.y);
-		bBox.min.z = std::min(bBox.min.z, xpos.z);
-		bBox.max.x = std::max(bBox.max.x, xpos.x);
-		bBox.max.y = std::max(bBox.max.y, xpos.y);
-		bBox.max.z = std::max(bBox.max.z, xpos.z);
-	}
-	bBox.min = bBox.min;
-	bBox.max = bBox.max;
+	bBox.max = world * vec4(bBox.max, 1.f);
+	bBox.min = world * vec4(bBox.min, 1.f);
 	return bBox;
 }
 
 BSPHERE MESHINSTANCE::GetBoundingSphere()
 {
-	if (_mesh == nullptr || _mesh->_vertices.size() == 0)
+	if (_mesh == nullptr)
 		return BSPHERE();
-	BBOX bBox = GetBoundingBox();
-	BSPHERE bSphere;
+	BSPHERE bSphere = _mesh->GetBoundingSphere();
 	mat4 world = GetWorldMatrix() * _mesh->_xform;
-	bSphere.center = (bBox.max + bBox.min) / 2.f;//midpoint
-	bSphere.radius = 0.f;
-	for (size_t i = 0; i < _mesh->_vertices.size(); i++) {
-		vec3 pos = _mesh->_vertices[i];
-		vec3 xpos = vec3(world * vec4(pos, 1.f));
-		float l = glm::length((xpos - bSphere.center));
-		bSphere.radius = std::max(bSphere.radius, l);
-	}
-
+	bSphere.center = world * vec4(bSphere.center, 1);
+	
 	return bSphere;
 }

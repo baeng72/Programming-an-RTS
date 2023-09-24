@@ -34,7 +34,7 @@ struct PATCH {
 	PATCH();
 	~PATCH();
 	bool CreateMesh(TERRAIN&t, Rect source, Renderer::RenderDevice* pdevice);
-	void Render();
+	void Render(Renderer::Shader * pshader);
 	void Release();
 	
 
@@ -82,7 +82,6 @@ class TERRAIN {
 	std::unique_ptr<Renderer::Texture> _alphaMap;
 	std::unique_ptr<Renderer::Texture> _lightMap;
 	std::unique_ptr<Renderer::Shader> _shader;
-	std::unique_ptr<Renderer::Shader> _objectShader;
 	std::unique_ptr<Renderer::Font> _font;
 	std::vector<OBJECT> _objects;
 	
@@ -116,5 +115,4 @@ public:
 	//Save and Load Map
 	void SaveTerrain(const char* pfilename);
 	void LoadTerrain(const char* pfilename);
-	Renderer::Texture* GetLightMap()const { return _lightMap.get(); }
 };

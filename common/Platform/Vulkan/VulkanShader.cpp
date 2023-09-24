@@ -195,27 +195,45 @@ namespace Vulkan {
 
 	bool VulkanShader::SetTexture(uint32_t id, Renderer::Texture** pptexture, uint32_t count)
 	{
+		size_t hash = 0;
+		for (size_t i = 0; i < count; i++) {
+			Vulkan::Texture* pvtext = (Vulkan::Texture*)pptexture[i]->GetNativeHandle();			
+			hash ^= HASH(pvtext);
+		}
 		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
 		Vulkan::VulkContext& context = *contextptr;
-		if (id < _pShaderData->imageNames.size()) {
-			uint32_t setBinding = _pShaderData->imageSetBindings[id];
-			uint32_t set = setBinding >> 16;
-			uint32_t binding = setBinding & 0x00FF;
-			uint32_t imageCount = _pShaderData->imageCounts[id];
-			ASSERT(count == imageCount, "Incorrect texture count!");
-			std::vector<VkDescriptorImageInfo>imageInfos(count);
+		VkDescriptorSet descriptor = _textureDescriptors[hash];
+		uint32_t setBinding = _pShaderData->imageSetBindings[id];
+		uint32_t set = setBinding >> 16;
+		uint32_t binding = setBinding & 0x00FF;
+		uint32_t imageCount = _pShaderData->imageCounts[id];
+		if (descriptor == VK_NULL_HANDLE) {
+			DescriptorSetBuilder::begin(context.pPoolCache, context.pLayoutCache)
+				.AddBinding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, imageCount)
+				.build(descriptor);
+			_textureDescriptors[hash] = descriptor;
+
+
+			if (id < _pShaderData->imageNames.size()) {
+				ASSERT(count == imageCount, "Incorrect texture count!");
+				std::vector<VkDescriptorImageInfo>imageInfos(count);
+
+				for (uint32_t i = 0; i < count; i++) {
+					Vulkan::Texture* pvtext = (Vulkan::Texture*)pptexture[i]->GetNativeHandle();
+					imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					imageInfos[i].imageView = pvtext->imageView;
+					imageInfos[i].sampler = pvtext->sampler;
+
+				}
+				DescriptorSetUpdater::begin(context.pLayoutCache, _pShaderData->descriptorSetLayouts[set], descriptor)
+					.AddBinding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfos.data(), count)
+					.update();
+
 			
-			for (uint32_t i = 0; i < count; i++) {
-				Vulkan::Texture* pvtext = (Vulkan::Texture*)pptexture[i]->GetNativeHandle();
-				imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				imageInfos[i].imageView = pvtext->imageView;
-				imageInfos[i].sampler = pvtext->sampler;
-				
 			}
-			DescriptorSetUpdater::begin(context.pLayoutCache, _pShaderData->descriptorSetLayouts[set], _descriptorSets[set])
-				.AddBinding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfos.data(), count)
-				.update();
-				
+		}
+		if (descriptor != VK_NULL_HANDLE) {
+			_descriptorSets[set] = descriptor;
 			return true;
 		}
 		return false;
@@ -232,6 +250,9 @@ namespace Vulkan {
 		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
 		Vulkan::VulkContext& context = *contextptr;
 		ASSERT(count == _pShaderData->imageNames.size(), "Invalid number of textures!");
+		
+		
+			
 		if (count <= _pShaderData->imageNames.size()) {
 			auto setBindings = _pShaderData->imageSetBindings;
 			std::vector<std::vector<uint32_t>> groupedSetBindings(_pShaderData->descriptorSetLayouts.size());//in case they are all over the shop
@@ -242,24 +263,48 @@ namespace Vulkan {
 				groupedSetBindings[set].push_back(binding);
 			}
 			uint32_t index = 0;
-			for (size_t set = 0; set < groupedSetBindings.size();set++) {
+			for (size_t set = 0; set < groupedSetBindings.size(); set++) {
 				auto& groupedBindings = groupedSetBindings[set];
 				if (groupedBindings.size() == 0)
 					continue;
-				auto setupdater = DescriptorSetUpdater::begin(context.pLayoutCache, _pShaderData->descriptorSetLayouts[set], _descriptorSets[set]);
-				
-				std::vector<VkDescriptorImageInfo> imageInfos(groupedBindings.size());
-				for (size_t b = 0; b < groupedBindings.size();b++) {
+				size_t hash = 0;
+				for (size_t b = 0; b < groupedBindings.size(); b++) {
 					Vulkan::Texture* ptextdata = (Vulkan::Texture*)pptextures[index++]->GetNativeHandle();
-					imageInfos[b].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-					imageInfos[b].imageView = ptextdata->imageView;
-					imageInfos[b].sampler = ptextdata->sampler;
-					setupdater.AddBinding(groupedBindings[b], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfos[b]);
+					hash ^= HASH(ptextdata);
 				}
-				setupdater.update();
+				index = 0;
+				VkDescriptorSet descriptor = _textureDescriptors[hash];
+				if (descriptor == VK_NULL_HANDLE) {
+					auto setbuilder = DescriptorSetBuilder::begin(context.pPoolCache, context.pLayoutCache);
+					for (size_t b = 0; b < groupedBindings.size(); b++) {
+
+						setbuilder.AddBinding(groupedBindings[b], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1);
+					}
+					setbuilder.build(descriptor);
+					_textureDescriptors[hash] = descriptor;
+					auto setupdater = DescriptorSetUpdater::begin(context.pLayoutCache, _pShaderData->descriptorSetLayouts[set], descriptor);
+
+					std::vector<VkDescriptorImageInfo> imageInfos(groupedBindings.size());
+					for (size_t b = 0; b < groupedBindings.size(); b++) {
+					
+						Vulkan::Texture* ptextdata = (Vulkan::Texture*)pptextures[index++]->GetNativeHandle();
+						imageInfos[b].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						imageInfos[b].imageView = ptextdata->imageView;
+						imageInfos[b].sampler = ptextdata->sampler;
+						setupdater.AddBinding(groupedBindings[b], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfos[b]);
+					}
+					setupdater.update();
+					_textureDescriptors[hash] = descriptor;
+				}
+				if (descriptor != VK_NULL_HANDLE) {
+					_descriptorSets[set] = descriptor;
+					return true;
+				}
 			}
 			return true;
 		}
+		
+		
 		return false;
 	}
 

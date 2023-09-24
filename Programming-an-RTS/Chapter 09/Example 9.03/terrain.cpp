@@ -124,10 +124,10 @@ void PATCH::Release() {
 
 
 
-void PATCH::Render()
+void PATCH::Render(Renderer::Shader* pshader)
 {
 
-	_mesh->Render();
+	_mesh->Render(pshader);
 }
 
 
@@ -173,17 +173,17 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice, Window* pwindow, std::shared
 	memset(_pMaptiles, 0, sizeof(MAPTILE) * _size.x * _size.y);
 
 	//Load Textures
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.02/textures/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.02/textures/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.02/textures/snow.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.01/textures/grass.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.01/textures/mountain.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.01/textures/snow.jpg")));
 	
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.02/Shaders/terrain.glsl",false)));
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.01/Shaders/terrain.glsl",false)));
 
-	_objectShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.02/Shaders/mesh.glsl")));
+
 	
 
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_pdevice, "../../../../Resources/Fonts/arialn.ttf", 40);
+	_font->Init(_pdevice, "../../../../Resources/Fonts/arialn.ttf", 18);
 	_dirToSun = glm::normalize(vec3(1.f, 0.6f, 0.5f));
 
 
@@ -265,7 +265,7 @@ void TERRAIN::CreatePatches(int numPatches)
 
 void TERRAIN::CalculateAlphaMaps() {
 	//height ranges
-	LOG_INFO("Terrain: Calculating AlphaMaps...");
+	
 	constexpr int texWidth = 128;
 	constexpr int texHeight = 128;
 	//create one alpha map per diffuse map
@@ -300,7 +300,6 @@ void TERRAIN::CalculateAlphaMaps() {
 
 void TERRAIN::CalculateLightMap(Window* pwindow)
 {
-	LOG_INFO("Terrain: Calclating LightMap...");
 	constexpr int LMAP_DIM = 256;
 	uint8_t* map = new uint8_t[LMAP_DIM * LMAP_DIM];
 	memset(map, 255, LMAP_DIM * LMAP_DIM);
@@ -365,9 +364,6 @@ void TERRAIN::CalculateLightMap(Window* pwindow)
 	_lightMap.reset(Renderer::Texture::Create(_pdevice, LMAP_DIM,LMAP_DIM, 1, (uint8_t*)map));
 	std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get(),_lightMap.get() };
 	_shader->SetTextures(textures.data(), 5);
-	Renderer::Texture* plightmap = _lightMap.get();
-	int texid = 1;//set lightmap
-	_objectShader->SetTexture(texid, &plightmap, 1);
 }
 
 void TERRAIN::Progress(const char*ptext, float prc)
@@ -378,7 +374,7 @@ void TERRAIN::Progress(const char*ptext, float prc)
 	Rect rc = { 200,250,600,300 };
 	float width, height;
 	_font->GetTextSize(ptext, width, height);
-	_font->Draw(ptext, (int)(rc.left+rc.Width() / 2 - width / 2), (int)(rc.top+rc.Height() / 2 - height / 2), Color(0.f, 0.f, 0.f, 1.f));
+	_font->Draw(ptext, (int)(rc.Width() / 2 - width / 2), (int)(rc.Height() / 2 - height / 2), Color(0.f, 0.f, 0.f, 1.f));
 	_font->Render();
 	//Progress Bar
 	Rect r;
@@ -403,18 +399,15 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	
 	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	_shader->Bind();
-	for (size_t i = 0; i < _patches.size(); i++)
-		_patches[i]->Render();
 	
-	_objectShader->SetUniformData("UBO", &ubo, sizeof(ubo));
-	//_objectShader->SetPushConstData(&pushConst, sizeof(pushConst));
-	//_objectShader->Bind();
+	for (size_t i = 0; i < _patches.size(); i++)
+		_patches[i]->Render(_shader.get());
+	
+
 	//render object
 	for (int i = 0; i < _objects.size(); i++) {
 		if (!camera.Cull(_objects[i]._BBox)) {
-			
-			_objects[i].Render(_objectShader.get());
+			_objects[i].Render(viewProj, light);
 		}
 	}
 }

@@ -10,6 +10,6 @@ namespace Mesh {
 		virtual ~ProgressiveMesh() = default;
 		virtual void SetIndexCount(uint32_t indexCount) = 0;
 		virtual uint32_t GetIndexCount() = 0;
-		virtual void Render(Renderer::Shader* pshader) = 0;
+		virtual void Render() = 0;
 	};
 }

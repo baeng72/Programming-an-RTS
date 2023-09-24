@@ -93,9 +93,9 @@ namespace MeshOptimizer {
 		return _currIndexCount;
 	}
 
-	void OptProgressiveMesh::Render(Renderer::Shader* pshader)
+	void OptProgressiveMesh::Render()
 	{
-		pshader->Bind();
+		
 		Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
 		Vulkan::VulkFrameData& frameData = *pframedata;
 		vkCmdBindIndexBuffer(frameData.cmd, _indexBuffer.buffer, _currOffset*_indSize, VK_INDEX_TYPE_UINT32);

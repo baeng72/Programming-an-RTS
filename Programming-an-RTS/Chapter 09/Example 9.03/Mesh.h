@@ -30,28 +30,22 @@ class MESH {
 	friend struct RAY;
 	friend class MESHINSTANCE;
 	Renderer::RenderDevice* _pdevice;
-	std::vector<Renderer::Texture*> _textures;
-	std::unique_ptr<Mesh::MultiMesh> _multiMesh;
-	uint32_t _parts;
+	std::shared_ptr<Renderer::ShaderManager> _shaderManager;
+	std::unique_ptr<Mesh::Mesh> _mesh;
+	std::unique_ptr<Renderer::Texture> _texture;
+	std::vector<vec3> _vertices;
+	std::vector<uint32_t> _indices;
+	std::unique_ptr<Renderer::Shader> _shader;
 	glm::mat4 _xform;
+	void LoadShader();
 public:
 	MESH();
-	MESH(Renderer::RenderDevice* pdevice,  const char* pName);
+	MESH(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager> pshadermanager, const char* pName);
 	~MESH();
-	bool Load(Renderer::RenderDevice* pdevice,  const char* pName);
-	void Render(Renderer::Shader*pshader,mat4&matWorld);
-	
+	bool Load(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager> shadermanager, const char* pName);
+	void Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::DirectionalLight& light);
 	void Release();
-	BBOX GetBoundingBox() {
-		BBOX bBox;
-		_multiMesh->GetBoundingBox(bBox.min, bBox.max);
-		return bBox;
-	}
-	BSPHERE GetBoundingSphere() { 
-		BSPHERE bSphere;
-		_multiMesh->GetBoundingSphere(bSphere.center,bSphere.radius); 
-		return bSphere;
-	}
+	void SetWireframe(bool wireframe) { _shader->SetWireframe(wireframe); }
 };
 
 class MESHINSTANCE {
@@ -62,12 +56,10 @@ public:
 	glm::vec3 _pos;
 	glm::vec3 _rot;
 	glm::vec3 _sca;
-
 public:
 	MESHINSTANCE();
 	MESHINSTANCE(MESH* meshPtr);
-	void Render(Renderer::Shader*pshader);
-	//void Render(glm::mat4& matViewProj, Renderer::DirectionalLight& light, vec4& teamCol, vec4& color);
+	void Render(glm::mat4& viewProj, Renderer::DirectionalLight& light);
 	void SetMesh(MESH* meshPtr) { _mesh = meshPtr; }
 	void SetPosition(glm::vec3 p) { _pos = p; }
 	void SetRotation(glm::vec3 r) { _rot = r; }

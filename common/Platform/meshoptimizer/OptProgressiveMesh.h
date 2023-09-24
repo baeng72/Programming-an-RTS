@@ -26,7 +26,7 @@ namespace MeshOptimizer {
 		virtual ~OptProgressiveMesh();
 		virtual void SetIndexCount(uint32_t indexCount)override;
 		virtual uint32_t GetIndexCount()override;
-		virtual void Render(Renderer::Shader * pshader)override;
+		virtual void Render()override;
 	};
 
 }

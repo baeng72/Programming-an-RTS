@@ -34,6 +34,7 @@ namespace Mesh {
 		virtual uint32_t GetAnimationCount(uint32_t i) = 0;
 		virtual void GetAnimation(uint32_t i, uint32_t aniIdx, AnimationClip& animation)=0;
 		virtual AnimatedMesh* GetAnimatedMesh(MeshType, uint32_t i) = 0;
-		virtual MultiMesh* GetMultiMesh(std::shared_ptr<Renderer::ShaderManager>& shaderManager) = 0;
+		virtual MultiMesh* GetMultiMesh() = 0;
+		virtual void GetMultiMeshTextures(std::vector<Renderer::Texture*>& textures) = 0;
 	};
 }

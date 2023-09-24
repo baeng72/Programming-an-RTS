@@ -3,18 +3,17 @@
 #include "VulkState.h"
 #include "../../Core/Log.h"
 namespace Mesh {
-	MultiMesh* MultiMesh::Create(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager>& shaderManager, mat4& xform, std::vector<float>& vertices, std::vector<uint32_t>& indices, uint32_t vertexStride, std::vector<Mesh::Primitive>& primitives, std::vector<std::unique_ptr<Renderer::Texture>>& textures) {
-		return new Vulkan::VulkanMultiMesh(pdevice,shaderManager,xform, vertices,indices,vertexStride, primitives, textures);
+	MultiMesh* MultiMesh::Create(Renderer::RenderDevice* pdevice,  mat4& xform, std::vector<float>& vertices, std::vector<uint32_t>& indices, uint32_t vertexStride, std::vector<Mesh::Primitive>& primitives) {
+		return new Vulkan::VulkanMultiMesh(pdevice,xform, vertices,indices,vertexStride, primitives);
 	}
 }
 
 namespace Vulkan {
-	VulkanMultiMesh::VulkanMultiMesh(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager>&shaderManager, mat4& xform, std::vector<float>& vertices, std::vector<uint32_t>& indices, uint32_t vertexStride, std::vector<Mesh::Primitive>& primitives, std::vector<std::unique_ptr<Renderer::Texture>>& textures)
-		:_pdevice(pdevice),_primitives(primitives),_textures(std::move(textures)){
+	VulkanMultiMesh::VulkanMultiMesh(Renderer::RenderDevice* pdevice, mat4& xform, std::vector<float>& vertices, std::vector<uint32_t>& indices, uint32_t vertexStride, std::vector<Mesh::Primitive>& primitives)
+		:_pdevice(pdevice),_primitives(primitives){
 		LOG_INFO("Creating MultiMesh vertex/index data");
 		Create(vertices.data(), (uint32_t)vertices.size() * sizeof(float), indices.data(), (uint32_t)indices.size()*sizeof(uint32_t));
-		LOG_INFO("Creating MultiMesh shaders");
-		CreateShaders(shaderManager);
+		
 		_world = xform;
 		uint32_t vertexCount = (uint32_t)vertices.size() / vertexStride;
 		
@@ -61,26 +60,28 @@ namespace Vulkan {
 	{
 	}
 
-	void VulkanMultiMesh::Render(void* pubo, uint32_t ubosize, void* ppushc, uint32_t pushcsize)
-	{
+	uint32_t VulkanMultiMesh::GetPartCount()const {
+		return (uint32_t)_primitives.size();
+	}
+	uint32_t VulkanMultiMesh::GetMaterialIndex(uint32_t part)const {
+		return _primitives[part].materialIndex;
+	}
+	void VulkanMultiMesh::Bind()const {
 		Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
 		Vulkan::VulkFrameData& frameData = *pframedata;
 		vkCmdBindIndexBuffer(frameData.cmd, _indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 		VkDeviceSize offsets[1] = { 0 };
 		vkCmdBindVertexBuffers(frameData.cmd, 0, 1, &_vertexBuffer.buffer, offsets);
-		Renderer::Shader* pshader = nullptr;
-		for (size_t i = 0; i < _primitives.size();i++) {
-			auto& primitive = _primitives[i];
-			auto& shader = _shaders[i];
-			if (pshader != _shaders[_primitives[i].materialIndex].get()) {
-				pshader = _shaders[_primitives[i].materialIndex].get();
-				int uboid = 0;
-				pshader->SetUniformData(uboid, pubo, ubosize);
-				pshader->SetPushConstData(ppushc, pushcsize);
-				pshader->Bind();
-			}
-			vkCmdDrawIndexed(frameData.cmd, primitive.indexCount, 1, primitive.indexStart, primitive.vertexStart, 0);
-		}
+	}
+
+	void VulkanMultiMesh::Render(uint32_t part)const
+	{
+		Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
+		Vulkan::VulkFrameData& frameData = *pframedata;		
+		
+		auto& primitive = _primitives[part];
+		vkCmdDrawIndexed(frameData.cmd, primitive.indexCount, 1, primitive.indexStart, primitive.vertexStart, 0);
+		
 	}
 
 	void VulkanMultiMesh::GetBoundingBox(vec3& min, vec3& max)
@@ -117,7 +118,7 @@ namespace Vulkan {
 		}
 	}
 
-	void VulkanMultiMesh::CreateShaders(std::shared_ptr<Renderer::ShaderManager>& shaderManager) {
+	/*void VulkanMultiMesh::CreateShaders(std::shared_ptr<Renderer::ShaderManager>& shaderManager) {
 		_shaders.resize(_textures.size());
 		
 		void* pshaderData = shaderManager->CreateShaderData("../../../../Resources/shaders/mesh_texture.glsl");
@@ -127,6 +128,6 @@ namespace Vulkan {
 			Renderer::Texture* textures[1] = { _textures[i].get() };
 			_shaders[i]->SetTexture(texid, textures, 1);
 		}
-	}
+	}*/
 
 }
