@@ -1,4 +1,4 @@
-#pragma once
+
 #include "VulkanBuffer.h"
 #include "VulkState.h"
 Renderer::Buffer* Renderer::Buffer::Create(Renderer::RenderDevice* pdevice,uint32_t size,uint32_t count,bool isUniform,bool isDynamic) {

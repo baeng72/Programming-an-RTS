@@ -1,4 +1,4 @@
-#pragma once
+
 #include "VulkanLine2D.h"
 #include "VulkState.h"
 #include "VulkSwapchain.h"

@@ -1,4 +1,4 @@
-#pragma once
+
 #include "VulkanMaterial.h"
 Renderer::Material* Renderer::Material::Create(Renderer::RenderDevice* pdevice, Renderer::Material::MaterialType type) {
 	return new Vulkan::VulkanMaterial(pdevice,type);

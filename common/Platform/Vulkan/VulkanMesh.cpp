@@ -1,4 +1,4 @@
-#pragma once
+
 #include "../../Core/defines.h"
 #include "VulkanMesh.h"
 #include "VulkState.h"

@@ -1,4 +1,4 @@
-#pragma once
+
 #include <glm/glm.hpp>
 #include "VulkanShader.h"
 #include "VulkState.h"

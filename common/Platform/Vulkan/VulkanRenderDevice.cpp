@@ -1,4 +1,4 @@
-#pragma once
+
 
 #include "VulkanRenderDevice.h"
 #include "VulkanShaderManager.h"

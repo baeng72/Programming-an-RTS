@@ -1,4 +1,4 @@
-#pragma once
+
 #include "../../Core/Log.h"
 #include "VulkanFont.h"
 #include "VulkState.h"
