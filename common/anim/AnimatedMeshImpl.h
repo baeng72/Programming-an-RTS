@@ -40,14 +40,15 @@ namespace Animation {
 		uint32_t		_boneCount;
 		uint32_t		_skeletonsAllocated;
 		mat4* _bonePtrBase;
-		std::unordered_map<size_t,uint32_t> _boneOffsetMap;
+		//std::unordered_map<size_t,uint32_t> _boneOffsetMap;
+		int				_controllerCount;
 		void AllocateBoneBuffer(uint32_t count);
 		void Create(float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize);
 	public:
 		AnimatedMeshImpl(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t vertStride, uint32_t* pindices, uint32_t indSize,Mesh::Skeleton&skeleton, std::vector<Mesh::AnimationClip>& animations);
 		virtual ~AnimatedMeshImpl();
-		virtual void Render(Renderer::Shader* pshader, Mesh::AnimationController* pcontroller)override;
-		virtual void UpdateShader(Renderer::Shader* pshader) override;
+		virtual void Render(/*Renderer::Shader* pshader,*/ Mesh::AnimationController* pcontroller)override;
+		//virtual void UpdateShader(Renderer::Shader* pshader) override;
 		virtual Mesh::AnimationController* GetController() override;
 		//virtual void SetAnimation(int anim, bool fade=true)override;
 		//virtual void SetPose(float time, bool loop = true)override;
@@ -58,6 +59,7 @@ namespace Animation {
 		//virtual void GetBoneNames(std::vector<std::string>& boneNames)override;
 		//virtual int GetBoneIndex(const char* boneName) override;
 		//virtual int GetBonePoseXForm(int boneID, mat4& xform) override;
+		virtual Renderer::Buffer* GetBoneBuffer()const override;
 	};
 }
 

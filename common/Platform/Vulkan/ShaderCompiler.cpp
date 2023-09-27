@@ -18,7 +18,11 @@
 //#pragma comment(lib,"MachineIndependentd.lib")
 //#pragma comment(lib,"OSDependentd.lib")
 //#pragma comment(lib,"GenericCodeGend.lib")
+#if defined NDEBUG
+#pragma comment(lib,"../../../ThirdParty/glslang/SPIRV/Release/SPIRV.lib")//this sucks, not sure why cmake can't find it
+#else
 #pragma comment(lib,"../../../ThirdParty/glslang/SPIRV/DEBUG/SPIRVd.lib")//this sucks, not sure why cmake can't find it
+#endif
 //#pragma comment(lib,"SPIRV-Tools-optd.lib")
 //#pragma comment(lib,"SPIRV-Toolsd.lib")
 //#endif

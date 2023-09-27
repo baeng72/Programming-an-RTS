@@ -5,6 +5,7 @@
 #include "Core/Application.h"
 #include "Core/log.h"
 #include "Core/Timer.h"
+#include "Core/Profiler.h"
 
 //Mesh/model loading stuff
 #include "mesh/Model.h"

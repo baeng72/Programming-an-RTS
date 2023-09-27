@@ -6,6 +6,7 @@
 void LoadUnitResources(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager>& shaderManager);
 void UnloadUnitResources();
 
+
 class UNIT : public MAPOBJECT {
 	friend class APPLICATION;
 	//Animation variables
@@ -24,10 +25,10 @@ class UNIT : public MAPOBJECT {
 	bool _moving;
 	float _movePrc;				//0.0-1.0, used to interpolate between lastWP and nextWP
 public:
-	UNIT(int type, int team, INTPOINT mp, TERRAIN* terrain, Renderer::RenderDevice* pdevice);
+	UNIT(int type, int team, INTPOINT mp, TERRAIN* terrain);
 	~UNIT();
 	//Abstract functions declared in MAPOBJECT
-	void Render(mat4& matVP, Renderer::DirectionalLight& light)override;
+	void Render(Renderer::Shader*pshader)override;
 	void Update(float deltaTime)override;
 	BBOX GetBoundingBox()override;
 	mat4 GetWorldMatrix()override;
@@ -40,4 +41,5 @@ public:
 	void SetAnimation(int index);
 	bool CheckCollision(INTPOINT mp);
 	void Pause(float time);
+	virtual Renderer::Shader* GetShader()override;
 };

@@ -34,7 +34,7 @@ struct PATCH {
 	PATCH();
 	~PATCH();
 	bool CreateMesh(TERRAIN&t, Rect source, Renderer::RenderDevice* pdevice);
-	void Render(Renderer::Shader * pshader);
+	void Render();
 	void Release();
 	
 
@@ -82,6 +82,7 @@ class TERRAIN {
 	std::unique_ptr<Renderer::Texture> _alphaMap;
 	std::unique_ptr<Renderer::Texture> _lightMap;
 	std::unique_ptr<Renderer::Shader> _shader;
+	std::unique_ptr<Renderer::Shader> _objectShader;
 	std::unique_ptr<Renderer::Font> _font;
 	std::vector<OBJECT> _objects;
 	
@@ -107,12 +108,12 @@ public:
 	void InitPathfinding();
 	void UpdatePathfinding(Rect* r);
 	void CreateTileSets();
-	std::vector<INTPOINT> GetPath(INTPOINT start, INTPOINT goal);
+	std::vector<INTPOINT> GetPath(INTPOINT start, INTPOINT goal,bool considerUnits);
 	MAPTILE* GetTile(int x, int y);
 	MAPTILE* GetTile(INTPOINT p) {		return GetTile(p.x, p.y);	}
 	vec3 GetWorldPos(INTPOINT mappos);
 
 	//Save and Load Map
 	void SaveTerrain(const char* pfilename);
-	void LoadTerrain(const char* pfilename);
+	void LoadTerrain(const char* pfilename);	
 };

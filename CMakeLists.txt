@@ -29,6 +29,7 @@ include_directories(ThirdParty/assimp/)
 include_directories(ThirdParty/assimp/include)
 include_directories(ThirdParty/meshoptimizer/src)
 include_directories(build/ThirdParty/assimp/include)
+include_directories(ThirdParty/easy_profiler/easy_profiler_core/include)
 
 add_subdirectory(ThirdParty)
 

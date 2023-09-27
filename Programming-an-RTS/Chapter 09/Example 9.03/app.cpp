@@ -1,23 +1,28 @@
 #pragma once
+
 #include <common.h>
 #include "intpoint.h"
 #include "mouse.h"
 #include "camera.h"
 #include "terrain.h"
+#include "building.h"
+#include "player.h"
 
 
 class APPLICATION : public Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;	
 	std::shared_ptr<Renderer::ShaderManager> _shadermanager;
+	std::shared_ptr<Renderer::Shader> _buildingShader;
 	std::unique_ptr<Renderer::Font> _font;		
+	std::unique_ptr<Renderer::Line2D> _line;
 	Renderer::DirectionalLight _light;	
 	TERRAIN _terrain;
 	CAMERA _camera;
 	MOUSE _mouse;
+	std::vector<PLAYER*> _players;
 	bool _wireframe;
-	float _snapTime;
 	
-	
+	void AddPlayers(int noPlayers);
 public:
 	APPLICATION();
 	bool Init(int width, int height, const char* title);
@@ -30,8 +35,7 @@ public:
 
 APPLICATION::APPLICATION() {
 	_wireframe = false;	
-	_snapTime = 0.f;
-	srand(2);
+	srand(223322);
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -49,15 +53,21 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_font.reset(Renderer::Font::Create());
 	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
 	_shadermanager.reset(Renderer::ShaderManager::Create(_device.get()));
-	
+	_buildingShader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/building.glsl")));
+	_line.reset(Renderer::Line2D::Create(_device.get()));
+	_line->Update(_width, _height);
 	
 	_light.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
 	_light.diffuse = glm::vec4(0.9f, 0.9f, 0.9f, 1.f);
 	_light.specular = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
-	_light.direction = glm::normalize(vec3(1.f, 0.6f, 0.5f));
-	LoadObjectResources(_device.get(), _shadermanager);
-	
-	_terrain.Init(_device.get(),GetWindowPtr(), _shadermanager, INTPOINT(100, 100));
+	_light.direction = glm::normalize(vec3(.5f, 1.f, -0.5f));
+	LoadObjectResources(_device.get());
+	LoadMapObjectResources(_device.get());
+	LoadBuildingResources(_device.get());
+	LoadUnitResources(_device.get(),_shadermanager);
+	LoadPlayerResources(_device.get(), _shadermanager);
+
+	_terrain.Init(_device.get(),GetWindowPtr(), _shadermanager, INTPOINT(150, 150));
 
 	_mouse.Init(_device.get(),_shadermanager, GetWindowPtr());
 
@@ -65,41 +75,53 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_camera._focus = vec3(50, 10, -50);
 	_camera._fov = 0.6f;
 	_camera._radius = 50.f;
+
+	AddPlayers(4);
 	
 	return true;
 }
 
 void APPLICATION::Update(float deltaTime) {
+	
 	_camera.Update(_mouse, _terrain, deltaTime);
 	_mouse.Update(_terrain);
+	//update players
+	for (auto& player : _players) {
+		if (player)
+			player->UpdateMapObjects(deltaTime);
+	}
+	//Order unitos of team 0 around...
+	if (_players.size() && _players[0]) {
+		_players[0]->UnitOrders(_mouse);
+	}
 	if (IsKeyPressed(KEY_ESCAPE))
 		Quit();
 	if (IsKeyPressed(KEY_W)) {
 		_wireframe = !_wireframe;		
-		ObjectSetWireframe(_wireframe);
+		
 		_terrain.SetWireframe(_wireframe);
 		
 		Sleep(100);
 	}
 	else if (IsKeyPressed(KEY_SPACE)) {
 		//Generate random terrain		
-		_terrain.GenerateRandomTerrain(GetWindowPtr(),9);		
-	}
-	else if (_mouse.ClickRight()) {
-		float currTicks = _device->GetCurrentTicks();
-		if (currTicks > 0.3f) {
-			_snapTime = currTicks;
-			_camera._focus = _terrain.GetWorldPos(_mouse._mappos);
-		}
+		_terrain.GenerateRandomTerrain(GetWindowPtr(),9);	
+		AddPlayers(4);
 	}
 	
+	else if (IsKeyPressed(KEY_F)) {
+		_camera._focus = vec3(50, 10, -50);
+	}
 	
 }
 
 
-void APPLICATION::Render() {	
-	//using DirectX LHS coordinate system.
+
+
+void APPLICATION::Render() {
 	
+	//using DirectX LHS coordinate system.
+	vec4 viewport{ 0,0,(float)_width,(float)_height };
 	glm::mat4 matWorld = glm::mat4(1.f);
 	glm::mat4 matView = _camera.GetViewMatrix();
 	
@@ -108,19 +130,22 @@ void APPLICATION::Render() {
 	_camera.CalculateFrustum(matProj, matView);
 	_mouse.CalculateMappos(matProj, matView, _terrain);
 	glm::mat4 viewProj = matProj * matView;
+	_device->StartRender();
 
-	char buffer[64];
-	sprintf_s(buffer, "Mouse Mappos: %d,%d", _mouse._mappos.x, _mouse._mappos.y);
-	_font->Draw(buffer, 10, 10, Color(0.f, 0.f, 0.f, 1.f));
-	_font->Draw("SPACE: Randomize Terrain", 10, 30, glm::vec4(0.f, 0.f, 0.f, 1.f));
-	_font->Draw("Right MButton ", 10, 50, glm::vec4(0.f, 0.f, 0.f, 1.f));
-	
-	
-	
-	_device->StartRender();		
+	_terrain.Render(viewProj, matWorld, _light, _camera);
 
-	_terrain.Render(viewProj, matWorld, _light,_camera);
+	for (auto& player : _players) {
+		if (player)
+			player->RenderMapObjects(_camera, _light);
+	}
+	if (_players.size() && _players[0]) {
+		_players[0]->PaintSelectedMapObjects(_camera);
+		_players[0]->Select(matProj,matView,_mouse);
+	}
+	
 
+	_font->Draw("SPACE: Randomize Terrain", 10, 10, glm::vec4(0.f, 0.f, 0.f, 1.f));
+	
 	_font->Render();
 	_mouse.Paint(viewProj,_light);
 
@@ -132,14 +157,41 @@ void APPLICATION::Quit() {
 }
 
 void APPLICATION::Cleanup() {
+	UnloadUnitResources();
+	UnloadBuildingResources();
+	UnloadMapObjectResources();
 	UnloadObjectResources();
+	_terrain.Release();
 }
 
+void APPLICATION::AddPlayers(int noPlayers) {
+	for (auto& player : _players) {
+		if (player)
+			delete player;
+	}
+	_players.clear();
+
+	INTPOINT startLocations[] = { INTPOINT(30,30), INTPOINT(120,30), INTPOINT(30,120), INTPOINT(120,120) };
+	vec4 teamCols[] = { vec4(1.f,0.f,0.f,1.f),vec4(0.f,1.f,0.f,1.f),vec4(0.f,0.f,1.f,1.f),vec4(1.f,1.f,0.f,1.f) };
+	if (noPlayers < 2)
+		noPlayers = 2;
+	if (noPlayers > 4)
+		noPlayers = 4;
+
+	for (int i = 0; i < noPlayers; i++) {
+		_terrain.Progress("Creating Players", i / (float)noPlayers);
+		_players.push_back(new PLAYER(i, teamCols[i], startLocations[i], &_terrain, _device.get()));
+	}
+	//Center camera focus on the team...
+	_camera._focus = _terrain.GetWorldPos(_players[0]->GetCenter());
+}
 
 int main() {
+	
 	APPLICATION app;
-	if (app.Init(800, 600, "Example 5.10: Lighting the Terrain")) {
+	if (app.Init(800, 600, "Example 9.3: Player Example")) {
 		app.Run(); 
 	}
+	
 	return 0;
 }

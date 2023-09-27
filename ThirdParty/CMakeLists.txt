@@ -76,3 +76,11 @@ add_subdirectory(assimp)
 
 #meshoptimizer
 add_subdirectory(meshoptimizer)
+
+#easy_profiler
+message("Easy NO GUI is " ${EASY_PROFILER_NO_GUI})
+set(EASY_PROFILER_NO_GUI ON CACHE BOOL "" [FORCE])
+set(EASY_PROFILER_NO_SAMPLES ON CACHE BOOL "" [FORCE])
+add_definitions(-DBUILD_WITH_EASY_PROFILER=1)
+message("Easy NO GUI is " ${EASY_PROFILER_NO_GUI})
+add_subdirectory(easy_profiler)

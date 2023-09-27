@@ -60,7 +60,8 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 		mat4 xform = _boneXForms[i];
 		pushConst.world = matWorld * xform * r;
 		_sphereShader->SetPushConstData(&pushConst, sizeof(pushConst));
-		_sphere->Render(_sphereShader.get());
+		_sphereShader->Bind();
+		_sphere->Render();
 		if (parentID >= 0) {
 			auto& name = _boneNames[i];
 			auto& parentName = _boneNames[parentID];

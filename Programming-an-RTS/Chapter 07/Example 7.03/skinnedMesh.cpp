@@ -35,13 +35,14 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 	_xform = model->GetMeshXForm(0);
 
 	
-	Renderer::ShaderStorageType shaderTypes[] = { Renderer::ShaderStorageType::Uniform,Renderer::ShaderStorageType::UniformDynamic,Renderer::ShaderStorageType::Texture };
+	Renderer::ShaderStorageType shaderTypes[] = { Renderer::ShaderStorageType::Uniform,Renderer::ShaderStorageType::StorageDynamic,Renderer::ShaderStorageType::Texture };
 	_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 07/Example 7.03/shaders/skinnedmesh.glsl", true, true, 
 		shaderTypes,3)));
 	Renderer::Texture* ptexture = _meshTexture.get();
 	int texid = 0;
 	_meshShader->SetTexture(texid, &ptexture, 1);
-	_animatedMesh->UpdateShader(_meshShader.get());
+	//_animatedMesh->UpdateShader(_meshShader.get());
+	_meshShader->SetStorageBuffer("skeleton", _animatedMesh->GetBoneBuffer(), true);
 	
 }
 
@@ -92,6 +93,8 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 
 	
 	_meshShader->SetPushConstData(&pushConst, sizeof(pushConst));
-	_animatedMesh->Render(_meshShader.get(), _animationController.get());
+	uint32_t dynoffsets[1] = { _animationController->GetControllerOffset()*sizeof(mat4)};
+	_meshShader->Bind(dynoffsets,1);
+	_animatedMesh->Render(/*_meshShader.get(),*/ _animationController.get());
 	
 }

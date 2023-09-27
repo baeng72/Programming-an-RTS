@@ -57,7 +57,8 @@ void SKINNEDMESH::SetPose(float time,Mesh::AnimationController*pcontroller)
 Mesh::AnimationController* SKINNEDMESH::GetAnimationController() {
 	
 	auto controller= _animatedMesh->GetController();
-	_animatedMesh->UpdateShader(_meshShader.get());
+	//_animatedMesh->UpdateShader(_meshShader.get());
+	_meshShader->SetStorageBuffer("skeleton", _animatedMesh->GetBoneBuffer(), true);//such a hack...
 	return controller;
 }
 
@@ -110,7 +111,9 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 		int z = 0;
 	}
 	_meshShader->SetPushConstData(&pushConst, sizeof(pushConst));
-	_animatedMesh->Render(_meshShader.get(),pcontroller);
+	uint32_t dynoffsets[1] = { pcontroller->GetControllerOffset() * sizeof(mat4) };
+	_meshShader->Bind(dynoffsets, 1);
+	_animatedMesh->Render(/*_meshShader.get(),*/pcontroller);
 	
 }
 

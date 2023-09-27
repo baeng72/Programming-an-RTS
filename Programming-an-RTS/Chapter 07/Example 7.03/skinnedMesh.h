@@ -5,8 +5,7 @@
 class SKINNEDMESH {
 	Renderer::RenderDevice* _pdevice;
 	std::unique_ptr<Mesh::AnimatedMesh> _animatedMesh;
-	std::unique_ptr<Mesh::AnimationController> _animationController;
-	
+	std::unique_ptr<Mesh::AnimationController> _animationController;	
 	std::unique_ptr<Renderer::Shader> _meshShader;
 	std::unique_ptr<Renderer::Texture> _meshTexture;
 	std::unique_ptr<Mesh::Mesh> _mesh;

@@ -4,6 +4,9 @@ std::unique_ptr<Renderer::Line2D> line;
 
 void LoadMapObjectResources(Renderer::RenderDevice* pdevice) {
 	line = std::unique_ptr<Renderer::Line2D>(Renderer::Line2D::Create(pdevice));
+	int width, height;
+	pdevice->GetDimensions(&width, &height);
+	line->Update(width, height);
 }
 
 void UnloadMapObjectResources() {
@@ -25,7 +28,7 @@ MAPOBJECT::MAPOBJECT() {
 	_team = _type = 0;
 	_selected = _dead = false;
 	_pTarget = nullptr;
-	_pDevice = nullptr;
+	
 }
 
 Rect MAPOBJECT::GetMapRect(int border) {
@@ -39,7 +42,7 @@ Rect MAPOBJECT::GetMapRect(int border) {
 }
 
 void MAPOBJECT::PaintSelected(mat4&matVP,vec4&viewport) {
-	if (!_selected || _pDevice == nullptr)
+	if (!_selected)
 		return;
 
 	BBOX bbox = GetBoundingBox();	//Bounding box in world space

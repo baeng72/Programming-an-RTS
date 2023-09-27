@@ -32,12 +32,13 @@ bool PATCH::CreateMesh(TERRAIN&t, Rect source, Renderer::RenderDevice* pdevice)
 	for (int z = source.top, z0 = 0; z <= source.bottom; z++, z0++) {
 		for (int x = source.left, x0 = 0; x <= source.right; x++, x0++) {
 			//Strect UV coordinates once over the entire terrain
-			
+			MAPTILE* ptile = t.GetTile(x, z);
+			glm::vec3 pos = glm::vec3(x, ptile->_height, -z);
 			glm::vec2 alphaUV = glm::vec2(x * invSizeX, z * invSizeY);
 			glm::vec2 uv = alphaUV * 8.f;
 			//Extract height (and position) from heightMap
-			MAPTILE* ptile = t.GetTile(x, z);
-			glm::vec3 pos = glm::vec3(x, ptile->_height, -z);
+			
+			
 
 			vertices[z0 * (width + 1) + x0] = TERRAINVertex(pos,t.GetNormal(x,z), uv,alphaUV);
 
@@ -56,13 +57,13 @@ bool PATCH::CreateMesh(TERRAIN&t, Rect source, Renderer::RenderDevice* pdevice)
 	for (int z = source.top, z0 = 0; z < source.bottom; z++, z0++) {
 		for (int x = source.left, x0 = 0; x < source.right; x++, x0++) {
 			//Triangle 1
-			indices[indexCount++] = z0 * (width + 1) + x0;
-			indices[indexCount++] = z0 * (width + 1) + x0 + 1;
-			indices[indexCount++] = (z0 + 1) * (width + 1) + x0;
+			indices[indexCount++] = z0 *		(width + 1) + x0;
+			indices[indexCount++] = z0 *		(width + 1) + x0 + 1;
+			indices[indexCount++] = (z0 + 1) *	(width + 1) + x0;
 			//Triangle 2
-			indices[indexCount++] = (z0 + 1) * (width + 1) + x0;
-			indices[indexCount++] = z0 * (width + 1) + x0 + 1;
-			indices[indexCount++] = (z0 + 1) * (width + 1) + x0 + 1;
+			indices[indexCount++] = (z0 + 1) *	(width + 1) + x0;
+			indices[indexCount++] = z0 *		(width + 1) + x0 + 1;
+			indices[indexCount++] = (z0 + 1) *	(width + 1) + x0 + 1;
 		}
 	}
 	
@@ -124,10 +125,10 @@ void PATCH::Release() {
 
 
 
-void PATCH::Render(Renderer::Shader* pshader)
+void PATCH::Render()
 {
 
-	_mesh->Render(pshader);
+	_mesh->Render();
 }
 
 
@@ -173,17 +174,17 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice, Window* pwindow, std::shared
 	memset(_pMaptiles, 0, sizeof(MAPTILE) * _size.x * _size.y);
 
 	//Load Textures
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.01/textures/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.01/textures/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.01/textures/snow.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.03/textures/grass.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.03/textures/mountain.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.03/textures/snow.jpg")));
 	
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.01/Shaders/terrain.glsl",false)));
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/terrain.glsl",false)));
 
-
+	_objectShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/mesh.glsl")));
 	
 
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_pdevice, "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_pdevice, "../../../../Resources/Fonts/arialn.ttf", 40);
 	_dirToSun = glm::normalize(vec3(1.f, 0.6f, 0.5f));
 
 
@@ -205,7 +206,7 @@ void TERRAIN::GenerateRandomTerrain(Window* pwindow, int numPatches)
 	hm2.Cap(hm2._maxHeight * 0.4f);
 
 	//load 4 player filter
-	hm3.LoadFromFile("../../../../Resources/Chapter 09/Example 9.01/heightmaps/four_players.jpg");
+	hm3.LoadFromFile("../../../../Resources/Chapter 09/Example 9.03/heightmaps/four_players.jpg");
 
 
 	*_heightMap *= hm2;
@@ -249,6 +250,7 @@ void TERRAIN::CreatePatches(int numPatches)
 	_patches.clear();
 	//Create new patches
 	for (int y = 0; y < numPatches; y++) {
+		Progress("Creating Terrain Mesh", y / (float)numPatches);
 		for (int x = 0; x < numPatches; x++) {
 			Rect r = { (int)(x * (_size.x - 1) / (float)numPatches),
 			(int)(y * (_size.y - 1) / (float)numPatches),
@@ -265,7 +267,7 @@ void TERRAIN::CreatePatches(int numPatches)
 
 void TERRAIN::CalculateAlphaMaps() {
 	//height ranges
-	
+	LOG_INFO("Terrain: Calculating AlphaMaps...");
 	constexpr int texWidth = 128;
 	constexpr int texHeight = 128;
 	//create one alpha map per diffuse map
@@ -300,6 +302,7 @@ void TERRAIN::CalculateAlphaMaps() {
 
 void TERRAIN::CalculateLightMap(Window* pwindow)
 {
+	LOG_INFO("Terrain: Calclating LightMap...");
 	constexpr int LMAP_DIM = 256;
 	uint8_t* map = new uint8_t[LMAP_DIM * LMAP_DIM];
 	memset(map, 255, LMAP_DIM * LMAP_DIM);
@@ -325,7 +328,7 @@ void TERRAIN::CalculateLightMap(Window* pwindow)
 						RAY ray(vec3(terrain_x, 10000.f - dist + 0.01f, -terrain_z), _dirToSun);
 						for (int p2 = 0; p2 < _patches.size() && !done; p2++) {
 							if (ray.Intersect(_patches[p2]->_BBox) >= 0) {
-								if (ray.Intersect(_patches[p2]->_vertices,_patches[p]->_indices) >= 0.f) {//in shadow
+								if (ray.Intersect(_patches[p2]->_vertices,_patches[p2]->_indices) >= 0.f) {//in shadow
 									done = true;
 									map[y * LMAP_DIM + x] = 128;
 								}
@@ -364,6 +367,9 @@ void TERRAIN::CalculateLightMap(Window* pwindow)
 	_lightMap.reset(Renderer::Texture::Create(_pdevice, LMAP_DIM,LMAP_DIM, 1, (uint8_t*)map));
 	std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get(),_lightMap.get() };
 	_shader->SetTextures(textures.data(), 5);
+	Renderer::Texture* plightmap = _lightMap.get();
+	int texid = 1;//set lightmap
+	_objectShader->SetTexture(texid, &plightmap, 1);
 }
 
 void TERRAIN::Progress(const char*ptext, float prc)
@@ -374,7 +380,7 @@ void TERRAIN::Progress(const char*ptext, float prc)
 	Rect rc = { 200,250,600,300 };
 	float width, height;
 	_font->GetTextSize(ptext, width, height);
-	_font->Draw(ptext, (int)(rc.Width() / 2 - width / 2), (int)(rc.Height() / 2 - height / 2), Color(0.f, 0.f, 0.f, 1.f));
+	_font->Draw(ptext, (int)(rc.left+rc.Width() / 2 - width / 2), (int)(rc.top+rc.Height() / 2 - height / 2), Color(0.f, 0.f, 0.f, 1.f));
 	_font->Render();
 	//Progress Bar
 	Rect r;
@@ -399,15 +405,16 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	
 	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	
+	_shader->Bind();
 	for (size_t i = 0; i < _patches.size(); i++)
-		_patches[i]->Render(_shader.get());
+		_patches[i]->Render();
 	
-
+	_objectShader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	//render object
 	for (int i = 0; i < _objects.size(); i++) {
 		if (!camera.Cull(_objects[i]._BBox)) {
-			_objects[i].Render(viewProj, light);
+			
+			_objects[i].Render(_objectShader.get());
 		}
 	}
 }
@@ -570,7 +577,7 @@ float H(INTPOINT a, INTPOINT b){
 	return a.Distance(b);
 }
 
-std::vector<INTPOINT> TERRAIN::GetPath(INTPOINT start, INTPOINT goal)
+std::vector<INTPOINT> TERRAIN::GetPath(INTPOINT start, INTPOINT goal,bool considerUnits)
 {
 	//Check that the two points are within the bounds of the map
 	MAPTILE* pstartTile = GetTile(start);
@@ -631,26 +638,28 @@ std::vector<INTPOINT> TERRAIN::GetPath(INTPOINT start, INTPOINT goal)
 		else {
 			for (int i = 0; i < numNeighbors; i++) {			//otherwise, check the neighbors of the
 				if (pbest->_neighbors[i]) {						//best tile
-					bool inList = false;						//generate new G and F values
-					float newG = pbest->g + 1.f;
-					float d = H(pbest->_mappos, pbest->_neighbors[i]->_mappos);
-					float newF = newG + H(pbest->_neighbors[i]->_mappos, goal) + pbest->_neighbors[i]->_cost * 5.f * d;
-					
-					if (pbest->_neighbors[i]->open || pbest->_neighbors[i]->closed) {
-						if (newF < pbest->_neighbors[i]->f) {	//If the new F value is lower
-							pbest->_neighbors[i]->g = newG;		//update the values of this tile
-							pbest->_neighbors[i]->f = newF;
-							pbest->_neighbors[i]->_pParent = pbest;
-						}
-						inList = true;
-					}
+					if (!considerUnits || pbest->_neighbors[i]->_pMapObject == nullptr) {
+						bool inList = false;						//generate new G and F values
+						float newG = pbest->g + 1.f;
+						float d = H(pbest->_mappos, pbest->_neighbors[i]->_mappos);
+						float newF = newG + H(pbest->_neighbors[i]->_mappos, goal) + pbest->_neighbors[i]->_cost * 5.f * d;
 
-					if (!inList) {								//if the neighbor tile isn't in the open or closed list
-						pbest->_neighbors[i]->f = newF;			//set the values
-						pbest->_neighbors[i]->g = newG;
-						pbest->_neighbors[i]->_pParent = pbest;
-						pbest->_neighbors[i]->open = true;
-						open.push_back(pbest->_neighbors[i]);	//add it to the open list
+						if (pbest->_neighbors[i]->open || pbest->_neighbors[i]->closed) {
+							if (newF < pbest->_neighbors[i]->f) {	//If the new F value is lower
+								pbest->_neighbors[i]->g = newG;		//update the values of this tile
+								pbest->_neighbors[i]->f = newF;
+								pbest->_neighbors[i]->_pParent = pbest;
+							}
+							inList = true;
+						}
+
+						if (!inList) {								//if the neighbor tile isn't in the open or closed list
+							pbest->_neighbors[i]->f = newF;			//set the values
+							pbest->_neighbors[i]->g = newG;
+							pbest->_neighbors[i]->_pParent = pbest;
+							pbest->_neighbors[i]->open = true;
+							open.push_back(pbest->_neighbors[i]);	//add it to the open list
+						}
 					}
 				}
 			}

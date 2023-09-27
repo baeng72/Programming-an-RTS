@@ -1,15 +1,19 @@
 #include "player.h"
-//std::unique_ptr<Renderer::Shader> shader;
+std::unique_ptr<Renderer::Shader> shader;
+
 std::unique_ptr<Renderer::Line2D> selLine;
-void LoadPlayerResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager>&shaderManager) {
-	//shader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.10/shaders/skinnedmesh.glsl")));
+void LoadPlayerResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager>&shaderManager) {	
+	shader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/building.glsl")));
 	selLine = std::unique_ptr<Renderer::Line2D>(Renderer::Line2D::Create(pdevice));
+	
+
 }
 
 void UnloadPlayerResources() {
 	//shader.reset();
 	selLine.reset();
 }
+
 
 
 // PLAYER
@@ -46,6 +50,7 @@ PLAYER::PLAYER(int teamNo, vec4 teamCol, INTPOINT startPos, TERRAIN* terrain,Ren
 		} while (!ok);
 		AddMapObject(i % 3, mp, false);
 	}
+	
 }
 
 PLAYER::~PLAYER() {
@@ -57,21 +62,31 @@ PLAYER::~PLAYER() {
 
 void PLAYER::AddMapObject(int type, INTPOINT mp, bool isBuilding) {
 	if (isBuilding)
-		_mapObjects.push_back(new BUILDING(type, _teamNo, mp, _pTerrain, true, _pdevice));
+		_mapObjects.push_back(new BUILDING(type, _teamNo, mp, _pTerrain,false));
 	else
-		_mapObjects.push_back(new UNIT(type, _teamNo, mp, _pTerrain, _pdevice));
+		_mapObjects.push_back(new UNIT(type, _teamNo, mp, _pTerrain));
 }
 
 void PLAYER::RenderMapObjects(CAMERA& camera, Renderer::DirectionalLight& light) {
+	//EASY_FUNCTION(profiler::colors::Magenta);
 	mat4 matView = camera.GetViewMatrix();
 	mat4 matProj = camera.GetProjectionMatrix();
 	mat4 matVP = matProj * matView;
 	
 	//Render units
+	struct UBO {
+		mat4 matVP;
+		Renderer::DirectionalLight light;
+		
+	}ubo = { matVP,light };
+	
 	for (int i = 0; i < _mapObjects.size(); i++) {
 		if (_mapObjects[i]) {
-			if (!camera.Cull(_mapObjects[i]->GetBoundingBox())) {				
-				_mapObjects[i]->Render(matVP, light);
+			//EASY_BLOCK("Cull and draw");
+			if (!camera.Cull(_mapObjects[i]->GetBoundingBox())) {	
+				Renderer::Shader* pshader = _mapObjects[i]->_isBuilding ? shader.get():_mapObjects[i]->GetShader();
+				pshader->SetUniformData("UBO", &ubo, sizeof(ubo));
+				_mapObjects[i]->Render(pshader);
 			}
 		}
 	}

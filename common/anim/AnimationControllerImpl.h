@@ -17,23 +17,30 @@ namespace Animation {
 		std::vector<float> _clipTimes;
 		std::vector<mat4> _poseXForms;
 		std::vector<mat4> _matrixPalette;
-
+		std::vector<vec3> samplepos;
+		std::vector<quat> samplerot;
+		std::vector<vec3> samplesca;
 		int _currClip;
 		size_t _clipIndex;
 		int _blendClip;
 		size_t _blendIndex;
 		float _blendPcnt;
 		float _clipLength;
-		//float _clipTime;
-		//float _lastClipTime;
+		float _clipTime;
+		float _lastClipTime;
 		float _blendLength;
-		//float _blendTime;
+		float _blendTime;
 		float GetClipLength();
+		int _boneCount;
+		int _id;
+		
+		
 	public:
-		AnimationControllerImpl(std::vector<Mesh::AnimationClip>& clips, Mesh::Skeleton& skeleton);
+		AnimationControllerImpl(std::vector<Mesh::AnimationClip>& clips, Mesh::Skeleton& skeleton,int id);
 		~AnimationControllerImpl();
 		
 		virtual void SetAnimation(int anim, bool fade = true) override;
+		virtual void Advance(float time, bool loop = true)override;
 		virtual void SetPose(float time, bool loop = true) override;
 		virtual void GetPoseXForms(std::vector<mat4>& xforms) override;//before bind pose applied
 		virtual void GetPose(std::vector<mat4>& poseXForms) override;
@@ -44,5 +51,8 @@ namespace Animation {
 		virtual void GetBoneNames(std::vector<std::string>& boneNames) override;
 		virtual int GetBoneIndex(const char* boneName) override;
 		virtual int GetBonePoseXForm(int boneID, mat4& xform) override;
+		virtual int GetControllerID() override { return _id; };
+		virtual int GetControllerOffset()const override {		return (int)(_id *  _boneCount);		}
+		
 	};
 }

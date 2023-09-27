@@ -10,10 +10,10 @@ struct RAY {
 	RAY();
 	RAY(vec3 o, vec3 d);
 	//our different intersection tests
-	float Intersect(MESHINSTANCE iMesh);
+	//float Intersect(MESHINSTANCE iMesh);
 	float Intersect(BBOX bBox);
 	float Intersect(BSPHERE bSphere);
-	float Intersect(MESH *pMesh);
+	//float Intersect(MESH *pMesh);
 	float Intersect(std::vector<vec3>& vertices, std::vector<uint32_t>& indices);
 	float Intersect(std::vector<vec3>& vertices, std::vector<uint32_t>& indices,uint32_t&face,vec2&bary);
 };

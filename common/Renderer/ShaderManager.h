@@ -3,6 +3,7 @@
 #include "RenderDevice.h"
 #include "Light.h"
 #include "Texture.h"
+#include "Buffer.h"
 namespace Renderer {
 	enum class ShaderStorageType { Uniform, UniformDynamic, Storage, StorageDynamic, Texture, TextureArray };
 	enum ShaderAttrFlagBits {
@@ -49,5 +50,6 @@ namespace Renderer {
 		//virtual void* GetShaderData(const char* shaderPath) = 0;
 		virtual void* CreateShaderData(const char* shaderPath, bool cullBackFaces = true, bool enableBlend = true,  ShaderStorageType* ptypes = nullptr, uint32_t numtypes=0) = 0;
 		//virtual void* GetShaderAttribute(ShaderAttrData&data) = 0;		
+		
 	};
 }

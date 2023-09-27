@@ -16,6 +16,7 @@ class PLAYER {
 	int _teamNo;
 	bool _areaSelect;
 	INTPOINT _startSel;
+	
 public:
 	PLAYER(int teamNo, vec4 teamCol, INTPOINT startPos, TERRAIN* terrain,Renderer::RenderDevice*pdevice);
 	~PLAYER();

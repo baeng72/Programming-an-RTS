@@ -15,6 +15,7 @@ namespace Animation {
 	AnimatedMeshImpl::AnimatedMeshImpl(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t vertStride, uint32_t* pindices, uint32_t indSize, Mesh::Skeleton& skeleton, std::vector<Mesh::AnimationClip>& animations)
 		:_pdevice(pdevice),_skeleton(skeleton),_animations(animations),_boneCount((uint32_t)skeleton.boneHierarchy.size()){
 		_skeletonsAllocated = 0u;
+		_controllerCount = 0;
 		/*_blendClip = -1;
 		_blendPcnt = 0.f;
 		_currClip = -1;
@@ -119,23 +120,30 @@ namespace Animation {
 
 	Mesh::AnimationController* AnimatedMeshImpl::GetController()
 	{
-		AllocateBoneBuffer((uint32_t)(_boneOffsetMap.size() + 1));
-		auto pcontroller= Mesh::AnimationController::Create(_animations, _skeleton);
+		//AllocateBoneBuffer((uint32_t)(_boneOffsetMap.size() + 1));
+		AllocateBoneBuffer((uint32_t)(_controllerCount + 1));
+		//int index = (int)_boneOffsetMap.size();
+		auto pcontroller= Mesh::AnimationController::Create(_animations, _skeleton,_controllerCount++);
 		size_t ctrlhash = reinterpret_cast<size_t>(pcontroller);
-		int index = (int)_boneOffsetMap.size();
-		_boneOffsetMap[ctrlhash] = index;
+		
+		//_boneOffsetMap[ctrlhash] = index;
 		return pcontroller;
 	}
+
+	Renderer::Buffer* AnimatedMeshImpl::GetBoneBuffer() const
+	{
+		return _boneBuffer.get();
+	}
 	
-	void AnimatedMeshImpl::Render(Renderer::Shader* pshader, Mesh::AnimationController* pcontroller)
+	void AnimatedMeshImpl::Render(/*Renderer::Shader* pshader,*/ Mesh::AnimationController* pcontroller)
 	{
 		uint32_t boneCount = _boneCount;
 		uint32_t skeletonSize = sizeof(mat4) * boneCount;
-		uint32_t offset = _boneOffsetMap[reinterpret_cast<size_t>(pcontroller)];
-		mat4* ppalette = &_bonePtrBase[offset * _boneCount];
+		uint32_t offset = pcontroller->GetControllerOffset();// _boneOffsetMap[reinterpret_cast<size_t>(pcontroller)];
+		mat4* ppalette = &_bonePtrBase[offset];
 		pcontroller->GetPose(ppalette,skeletonSize);
-		uint32_t dynoffsets[1] = { offset*skeletonSize};
-		pshader->Bind(dynoffsets,1);
+		//uint32_t dynoffsets[1] = { offset*skeletonSize};
+		//pshader->Bind(dynoffsets,1);
 		Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
 		Vulkan::VulkFrameData& frameData = *pframedata;
 		vkCmdBindIndexBuffer(frameData.cmd, _indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
@@ -144,10 +152,10 @@ namespace Animation {
 		vkCmdDrawIndexed(frameData.cmd, _indexCount, 1, 0, 0, 0);
 	}
 
-	void AnimatedMeshImpl::UpdateShader(Renderer::Shader* pshader)
+	/*void AnimatedMeshImpl::UpdateShader(Renderer::Shader* pshader)
 	{
 		pshader->SetStorageBuffer("skeleton", _boneBuffer.get(), true);
-	}
+	}*/
 
 	void AnimatedMeshImpl::AllocateBoneBuffer(uint32_t count) {
 		constexpr int buffer_block = 4;

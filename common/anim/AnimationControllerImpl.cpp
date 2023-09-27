@@ -1,15 +1,23 @@
 #include "AnimationControllerImpl.h"
+#include "../Core/profiler.h"
 namespace Mesh {
-	AnimationController* AnimationController::Create(std::vector<AnimationClip>& clips, Skeleton& skeleton) {
-		return new Animation::AnimationControllerImpl(clips, skeleton);
+	AnimationController* AnimationController::Create(std::vector<AnimationClip>& clips, Skeleton& skeleton,int id) {
+		return new Animation::AnimationControllerImpl(clips, skeleton,id);
 	}
 }
 
 namespace Animation {
 	
-	AnimationControllerImpl::AnimationControllerImpl(std::vector<Mesh::AnimationClip>& animations, Mesh::Skeleton& skeleton)
-		: _skeleton(skeleton), _animations(animations)
+	AnimationControllerImpl::AnimationControllerImpl(std::vector<Mesh::AnimationClip>& animations, Mesh::Skeleton& skeleton,int id)
+		: _skeleton(skeleton), _animations(animations),_id(id)
 	{
+		_boneCount = _skeleton.boneHierarchy.size();
+		//avoid repeated reallocation/freeing
+		_matrixPalette.resize(_boneCount);
+		_poseXForms.resize(_boneCount);
+		samplepos.resize(_boneCount);
+		samplerot.resize(_boneCount);
+		samplesca.resize(_boneCount);
 		_blendClip = -1;
 		_blendPcnt = 0.f;
 		_currClip = -1;
@@ -90,7 +98,7 @@ namespace Animation {
 		if (fade) {
 			_blendClip = _currClip;	
 			_blendIndex = _clipIndex;
-			//_blendTime = _clipTime;
+			_blendTime = _clipTime;
 			_blendLength = _clipLength;
 		}
 		else {
@@ -98,67 +106,50 @@ namespace Animation {
 		}
 		_blendPcnt = 0.f;
 		_currClip = anim;
-		//_clipTime = 0.f;
+		_clipTime = 0.f;
 		_clipIndex = 0;
 		_clipLength = GetClipLength();
 		
 	}
-	void AnimationControllerImpl::SetPose(float time, bool loop)
-	{
-			//sample current animation
-		//_lastClipTime = _clipTime;
-		float clipTime = time * _animations[_currClip].ticksPerSecond;
-		float currClipTime = clipTime;
-		float blendClipTime = clipTime;
-		if (loop) {
-			while (currClipTime > _clipLength) {
-				currClipTime -= _clipLength;
+	void AnimationControllerImpl::Advance(float time,bool loop) {
+		_clipTime += time * _animations[_currClip].ticksPerSecond;
+		if (_clipTime > _clipLength) {
+			if (loop) {
+				_clipTime = fmodf(_clipTime, _clipLength);
 				_clipIndex = 0;
 			}
-			if (_blendClip >= 0) {
-				while (blendClipTime > _blendLength) {
-					blendClipTime -= _blendLength;
-					_blendIndex = 0;
-				}
-			}
+			else
+				_clipTime = _clipLength;
 		}
-		else {
-			if (currClipTime > _clipLength)
-				currClipTime = _clipLength;
-			if (_blendClip >= 0) {
-				if (blendClipTime > _blendLength)
-					blendClipTime = _blendLength;
+		if (_blendClip >= 0) {
+			if (_blendTime > _blendLength) {
+				_blendTime = fmodf(_blendTime, _blendLength);
+				_blendIndex = 0;
 			}
-				
+			else
+				_blendTime = _blendLength;
 		}
-
-		size_t boneCount = _skeleton.boneHierarchy.size();
-		if (_matrixPalette.size() != boneCount)
-			_matrixPalette.resize(boneCount);
-		if (_poseXForms.size() != boneCount)
-			_poseXForms.resize(boneCount);
-		std::vector<vec3> samplepos(boneCount);
-		std::vector<quat> samplerot(boneCount);
-		std::vector<vec3> samplesca(boneCount);
-		
 		{
 			//auto& ani = _animations[_currClip];
 			auto& ani = _animationFrames[_currClip];
 			//auto& timestamps = ani.channels[0].positionTimes;
 			auto& timestamps = ani.times;
-			while (_clipIndex + 1 < timestamps.size() && currClipTime > timestamps[_clipIndex+1])
+			if (_clipIndex == 22) {
+				int z = 0;
+			}
+			while (_clipIndex + 1 < timestamps.size() && _clipTime > timestamps[_clipIndex + 1])
 				_clipIndex++;
-			
+
 			size_t nextClipIndex = _clipIndex + 1;
-			if (_clipIndex + 1 >= timestamps.size()) {
+			/*if (_clipIndex + 1 >= timestamps.size()) {
 				nextClipIndex = _clipIndex + 1;
 				_clipIndex = 0;
-				currClipTime -= _clipLength;
-				
-			}
-			
+				_clipTime -= _clipLength;
+
+			}*/
+
 			size_t boneCount = _skeleton.boneHierarchy.size();
-			float t = ((currClipTime - timestamps[_clipIndex]) / (timestamps[nextClipIndex] - timestamps[_clipIndex]));
+			float t = ((_clipTime - timestamps[_clipIndex]) / (timestamps[nextClipIndex] - timestamps[_clipIndex]));
 			auto& pos1 = ani.positions[_clipIndex];
 			auto& pos2 = ani.positions[_clipIndex + 1];
 			for (size_t i = 0; i < boneCount; ++i) {
@@ -174,7 +165,7 @@ namespace Animation {
 			for (size_t i = 0; i < boneCount; i++) {
 				samplesca[i] = mix(sca1[i], sca2[i], t);
 			}
-			
+
 			/*for (size_t i = 0; i < ani.channels.size(); ++i) {
 				auto& channel = ani.channels[i];
 				auto& positions = channel.positions;
@@ -191,10 +182,261 @@ namespace Animation {
 				samplepos[i] = pos;
 				samplerot[i] = rot;
 				samplesca[i] = sca;
-				
+
 			}*/
 		}
+		if (_blendClip >= 0) {
+#ifdef __PROFILE__
+			EASY_BLOCK("Calculate blend animation");
+#endif
+			auto& ani = _animations[_blendClip];
+			auto& timestamps = ani.channels[0].positionTimes;
+			while (_blendIndex + 1 < timestamps.size() && _blendTime > timestamps[_blendIndex])
+				_blendIndex++;
+			if (_blendIndex + 1 >= timestamps.size())
+				_blendIndex = 0;
+
+			float t = (_blendTime - timestamps[_blendIndex] / (timestamps[_blendIndex + 1] - timestamps[_blendIndex]));
+
+			for (size_t i = 0; i < ani.channels.size(); ++i) {
+				auto& channel = ani.channels[i];
+				auto& positions = channel.positions;
+				auto& rotations = channel.rotations;
+				auto& scales = channel.scales;
+				vec3 pos = mix(positions[_blendIndex], positions[_blendIndex + 1], t);
+				quat rota = rotations[_blendIndex];
+				quat rotb = rotations[_blendIndex + 1];
+				if (dot(rota, rotb) < 0.f) {
+					rotb = -rotb;
+				}
+				quat rot = slerp(rota, rotb, t);
+				vec3 sca = mix(positions[_blendIndex], positions[_blendIndex + 1], t);
+				//interpolate or transform?
+				samplepos[i] = mix(samplepos[i], pos, _blendPcnt);
+				samplerot[i] = slerp(samplerot[i], rot, _blendPcnt);
+				samplesca[i] = mix(samplesca[i], sca, _blendPcnt);
+
+			}
+			_blendPcnt += 0.1f;//just do 10 steps?
+			if (_blendPcnt >= 1.f)
+				_blendClip = -1;//finish blending
+		}
+		{
+
+#ifdef __PROFILE__
+			EASY_BLOCK("Combine animation");
+#endif
+			auto& boneHierarchy = _skeleton.boneHierarchy;
+			for (int i = 1; i < _boneCount; i++) {
+				int parentID = boneHierarchy[i];
+				vec3 sca = samplesca[parentID] * samplesca[i];
+				quat rot = samplerot[parentID] * samplerot[i];
+				vec3 pos = samplerot[parentID] * (samplesca[parentID] * samplepos[i]);
+				pos += samplepos[parentID];
+				samplepos[i] = pos;
+				samplerot[i] = rot;
+				samplesca[i] = sca;
+			}
+		}
+		//we now should have our transforms ready
+		{
+
+			auto& invBindMatrices = _skeleton.boneInvBindMatrices;
+
+			{
+#ifdef __PROFILE__
+				EASY_BLOCK("Make xform matrices");
+#endif
+				for (int i = 0; i < _boneCount; i++) {
+					//rotation
+
+					vec3 x = samplerot[i] * vec3(1.f, 0.f, 0.f);
+					vec3 y = samplerot[i] * vec3(0.f, 1.f, 0.f);
+					vec3 z = samplerot[i] * vec3(0.f, 0.f, 1.f);
+					//scale
+					x *= samplesca[i].x;
+					y *= samplesca[i].y;
+					z *= samplesca[i].z;
+					mat4 xform = mat4(
+						x.x, x.y, x.z, 0.f,
+						y.x, y.y, y.z, 0.f,
+						z.x, z.y, z.z, 0.f,
+						samplepos[i].x, samplepos[i].y, samplepos[i].z, 1.f
+					);
+					_poseXForms[i] = xform;
+
+
+				}
+			}
+			{
+				union Pack {
+					__m128 m[4];
+					mat4	v;
+				};
+#ifdef __PROFILE__
+				EASY_BLOCK("Multiply by invbind matrices");
+#endif
+				for (int i = 0; i < _boneCount; i++) {
+#if 1
+					__m128 a;
+					__m128 b;
+					mat4 bind = invBindMatrices[i];
+					Pack x;
+					Pack out;
+					x.v = _poseXForms[i];
+					//col 0
+					a = _mm_mul_ps(x.m[0], _mm_set_ps1(bind[0].x));
+					b = _mm_mul_ps(x.m[1], _mm_set_ps1(bind[0].y));
+					out.m[0] = _mm_add_ps(a, b);
+					a = _mm_mul_ps(x.m[2], _mm_set_ps1(bind[0].z));
+					out.m[0] = _mm_add_ps(out.m[0], a);
+					a = _mm_mul_ps(x.m[3], _mm_set_ps1(bind[0].w));
+					out.m[0] = _mm_add_ps(out.m[0], a);
+					//col 1
+					a = _mm_mul_ps(x.m[0], _mm_set_ps1(bind[1].x));
+					b = _mm_mul_ps(x.m[1], _mm_set_ps1(bind[1].y));
+					out.m[1] = _mm_add_ps(a, b);
+					a = _mm_mul_ps(x.m[2], _mm_set_ps1(bind[1].z));
+					out.m[1] = _mm_add_ps(out.m[1], a);
+					a = _mm_mul_ps(x.m[3], _mm_set_ps1(bind[1].w));
+					out.m[1] = _mm_add_ps(out.m[1], a);
+					//col 2
+					a = _mm_mul_ps(x.m[0], _mm_set_ps1(bind[2].x));
+					b = _mm_mul_ps(x.m[1], _mm_set_ps1(bind[2].y));
+					out.m[2] = _mm_add_ps(a, b);
+					a = _mm_mul_ps(x.m[2], _mm_set_ps1(bind[2].z));
+					out.m[2] = _mm_add_ps(out.m[2], a);
+					a = _mm_mul_ps(x.m[3], _mm_set_ps1(bind[2].w));
+					out.m[2] = _mm_add_ps(out.m[2], a);
+					//col 3
+					a = _mm_mul_ps(x.m[0], _mm_set_ps1(bind[3].x));
+					b = _mm_mul_ps(x.m[1], _mm_set_ps1(bind[3].y));
+					out.m[3] = _mm_add_ps(a, b);
+					a = _mm_mul_ps(x.m[2], _mm_set_ps1(bind[3].z));
+					out.m[3] = _mm_add_ps(out.m[3], a);
+					a = _mm_mul_ps(x.m[3], _mm_set_ps1(bind[3].w));
+					out.m[3] = _mm_add_ps(out.m[3], a);
+
+
+					_matrixPalette[i] = out.v;
+#else
+					_matrixPalette[i] = _poseXForms[i] * invBindMatrices[i];
+#endif
+				}
+			}
+		}
+	}
+	void AnimationControllerImpl::SetPose(float time, bool loop)
+	{
+#ifdef __PROFILE__
+		EASY_FUNCTION(profiler::colors::Red)
+#endif
+			//sample current animation
+		//_lastClipTime = _clipTime;
+		float clipTime = time * _animations[_currClip].ticksPerSecond;
+		
+		float currClipTime = clipTime;
+		float blendClipTime = clipTime;
+
+		{
+#ifdef __PROFILE__
+			EASY_BLOCK("Calc anim time");
+#endif
+			if (loop) {
+				
+				if(currClipTime > _clipLength) {
+					currClipTime =fmodf(currClipTime,_clipLength);
+					_clipIndex = 0;
+				}
+				if (_blendClip >= 0) {
+					if(blendClipTime > _blendLength) {
+						blendClipTime =fmodf(blendClipTime,_blendLength);
+						_blendIndex = 0;
+					}
+				}
+			}
+			else {
+				if (currClipTime > _clipLength)
+					currClipTime = _clipLength;
+				if (_blendClip >= 0) {
+					if (blendClipTime > _blendLength)
+						blendClipTime = _blendLength;
+				}
+
+			}
+		}
+		/*size_t boneCount = _skeleton.boneHierarchy.size();
+		if (_matrixPalette.size() != boneCount)
+			_matrixPalette.resize(boneCount);
+		if (_poseXForms.size() != boneCount)
+			_poseXForms.resize(boneCount);
+		std::vector<vec3> samplepos(boneCount);
+		std::vector<quat> samplerot(boneCount);
+		std::vector<vec3> samplesca(boneCount);*/
+		{
+#ifdef __PROFILE__
+			EASY_BLOCK("Calculate Animation");
+#endif
+
+			{
+				//auto& ani = _animations[_currClip];
+				auto& ani = _animationFrames[_currClip];
+				//auto& timestamps = ani.channels[0].positionTimes;
+				auto& timestamps = ani.times;
+				while (_clipIndex + 1 < timestamps.size() && currClipTime > timestamps[_clipIndex + 1])
+					_clipIndex++;
+
+				size_t nextClipIndex = _clipIndex + 1;
+				if (_clipIndex + 1 >= timestamps.size()) {
+					nextClipIndex = _clipIndex + 1;
+					_clipIndex = 0;
+					currClipTime -= _clipLength;
+
+				}
+
+				size_t boneCount = _skeleton.boneHierarchy.size();
+				float t = ((currClipTime - timestamps[_clipIndex]) / (timestamps[nextClipIndex] - timestamps[_clipIndex]));
+				auto& pos1 = ani.positions[_clipIndex];
+				auto& pos2 = ani.positions[_clipIndex + 1];
+				for (size_t i = 0; i < boneCount; ++i) {
+					samplepos[i] = mix(pos1[i], pos2[i], t);
+				}
+				auto& rot1 = ani.rotations[_clipIndex];
+				auto& rot2 = ani.rotations[_clipIndex + 1];
+				for (size_t i = 0; i < boneCount; ++i) {
+					samplerot[i] = slerp(rot1[i], rot2[i], t);
+				}
+				auto& sca1 = ani.scales[_clipIndex];
+				auto& sca2 = ani.scales[_clipIndex + 1];
+				for (size_t i = 0; i < boneCount; i++) {
+					samplesca[i] = mix(sca1[i], sca2[i], t);
+				}
+
+				/*for (size_t i = 0; i < ani.channels.size(); ++i) {
+					auto& channel = ani.channels[i];
+					auto& positions = channel.positions;
+					auto& rotations = channel.rotations;
+					auto& scales = channel.scales;
+					vec3 pos = mix(positions[_clipIndex], positions[nextClipIndex], t);
+					quat rota = rotations[_clipIndex];
+					quat rotb = rotations[nextClipIndex];
+					if (dot(rota, rotb) < 0.f) {
+						rotb = -rotb;
+					}
+					quat rot = slerp(rota, rotb, t);
+					vec3 sca = mix(scales[_clipIndex], scales[nextClipIndex], t);
+					samplepos[i] = pos;
+					samplerot[i] = rot;
+					samplesca[i] = sca;
+
+				}*/
+			}
+		}
+
 		if (_blendClip>=0) {
+#ifdef __PROFILE__
+			EASY_BLOCK("Calculate blend animation");
+#endif
 			auto& ani = _animations[_blendClip];
 			auto& timestamps = ani.channels[0].positionTimes;
 			while (_blendIndex + 1 < timestamps.size() && blendClipTime > timestamps[_blendIndex])
@@ -229,38 +471,109 @@ namespace Animation {
 		}
 		//we have our local sampled data for this time.
 		//now we need to do some muliplications....
-		auto& boneHierarchy = _skeleton.boneHierarchy;
-		for (int i = 1; i < boneCount; i++) {
-			int parentID = boneHierarchy[i];
-			vec3 sca = samplesca[parentID] * samplesca[i];
-			quat rot = samplerot[parentID] * samplerot[i];
-			vec3 pos = samplerot[parentID] * (samplesca[parentID] * samplepos[i]);
-			pos += samplepos[parentID];
-			samplepos[i] = pos;
-			samplerot[i] = rot;
-			samplesca[i] = sca;
-		}
+		{
 
+#ifdef __PROFILE__
+			EASY_BLOCK("Combine animation");
+#endif
+			auto& boneHierarchy = _skeleton.boneHierarchy;
+			for (int i = 1; i < _boneCount; i++) {
+				int parentID = boneHierarchy[i];
+				vec3 sca = samplesca[parentID] * samplesca[i];
+				quat rot = samplerot[parentID] * samplerot[i];
+				vec3 pos = samplerot[parentID] * (samplesca[parentID] * samplepos[i]);
+				pos += samplepos[parentID];
+				samplepos[i] = pos;
+				samplerot[i] = rot;
+				samplesca[i] = sca;
+			}
+		}
 		//we now should have our transforms ready
-		auto& invBindMatrices = _skeleton.boneInvBindMatrices;
-		for (int i = 0; i < boneCount; i++) {
-			//rotation
-			vec3 x = samplerot[i] * vec3(1.f, 0.f, 0.f);
-			vec3 y = samplerot[i] * vec3(0.f, 1.f, 0.f);
-			vec3 z = samplerot[i] * vec3(0.f, 0.f, 1.f);
-			//scale
-			x *= samplesca[i].x;
-			y *= samplesca[i].y;
-			z *= samplesca[i].z;
-			mat4 xform = mat4(
-				x.x, x.y, x.z, 0.f,
-				y.x, y.y, y.z, 0.f,
-				z.x, z.y, z.z, 0.f,
-				samplepos[i].x,samplepos[i].y,samplepos[i].z, 1.f
-			);
-			_poseXForms[i] = xform;
-			_matrixPalette[i] = xform * invBindMatrices[i];
+		{
 			
+			auto& invBindMatrices = _skeleton.boneInvBindMatrices;
+			
+			{
+#ifdef __PROFILE__
+				EASY_BLOCK("Make xform matrices");
+#endif
+				for (int i = 0; i < _boneCount; i++) {
+					//rotation
+
+					vec3 x = samplerot[i] * vec3(1.f, 0.f, 0.f);
+					vec3 y = samplerot[i] * vec3(0.f, 1.f, 0.f);
+					vec3 z = samplerot[i] * vec3(0.f, 0.f, 1.f);
+					//scale
+					x *= samplesca[i].x;
+					y *= samplesca[i].y;
+					z *= samplesca[i].z;
+					mat4 xform = mat4(
+						x.x, x.y, x.z, 0.f,
+						y.x, y.y, y.z, 0.f,
+						z.x, z.y, z.z, 0.f,
+						samplepos[i].x, samplepos[i].y, samplepos[i].z, 1.f
+					);
+					_poseXForms[i] = xform;
+
+
+				}
+			}
+			{
+				union Pack {
+					__m128 m[4];
+					mat4	v;
+				};
+#ifdef __PROFILE__
+				EASY_BLOCK("Multiply by invbind matrices");
+#endif
+				for (int i = 0; i < _boneCount; i++) {
+#if 1
+					__m128 a;
+					__m128 b;
+					mat4 bind = invBindMatrices[i];
+					Pack x;					
+					Pack out;
+					x.v = _poseXForms[i];
+					//col 0
+					a = _mm_mul_ps(x.m[0], _mm_set_ps1(bind[0].x));
+					b = _mm_mul_ps(x.m[1], _mm_set_ps1(bind[0].y));
+					out.m[0] = _mm_add_ps(a, b);
+					a = _mm_mul_ps(x.m[2], _mm_set_ps1(bind[0].z));
+					out.m[0] = _mm_add_ps(out.m[0], a);
+					a = _mm_mul_ps(x.m[3], _mm_set_ps1(bind[0].w));
+					out.m[0] = _mm_add_ps(out.m[0], a);
+					//col 1
+					a = _mm_mul_ps(x.m[0], _mm_set_ps1(bind[1].x));
+					b = _mm_mul_ps(x.m[1], _mm_set_ps1(bind[1].y));
+					out.m[1] = _mm_add_ps(a, b);
+					a = _mm_mul_ps(x.m[2], _mm_set_ps1(bind[1].z));
+					out.m[1] = _mm_add_ps(out.m[1], a);
+					a = _mm_mul_ps(x.m[3], _mm_set_ps1(bind[1].w));
+					out.m[1] = _mm_add_ps(out.m[1], a);
+					//col 2
+					a = _mm_mul_ps(x.m[0], _mm_set_ps1(bind[2].x));
+					b = _mm_mul_ps(x.m[1], _mm_set_ps1(bind[2].y));
+					out.m[2] = _mm_add_ps(a, b);
+					a = _mm_mul_ps(x.m[2], _mm_set_ps1(bind[2].z));
+					out.m[2] = _mm_add_ps(out.m[2], a);
+					a = _mm_mul_ps(x.m[3], _mm_set_ps1(bind[2].w));
+					out.m[2] = _mm_add_ps(out.m[2], a);
+					//col 3
+					a = _mm_mul_ps(x.m[0], _mm_set_ps1(bind[3].x));
+					b = _mm_mul_ps(x.m[1], _mm_set_ps1(bind[3].y));
+					out.m[3] = _mm_add_ps(a, b);
+					a = _mm_mul_ps(x.m[2], _mm_set_ps1(bind[3].z));
+					out.m[3] = _mm_add_ps(out.m[3], a);
+					a = _mm_mul_ps(x.m[3], _mm_set_ps1(bind[3].w));
+					out.m[3] = _mm_add_ps(out.m[3], a);
+					
+
+					_matrixPalette[i] = out.v;
+#else
+					_matrixPalette[i] = _poseXForms[i] * invBindMatrices[i];
+#endif
+				}
+			}
 		}
 
 	}

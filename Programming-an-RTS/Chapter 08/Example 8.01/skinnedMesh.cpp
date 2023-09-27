@@ -41,7 +41,8 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 	Renderer::Texture* ptexture = _meshTexture.get();
 	int texid = 0;
 	_meshShader->SetTexture(texid, &ptexture, 1);
-	_animatedMesh->UpdateShader(_meshShader.get());
+	//_animatedMesh->UpdateShader(_meshShader.get());
+	_meshShader->SetStorageBuffer("skeleton", _animatedMesh->GetBoneBuffer(), true);
 }
 
 
@@ -52,7 +53,8 @@ void SKINNEDMESH::Update() {
 void SKINNEDMESH::SetPose(float time)
 {
 	_time += time*300.f;
-	_animationController->SetPose(_time);
+	_animationController->Advance(_time);
+	_time = 0.f;
 	
 }
 
@@ -91,7 +93,9 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 	_meshShader->SetUniformData("UBO", &ubo, sizeof(ubo));
 
 	_meshShader->SetPushConstData(&pushConst, sizeof(pushConst));
-	_animatedMesh->Render(_meshShader.get(),_animationController.get());
+	uint32_t dynoffsets[1] = { _animationController->GetControllerOffset() * sizeof(mat4) };
+	_meshShader->Bind(dynoffsets, 1);
+	_animatedMesh->Render(/*_meshShader.get(),*/_animationController.get());
 	
 }
 

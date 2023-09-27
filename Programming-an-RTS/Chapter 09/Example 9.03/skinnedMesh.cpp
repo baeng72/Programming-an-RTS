@@ -7,7 +7,6 @@ SKINNEDMESH::SKINNEDMESH() {
 
 SKINNEDMESH::~SKINNEDMESH() {
 	_pdevice->Wait();
-	_meshShader.reset();
 	_mesh.reset();
 	
 }
@@ -19,6 +18,7 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 	_meshTexture = std::unique_ptr<Renderer::Texture>(model->GetTexture(model->GetMeshMaterialIndex(0),Mesh::TextureType::diffuse, 0));
 	_mesh = std::unique_ptr<Mesh::Mesh>(model->GetMesh(Mesh::MeshType::pos_norm_uv_bones, 0));
 	_animatedMesh = std::unique_ptr<Mesh::AnimatedMesh>(model->GetAnimatedMesh(Mesh::MeshType::pos_norm_uv_bones, 0));
+	_animationController = std::unique_ptr<Mesh::AnimationController>(_animatedMesh->GetController());
 	uint32_t animationCount = model->GetAnimationCount(0);
 	_animations.resize(animationCount);
 	
@@ -28,12 +28,12 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 		
 	}
 	
-	
 	_xform = model->GetMeshXForm(0);
 
+	Renderer::ShaderStorageType shaderTypes[] = { Renderer::ShaderStorageType::Uniform,Renderer::ShaderStorageType::StorageDynamic,Renderer::ShaderStorageType::Texture };
+	_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/skinnedmesh.glsl", true, true,
+		shaderTypes, 3)));
 	
-	
-	_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.01/shaders/skinnedmesh.glsl")));
 	Renderer::Texture* ptexture = _meshTexture.get();
 	int texid = 0;
 	_meshShader->SetTexture(texid, &ptexture, 1);
@@ -42,13 +42,17 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 
 
 void SKINNEDMESH::Update() {
-	
+	_meshShader->SetStorageBuffer("skeleton", _animatedMesh->GetBoneBuffer(), true);//such a hack...
 }
 
 void SKINNEDMESH::SetPose(float time)
 {
-	_time += time*1000.f;
-	_animatedMesh->SetPose(time*150.f);
+	
+	if (_currAnimation == 2) {
+		int z = 0;
+	}
+	_animationController->Advance(time);
+	
 	
 }
 
@@ -60,7 +64,13 @@ void SKINNEDMESH::SetAnimation(const char* pname)
 			break;
 		}
 	}
-	_animatedMesh->SetAnimation(_currAnimation,false);
+	_animationController->SetAnimation(_currAnimation, false);
+	_time = 0.f;
+}
+
+void SKINNEDMESH::SetAnimation(int animidx) {
+	_currAnimation = animidx;
+	_animationController->SetAnimation(_currAnimation, false);
 	_time = 0.f;
 }
 
@@ -72,35 +82,29 @@ std::vector<std::string> SKINNEDMESH::GetAnimations()
 	}
 	return animationNames;
 }
-void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&light,vec4&color) {
-	glm::mat4 r = glm::rotate(glm::mat4(1.f), -glm::pi<float>() * 0.5f, glm::vec3(0.f, 1.f, 0.f));
-	struct UBO {
-		mat4 matVP;
-		Renderer::DirectionalLight light;
-	}ubo = { matVP,light };
-	struct PushConst {
-		mat4 world;		
-		vec4 color;
-	}pushConst = { _xform*matWorld,color };
+void SKINNEDMESH::Render(Renderer::Shader*pshader) {
 	
-	
-	_meshShader->SetUniformData("UBO", &ubo, sizeof(ubo));
-
-	std::vector<mat4> palette;
-	_animatedMesh->GetPose(palette);
-	_meshShader->SetPushConstData(&pushConst, sizeof(pushConst));
-	_animatedMesh->Render(_meshShader.get());
+	{
+		
+		uint32_t dynoffsets[1] = { (uint32_t)_animationController->GetControllerOffset()*sizeof(mat4) };
+		
+		pshader->Bind(dynoffsets, 1);
+	}
+	{
+		
+		_animatedMesh->Render(_animationController.get());
+	}
 	
 }
 
 int SKINNEDMESH::GetBoneIndex(const char* boneName)
 {
-	return _animatedMesh->GetBoneIndex(boneName);
+	return _animationController->GetBoneIndex(boneName);
 }
 
 mat4 SKINNEDMESH::GetBoneXForm(int boneID)
 {
 	mat4 xform;
-	_animatedMesh->GetBonePoseXForm(boneID,xform);
+	_animationController->GetBonePoseXForm(boneID, xform);
 	return xform;
 }

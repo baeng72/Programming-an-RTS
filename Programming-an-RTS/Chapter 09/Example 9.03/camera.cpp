@@ -24,9 +24,9 @@ void CAMERA::Scroll(glm::vec3 vec) {
 void CAMERA::Pitch(float f) {
 	_beta += f;
 	if (_beta > glm::pi<float>() / 2.f)
-		_beta = glm::pi<float>() / 2.f - 0.1f;
-	if (_beta < 0.3f)
-		_beta = 0.3f;
+		_beta = glm::pi<float>() / 2.f - 0.05f;
+	if (_beta < 0.5f)
+		_beta = 0.5f;
 }
 
 void CAMERA::Yaw(float f) {
@@ -50,10 +50,10 @@ void CAMERA::ChangeRadius(float f)
 {
 	_radius += f;
 
-	if (_radius < 5.f)
-		_radius = 5.f;
-	if (_radius > 100.f)
-		_radius = 100.f;
+	if (_radius < 2.f)
+		_radius = 2.f;
+	if (_radius > 70.f)
+		_radius = 70.f;
 }
 
 
@@ -66,15 +66,15 @@ void CAMERA::Update(MOUSE&mouse, TERRAIN&terrain, float delta)
 	_right = glm::normalize(_right);
 
 	//Move Focus (i.e. scroll)
-	if (mouse.x < mouse._viewport.left+10)
-		Scroll(-_right * delta * (4.f+_radius*0.2f));
+	if (mouse.x < mouse._viewport.left + 10) 		
+		Scroll(-_right * delta * (4.f + _radius * 0.2f));	
 	if (mouse.x > mouse._viewport.right - 10)
 		Scroll(_right * delta * (4.f + _radius * 0.2f));
 	if (mouse.y < mouse._viewport.top + 10)
 		Scroll(_look * delta * (4.f + _radius * 0.2f));
 	if (mouse.y > mouse._viewport.bottom-10)
 		Scroll(-_look * delta * (4.f + _radius * 0.2f));
-
+	
 	//Move Camera (i.e. Change Angle)
 	if (_pwindow->IsKeyPressed(KEY_LEFT))
 		Yaw(-delta);
