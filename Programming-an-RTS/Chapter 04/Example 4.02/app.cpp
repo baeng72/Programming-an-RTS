@@ -4,7 +4,7 @@
 #include "heightMap.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-class APPLICATION : public Application {
+class APPLICATION : public Core::Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;	
 	std::unique_ptr<HEIGHTMAP> _heightMap;
 	std::unique_ptr<Renderer::Font> _font;	
@@ -34,6 +34,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
 	_device->EnableGeometry(true);	
+	_device->SetVSync(false);
 	_device->Init();
 
 	_font.reset(Renderer::Font::Create());
@@ -79,15 +80,21 @@ void APPLICATION::Update(float deltaTime) {
 
 void APPLICATION::Render() {	
 	//using DirectX LHS coordinate system.
-	glm::vec2 center = glm::vec2(50.f);// mHeightmap->GetCenter();
-	glm::vec3 eye = glm::vec3(center.x + cos(m_angle) * center.x * 2.0f, 15.f/*mHeightmap->m_maxHeight*/ * 8.0f, -center.y + sin(m_angle) * center.y * 2.0f);
-	glm::vec3 lookat = glm::vec3(center.x, 0.f, -center.y);
-	glm::vec3 up(0.f, 1.f, 0.f);
-	glm::mat4 matWorld = glm::mat4(1.f);
-	glm::mat4 matView = glm::lookAtLH(eye, lookat, up);
-	glm::mat4 matProj = glm::perspectiveFovLH_ZO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
-	matProj[1][1] *= -1;
-	glm::mat4 viewProj = matProj * matView;
+	vec2 center = vec2(50.f);// mHeightmap->GetCenter();
+	vec3 eye = vec3(center.x + cos(m_angle) * center.x * 2.0f, 15.f/*mHeightmap->m_maxHeight*/ * 8.0f, -center.y + sin(m_angle) * center.y * 2.0f);
+	vec3 lookat = vec3(center.x, 0.f, -center.y);
+	vec3 up(0.f, 1.f, 0.f);
+	mat4 matWorld = mat4(1.f);
+	mat4 matView = lookAtLH(eye, lookat, up);
+	mat4 matProj;
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		matProj = glm::perspectiveFovLH_ZO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
+		matProj[1][1] *= -1;
+	}
+	else {
+		matProj = glm::perspectiveFovLH_NO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
+	}
+	mat4 viewProj = matProj * matView;
 
 	char buffer[512];
 	sprintf_s(buffer, "Size: %d (UP/DOWN Arrow)", _size);
@@ -112,7 +119,19 @@ void APPLICATION::Cleanup() {
 
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+#if defined(DEBUG) | defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+	if (argc > 1) {
+		if (!_strcmpi(argv[1], "gl")) {
+
+			Core::SetAPI(Core::API::GL);
+		}
+		else {
+			Core::SetAPI(Core::API::Vulkan);
+		}
+	}
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 4.2: Heightmaps from Perlin Noise")) {
 		app.Run();

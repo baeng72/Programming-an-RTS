@@ -1,7 +1,7 @@
 #pragma once
 #include <common.h>
 
-class APPLICATION : public Application {
+class APPLICATION : public Core::Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;
 	std::unique_ptr<Renderer::Font> _font;
 	
@@ -16,7 +16,7 @@ public:
 };
 
 APPLICATION::APPLICATION() {
-
+	
 }
 
 bool APPLICATION::Init(int width, int height, const char* title){
@@ -26,10 +26,11 @@ bool APPLICATION::Init(int width, int height, const char* title){
 		return false;
 
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
+	_device->SetVSync(false);
 	_device->Init();
 	_font.reset(Renderer::Font::Create());
 	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf",40);
-	
+	_time = _device->GetCurrentTicks();
 	return true;
 }
 
@@ -39,6 +40,7 @@ void APPLICATION::Update(float deltaTime) {
 }
 
 void APPLICATION::Render() {
+	
 	_device->StartRender();
 	float fw, fh;
 	_font->GetTextSize("Hello World!", fw, fh);
@@ -56,10 +58,27 @@ void APPLICATION::Cleanup() {
 
 }
 
-int main() {
+int main(int argc,char*argv[]) {
+#if defined(DEBUG) | defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+	if (argc > 1) {
+		if (!_strcmpi(argv[1], "gl")) {	
+			
+			Core::SetAPI(Core::API::GL);
+		}
+		else {
+			Core::SetAPI(Core::API::Vulkan);
+		}
+	}
+	//EASY_PROFILER_ENABLE;
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 3.01: Application Framework")) {
 		app.Run();
 	}
+	/*if(Core::GetAPI()==Core::API::GL)
+		profiler::dumpBlocksToFile("Example3.01-GL.prof");
+	else
+		profiler::dumpBlocksToFile("Example3.01-Vulkan.prof");*/
 	return 0;
 }

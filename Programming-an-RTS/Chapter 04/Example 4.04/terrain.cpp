@@ -93,7 +93,8 @@ bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevi
 		}
 		vertices[i].normal = glm::normalize(n);
 	}
-	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount*sizeof(uint32_t)));
+	Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float4},sizeof(TERRAINVertex) };
+	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount*sizeof(uint32_t),attributes));
 	return false;
 }
 
@@ -103,7 +104,7 @@ void PATCH::Release() {
 
 void PATCH::Render()
 {
-	
+	_mesh->Bind();
 	_mesh->Render();
 }
 
@@ -139,7 +140,12 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
 	_size = size_;	
-	_shader.reset(Renderer::Shader::Create(pdevice,_shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.04/Shaders/terrain.glsl",false)));
+	if (Core::GetAPI()==Core::API::GL) {
+		_shader.reset(Renderer::Shader::Create(pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.04/Shaders/GL/terrain.glsl", false)));
+	}
+	else {
+		_shader.reset(Renderer::Shader::Create(pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.04/Shaders/Vulkan/terrain.glsl", false)));
+	}
 	GenerateRandomTerrain(3);
 }
 
@@ -177,7 +183,9 @@ void TERRAIN::CreatePatches(int numPatches)
 			(int)(y * (_size.y - 1) / (float)numPatches),
 			(int)((x + 1) * (_size.x - 1) / (float)numPatches),
 			(int)((y + 1) * (_size.y - 1) / (float)numPatches) };
-
+			if (y == 2 && x == 2) {
+				int z = 0;
+			}
 			PATCH* p = new PATCH();
 			p->CreateMesh(*_heightMap, r, _pdevice, x + y);
 			_patches.push_back(p);
@@ -187,14 +195,25 @@ void TERRAIN::CreatePatches(int numPatches)
 
 void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLight&light)
 {
-	Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
-	int uboid = 0;
-	_shader->SetUniformData(uboid,&ubo, sizeof(ubo));
-
-	Renderer::FlatShaderPushConst pushConst{model };
-	
-	_shader->SetPushConstData(&pushConst,sizeof(pushConst));
 	_shader->Bind();
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
+		int uboid = 0;
+		_shader->SetUniformData(uboid, &ubo, sizeof(ubo));
+
+		Renderer::FlatShaderPushConst pushConst{ model };
+
+		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
+	}
+	else {
+		_shader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
+		_shader->SetUniformData("model", &model, sizeof(mat4));
+		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+	}
+	
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render();
 }

@@ -5,7 +5,7 @@
 #include "terrain.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-class APPLICATION : public Application {
+class APPLICATION : public Core::Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;	
 	std::shared_ptr<Renderer::ShaderManager> _shaderManager;
 	std::unique_ptr<Renderer::Font> _font;	
@@ -47,6 +47,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->EnableLines(true);
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
+	_device->SetVSync(false);
 	_font.reset(Renderer::Font::Create());
 	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
 	_shaderManager.reset(Renderer::ShaderManager::Create(_device.get()));
@@ -127,8 +128,14 @@ void APPLICATION::Render() {
 	glm::mat4 matModel = glm::mat4(1.f);
 	glm::mat4 matView = glm::lookAtLH(eye, lookat, up);
 	constexpr float fov = glm::radians(45.f);
-	glm::mat4 matProj = glm::perspectiveFovLH_ZO(fov, (float)_width, (float)_height, 1.f, 1000.f);
-	matProj[1][1] *= -1;
+	mat4 matProj;
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		matProj = glm::perspectiveFovLH_ZO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
+		matProj[1][1] *= -1;
+	}
+	else {
+		matProj = glm::perspectiveFovLH_NO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
+	}
 	glm::mat4 viewProj = matProj * matView;
 
 	_font->Draw("W: Toggle Wireframe", 10, 10, glm::vec4(0.f, 0.f, 0.f, 1.f));
@@ -155,7 +162,19 @@ void APPLICATION::Cleanup() {
 
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+#if defined(DEBUG) | defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+	if (argc > 1) {
+		if (!_strcmpi(argv[1], "gl")) {
+
+			Core::SetAPI(Core::API::GL);
+		}
+		else {
+			Core::SetAPI(Core::API::Vulkan);
+		}
+	}
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 4.4: Creating the Terrain Mesh")) {
 		app.Run();

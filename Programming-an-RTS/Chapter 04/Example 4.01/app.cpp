@@ -4,7 +4,7 @@
 #include "heightMap.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-class APPLICATION : public Application {
+class APPLICATION : public Core::Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;	
 	std::unique_ptr<HEIGHTMAP> _heightMap;
 	int	_image;
@@ -33,6 +33,8 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
 	_device->EnableGeometry(true);
+	_device->EnableDepthBuffer(false);
+	_device->SetVSync(false);
 	_device->Init();
 
 	_heightMap = std::make_unique<HEIGHTMAP>(_device.get(), INTPOINT(100, 100));
@@ -72,8 +74,15 @@ void APPLICATION::Render() {
 	glm::vec3 up(0.f, 1.f, 0.f);
 	glm::mat4 matWorld = glm::mat4(1.f);
 	glm::mat4 matView = glm::lookAtLH(eye, lookat, up);
-	glm::mat4 matProj = glm::perspectiveFovLH_ZO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
+	glm::mat4 matProj;
+	if (Core::GetAPI() == Core::API::Vulkan){
+	matProj = glm::perspectiveFovLH_ZO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
 	matProj[1][1] *= -1;
+	}
+	else {
+		matProj = glm::perspectiveFovLH_NO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
+	}
+	
 	glm::mat4 viewProj = matProj * matView;
 
 	_device->StartRender();		
@@ -91,7 +100,19 @@ void APPLICATION::Cleanup() {
 
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+#if defined(DEBUG) | defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+	if (argc > 1) {
+		if (!_strcmpi(argv[1], "gl")) {
+
+			Core::SetAPI(Core::API::GL);
+		}
+		else {
+			Core::SetAPI(Core::API::Vulkan);
+		}
+	}
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 4.1: Heightmaps from Images")) {
 		app.Run();
