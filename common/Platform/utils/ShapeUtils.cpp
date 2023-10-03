@@ -97,7 +97,9 @@ namespace Utils {
 
 		uint32_t vertSize = (uint32_t)(sizeof(PosNormUV) * vertices.size());
 		uint32_t indSize = (uint32_t)(sizeof(uint32_t) * indices.size());
-		Mesh::Mesh* pmesh = Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, indices.data(), indSize);
+		Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float2},sizeof(PosNormUV) };
+		
+		Mesh::Mesh* pmesh = Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, indices.data(), indSize,attributes);
 		return pmesh;
 	}
 
@@ -200,7 +202,8 @@ namespace Utils {
 
 		uint32_t vertSize = (uint32_t)(sizeof(PosNormUV) * vertices.size());
 		uint32_t indSize = (uint32_t)(sizeof(uint32_t) * indices.size());
-		Mesh::Mesh* pmesh = Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, indices.data(), indSize);
+		Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float2},sizeof(PosNormUV) };
+		Mesh::Mesh* pmesh = Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, indices.data(), indSize,attributes);
 		return pmesh;
 	}
 

@@ -6,9 +6,7 @@
 #include "ShaderCompiler.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
-Renderer::Font* Renderer::Font::Create() {
-	return new Vulkan::VulkanFont();
-}
+
 namespace Vulkan {
 	
 	
@@ -143,7 +141,7 @@ void main(){
 			{
 				Character& character = Characters[c];
 
-				std::vector<uint8_t> charData = data[c];
+				std::vector<uint8_t>& charData = data[c];
 				uint32_t width = character.size.x;
 				uint32_t height = character.size.y;
 				for (uint32_t i = 0; i < height; i++) {

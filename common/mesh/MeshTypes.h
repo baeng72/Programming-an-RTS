@@ -44,4 +44,5 @@ namespace Mesh {
 	};
 	enum class MeshType { position, position_normal, position_normal_uv, pos_norm_uv_bones, pos_norm_uv_tan, pos_norm_uv_tan_bones };
 	enum class TextureType { diffuse };
+	
 }

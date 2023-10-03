@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#include <functional>
 #include <memory>
 #include "Event.h"
 
@@ -132,20 +133,22 @@
 
 #define MOUSE_BUTTON_LEFT 0
 #define MOUSE_BUTTON_RIGHT 1
+namespace Core {
+	class Window {
+	public:
+		virtual ~Window() {};
+		static Window* Create(uint32_t width, uint32_t height, const std::string& title);
+		virtual void* GetNativeHandle()const = 0;
 
-class Window {
-public:
-	virtual ~Window() {};
-	static Window* Create(uint32_t width, uint32_t height, const std::string& title);
-	virtual void* GetNativeHandle()const = 0;
-	
-	virtual void SetEventHandler(const std::function<void(Event&)>&func)=0;
-	virtual void OnBeginUpdate() = 0;
-	virtual void OnUpdate() = 0;
-	virtual bool IsKeyPressed(int key) = 0;
-	virtual void GetWindowSize(int& width, int& height) = 0;
-	virtual void GetCursorPos(float& xpos, float& ypos) = 0;
-	virtual bool IsMouseButtonPressed(int button) = 0;
-	virtual void GetScrollPos(float& xoffset, float& yoffset) = 0;
-	virtual void ShowCursor(bool show) = 0;
-};
+		virtual void SetEventHandler(const std::function<void(Event&)>& func) = 0;
+		virtual void OnBeginUpdate() = 0;
+		virtual void OnUpdate() = 0;
+		virtual bool IsKeyPressed(int key) = 0;
+		virtual void GetWindowSize(int& width, int& height) = 0;
+		virtual void GetCursorPos(float& xpos, float& ypos) = 0;
+		virtual bool IsMouseButtonPressed(int button) = 0;
+		virtual void GetScrollPos(float& xoffset, float& yoffset) = 0;
+		virtual void ShowCursor(bool show) = 0;
+		virtual void SetTitle(const char* ptitle) = 0;
+	};
+}

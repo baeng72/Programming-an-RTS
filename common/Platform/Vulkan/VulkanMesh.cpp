@@ -1,42 +1,32 @@
 
 #include "../../Core/defines.h"
+#include "../../Core/hash.h"
 #include "VulkanMesh.h"
 #include "VulkState.h"
 #include "VulkSwapchain.h"
 #include "../meshoptimizer/src/meshoptimizer.h"
-namespace Mesh {
-	Mesh* Mesh::Create(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize) {
-		return new Vulkan::VulkanMesh(pdevice, pvertices, vertSize, pindices, indSize);
-	}
-	Mesh* Mesh::Create(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertStride, uint32_t vertSize, uint32_t* pindices, uint32_t indSize,bool optimize) {
-		return new Vulkan::VulkanMesh(pdevice, pvertices, vertStride, vertSize, pindices, indSize,optimize);
-	}
-}
+
 namespace Vulkan {
-	VulkanMesh::VulkanMesh(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertStride, uint32_t vertSize, uint32_t* pindices, uint32_t indSize,bool optimize) :_pdevice(pdevice) {
+	VulkanMesh::VulkanMesh(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize, Renderer::VertexAttributes& attributes,bool optimize) :_pdevice(pdevice) {
+		
 		if (optimize) {
 			uint32_t indCount = indSize / sizeof(uint32_t);
-			uint32_t vertCount = vertSize / vertStride;
+			uint32_t vertCount = vertSize / attributes.vertexStride;
 			std::vector<uint32_t> indices(pindices, pindices + indCount);
 
 			std::vector<unsigned int> remap(indCount); // allocate temporary memory for the remap table
-			size_t vertex_count = meshopt_generateVertexRemap(remap.data(), pindices, indCount, pvertices, vertCount, vertStride);
+			size_t vertex_count = meshopt_generateVertexRemap(remap.data(), pindices, indCount, pvertices, vertCount, attributes.vertexStride);
 			std::vector<uint32_t> progressiveIndices(indCount);
 			meshopt_remapIndexBuffer(progressiveIndices.data(), pindices, indCount, remap.data());
-			std::vector<float> progressiveVertices(vertCount * vertStride);
-			meshopt_remapVertexBuffer(progressiveVertices.data(), pvertices, vertCount, vertStride, remap.data());
+			std::vector<float> progressiveVertices(vertCount * attributes.vertexStride);
+			meshopt_remapVertexBuffer(progressiveVertices.data(), pvertices, vertCount, attributes.vertexStride, remap.data());
 			Create(progressiveVertices.data(), vertSize, progressiveIndices.data(), indSize);
 		}
 		else {
 			Create(pvertices, vertSize, pindices, indSize);
 		}
 	}
-	VulkanMesh::VulkanMesh(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize):_pdevice(pdevice)
-	{
-
-		Create(pvertices, vertSize, pindices, indSize);
-	}
-
+	
 	
 	VulkanMesh::~VulkanMesh()
 	{
@@ -50,6 +40,7 @@ namespace Vulkan {
 	void VulkanMesh::Create(float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize) {
 		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
 		Vulkan::VulkContext& context = *contextptr;
+		_hash = 0;
 		{
 
 
@@ -57,6 +48,8 @@ namespace Vulkan {
 			Vulkan::VertexBufferBuilder::begin(context.device, context.queue, context.commandBuffer, context.memoryProperties)
 				.AddVertices(vertSize, pvertices)
 				.build(_vertexBuffer, vertexLocations);
+			_hash = Core::HashFNV1A(pvertices, vertSize);
+			
 		}
 		{
 			std::vector<uint32_t> indexLocations;
@@ -64,17 +57,26 @@ namespace Vulkan {
 				.AddIndices(indSize, pindices)
 				.build(_indexBuffer, indexLocations);
 			_indexCount = indSize / sizeof(uint32_t);
+			//_hash ^= Core::HashFNV1A(pindices, indSize); //necessary to distinguish between meshes? 
 		}
 	}
 
 	void VulkanMesh::Render()
 	{
-		
+		Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
+		Vulkan::VulkFrameData& frameData = *pframedata;		
+		vkCmdDrawIndexed(frameData.cmd, _indexCount, 1, 0, 0, 0);
+	}
+	void VulkanMesh::Bind()
+	{
 		Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
 		Vulkan::VulkFrameData& frameData = *pframedata;
 		vkCmdBindIndexBuffer(frameData.cmd, _indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 		VkDeviceSize offsets[1] = { 0 };
 		vkCmdBindVertexBuffers(frameData.cmd, 0, 1, &_vertexBuffer.buffer, offsets);
-		vkCmdDrawIndexed(frameData.cmd, _indexCount, 1, 0, 0, 0);
+	}
+	size_t VulkanMesh::GetHash()
+	{
+		return _hash;
 	}
 }

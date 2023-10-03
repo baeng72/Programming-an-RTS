@@ -16,7 +16,7 @@ namespace Renderer {
 		virtual bool SetUniformBuffer(uint32_t i, Buffer* pbuffer,bool dynamic=false) = 0;
 		virtual bool SetUniformBuffer(const char* pname, Buffer* pbuffer,bool dynamic=false) = 0;
 		virtual bool SetUniformData(uint32_t i,void*ptr,uint32_t len,bool dynamic=false) = 0;
-		virtual bool SetUniformData(const char*pname, void* ptr, uint32_t len,bool dynamic=false) = 0;		
+		virtual bool SetUniformData(const char*pname, void* ptr, uint32_t len,bool dynamic=false) = 0;	
 		virtual uint32_t GetUniformId(const char* pname,bool dynamic=false) = 0;
 		
 		virtual bool SetTexture(uint32_t, Texture** pptexture, uint32_t count) = 0;		//set 1 or more textures into a slot/descriptor binding

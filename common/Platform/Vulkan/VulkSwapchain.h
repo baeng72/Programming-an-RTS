@@ -1,4 +1,5 @@
 #pragma once
+#include "../../Core/profiler.h"
 #ifdef __USE__VECTOR__
 #include <vector>
 #else
@@ -92,7 +93,8 @@ namespace Vulkan {
 		VkPipelineStageFlags                submitPipelineStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		VkSubmitInfo		                submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 		VkPresentInfoKHR                    presentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
-		uint32_t		                            index = 0;
+		uint32_t		                    index = 0;
+		
 		uint32_t		                            frameCount = 0;
 		uint32_t		                            currFrame{ (uint32_t)(-1) };
 		uint32_t		                            maxFrames{ 0 };

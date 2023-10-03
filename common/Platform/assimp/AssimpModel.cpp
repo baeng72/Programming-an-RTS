@@ -363,7 +363,8 @@ namespace Assimp {
 			}
 			uint32_t vertSize = (uint32_t)(sizeof(PosNorm) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
-			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(),sizeof(PosNorm), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+			Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3},sizeof(PosNorm) };
+			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize,attributes);
 		}
 		else if (meshType == Mesh::MeshType::position_normal_uv) {
 			struct PosNormUV {
@@ -377,7 +378,8 @@ namespace Assimp {
 			}
 			uint32_t vertSize = (uint32_t)(sizeof(PosNormUV) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
-			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(),sizeof(PosNormUV), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+			Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float2},sizeof(PosNormUV) };
+			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize,attributes);
 		}
 		else if (meshType == Mesh::MeshType::pos_norm_uv_bones) {
 			struct PosNormUVBones {
@@ -393,7 +395,8 @@ namespace Assimp {
 			}
 			uint32_t vertSize = (uint32_t)(sizeof(PosNormUVBones) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
-			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), sizeof(PosNormUVBones), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+			Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float2,Renderer::ShaderDataType::Int4,Renderer::ShaderDataType::Float4},sizeof(PosNormUVBones) };
+			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize,attributes);
 		}
 		else if (meshType == Mesh::MeshType::pos_norm_uv_tan) {
 			struct PosNormUVTan {
@@ -409,12 +412,14 @@ namespace Assimp {
 			}
 			uint32_t vertSize = (uint32_t)(sizeof(PosNormUVTan) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
-			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), sizeof(PosNormUVTan), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+			Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float2,Renderer::ShaderDataType::Float4,Renderer::ShaderDataType::Float3,},sizeof(PosNormUVTan) };
+			return Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize,attributes);
 		}
 		else if (meshType == Mesh::MeshType::pos_norm_uv_tan_bones) {
 			uint32_t vertSize = (uint32_t)(sizeof(AssimpVertex) * _primitives[i].vertices.size());
 			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * _primitives[i].indices.size());
-			return Mesh::Mesh::Create(_pdevice, (float*)_primitives[i].vertices.data(), sizeof(AssimpVertex), vertSize, (uint32_t*)_primitives[i].indices.data(), indSize);
+			Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float2,Renderer::ShaderDataType::Float4,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Int4,Renderer::ShaderDataType::Float4},sizeof(AssimpVertex) };
+			return Mesh::Mesh::Create(_pdevice, (float*)_primitives[i].vertices.data(),  vertSize, (uint32_t*)_primitives[i].indices.data(), indSize,attributes);
 		}
 		return nullptr;
 	}

@@ -27,9 +27,9 @@ namespace Vulkan {
 		}
 
 #if !defined NDEBUG
-		requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-		requiredLayers = { "VK_LAYER_KHRONOS_validation" };
-		requiredLayers.push_back("VK_LAYER_LUNARG_monitor");
+		//requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		//requiredLayers = { "VK_LAYER_KHRONOS_validation" };
+		//requiredLayers.push_back("VK_LAYER_LUNARG_monitor");
 #endif
 
 		instance = initInstance(requiredExtensions, requiredLayers);

@@ -4,9 +4,7 @@
 #include "VulkSwapchain.h"
 #include "ShaderCompiler.h"
 #include "../../Core/Log.h"
-Renderer::ParticleSwarm* Renderer::ParticleSwarm::Create(Renderer::RenderDevice*pdevice,Renderer::ParticleVertex*pvertices,uint32_t vertexCount,glm::vec2&size) {
-	return new Vulkan::VulkanParticleSwarm(pdevice,pvertices,vertexCount,size);
-}
+
 namespace Vulkan {
 	
 	

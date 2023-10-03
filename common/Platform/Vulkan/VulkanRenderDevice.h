@@ -1,5 +1,5 @@
 #pragma once
-
+#include "../../Core/profiler.h"
 #include "../../Renderer/RenderDevice.h"
 #include "VulkState.h"
 #include "VulkSwapchain.h"
@@ -12,6 +12,12 @@ namespace Vulkan {
 		std::unique_ptr<VulkSwapchain> _swapchain;
 		VulkContext			_context;
 		VulkFrameData		_frameData;
+		VulkFrameData		_shadowFrameData;
+		struct ShadowData {
+			VkRenderPass renderPass;
+			VkFramebuffer frameBuffer;
+			Vulkan::Texture shadowMap;
+		}_shadowData;
 		VkCommandBuffer		_cmd;
 		bool				_enableVSync;
 		bool				_enableGeometry;
@@ -24,6 +30,8 @@ namespace Vulkan {
 		virtual void Init() override;
 		virtual void StartRender() override;
 		virtual void EndRender() override;
+		virtual void StartShadowRender() override;
+		virtual void EndShadowRender() override;
 		virtual void SetVSync(bool vsync) override;
 		virtual void EnableGeometry(bool geom) override;
 		virtual void EnableWireframe(bool wireframe) override;

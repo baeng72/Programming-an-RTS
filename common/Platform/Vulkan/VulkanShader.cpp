@@ -7,9 +7,7 @@
 #include "ShaderCompiler.h"
 #include "../../Core/Log.h"
 #include <cstring>
-Renderer::Shader* Renderer::Shader::Create(Renderer::RenderDevice* pdevice, void* shaderData) {
-	return new Vulkan::VulkanShader(pdevice, shaderData);
-}
+
 namespace Vulkan {
 
 	VulkanShader::VulkanShader(Renderer::RenderDevice* pdevice, void* shaderData) {

@@ -1,5 +1,5 @@
 message("mesh CMakeLists.txt")
-file(GLOB MESH_FILES "*.h")
+file(GLOB MESH_FILES "*.cpp" "*.h")
 #source_group(PLATFORM FILES ${PLATFORM_FILES})
 # foreach(FILE ${RENDERER_FILES}) 
     # # Get the directory of the source file

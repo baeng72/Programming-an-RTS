@@ -3,9 +3,7 @@
 #include "VulkanRenderDevice.h"
 #include "VulkanShaderManager.h"
 #include "../../Core/Log.h"
-Renderer::RenderDevice* Renderer::RenderDevice::Create(void* nativeWindowHandle) {
-	return new Vulkan::VulkanRenderDevice(nativeWindowHandle);
-}
+
 namespace Vulkan {
 
 	
@@ -21,6 +19,10 @@ namespace Vulkan {
 	VulkanRenderDevice::~VulkanRenderDevice()
 	{
 		vkDeviceWaitIdle(_context.device);
+		cleanupRenderPass(_context.device,_shadowData.renderPass);
+		std::vector<VkFramebuffer> framebuffers = { _shadowData.frameBuffer };
+		cleanupFramebuffers(_context.device,framebuffers);
+		cleanupTexture(_context.device, _shadowData.shadowMap);
 		_swapchain.reset();
 		_state.reset();
 	}
@@ -42,7 +44,7 @@ namespace Vulkan {
 		_swapchain = std::make_unique<VulkSwapchain>();
 		VulkSwapchainFlags flags;
 		flags.imageCount = 2;//double-buffer
-		flags.presentMode = _enableVSync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_MAILBOX_KHR;
+		flags.presentMode = _enableVSync ? VK_PRESENT_MODE_MAILBOX_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;
 		
 		VkClearValue clearValues[2] = {
 			{0.f,0.f,0.f,1.f} ,
@@ -59,10 +61,33 @@ namespace Vulkan {
 		flags.surfaceCaps = _state->getSurfaceCapabilities();
 		_swapchain->Create(_context.device, _state->getSurface(), _state->getGraphicsQueue(), _state->getPresentQueue(), _context.memoryProperties, flags);
 		_frameData.renderPass = _swapchain->getRenderPass();
+
+		_shadowData.shadowMap = TextureBuilder::begin(_context.device, _context.memoryProperties)
+			.setDimensions(width, height)
+			.setFormat(VK_FORMAT_D32_SFLOAT)
+			.setImageAspectFlags(VK_IMAGE_ASPECT_DEPTH_BIT)
+			.setImageUsage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT)
+			.setImageLayout(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL)
+			.build();
+
+		_shadowData.renderPass = RenderPassBuilder::begin(_context.device)
+			.setDepthFormat(VK_FORMAT_D32_SFLOAT)
+			.setDepthStoreOp(VK_ATTACHMENT_STORE_OP_STORE)
+			.setDepthInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+			.setDepthFinalLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			.build();
+		std::vector<VkFramebuffer> framebuffers;
+		FramebufferBuilder::begin(_context.device)
+			.setDimensions(width, height)
+			.setDepthImageView(_shadowData.shadowMap.imageView)
+			.setRenderPass(_shadowData.renderPass)
+			.build(framebuffers);
+		_shadowData.frameBuffer = framebuffers[0];
 	}
 
 	void VulkanRenderDevice::StartRender()
 	{
+		//EASY_FUNCTION(profiler::colors::Cyan);
 		_swapchain->NextFrame();
 		_cmd = _swapchain->BeginRender();
 		_frameData.cmd = _cmd;
@@ -76,10 +101,21 @@ namespace Vulkan {
 
 	void VulkanRenderDevice::EndRender()
 	{
+		//EASY_FUNCTION(profiler::colors::Red);
 		_swapchain->EndRender(_cmd);
 
 		_cmd = VK_NULL_HANDLE;
 		_frameData.cmd = _cmd;
+	}
+
+	void VulkanRenderDevice::StartShadowRender()
+	{
+		int width, height;
+		glfwGetFramebufferSize(_window, &width, &height);
+	}
+
+	void VulkanRenderDevice::EndShadowRender()
+	{
 	}
 
 	void VulkanRenderDevice::SetVSync(bool vsync)

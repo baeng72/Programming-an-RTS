@@ -4,11 +4,32 @@
 #include "VulkSwapchain.h"
 #include "ShaderCompiler.h"
 #include "../../Core/Log.h"
-Renderer::Sprite* Renderer::Sprite::Create(Renderer::RenderDevice*pdevice) {
-	return new Vulkan::VulkanSprite(pdevice);
-}
+
 namespace Vulkan {
-	
+	//Vulkan NDC
+	//
+	inline mat4 myvulkOrthoRH(float left, float right, float top, float bottom, float zn, float zf) {
+		mat4 mat = mat4(1.f);
+		mat[0][0] = 2.f / (right - left);
+		mat[1][1] = 2.f / (bottom - top);// 2.f / (top - bottom);
+		mat[2][2] = -2.f / (zf - zn);
+		mat[3][0] = -(right + left) / (right - left);
+		mat[3][1] = -(bottom + top) / (bottom - top);// -(top + bottom) / (top - bottom);
+		mat[3][2] = -zn / (zf - zn);
+		//mat[1][1] *= -1;//flip y for Vulkan
+		return mat;
+	}
+	inline mat4 vulkOrthoRH2(float left, float right, float top, float bottom, float zn, float zf) {
+		mat4 mat = mat4(1.f);
+		mat[0][0] = 2.f / (right - left);
+		mat[1][1] = 2.f / (bottom-top);
+		mat[2][2] = -1.f / (zf - zn);
+		mat[3][0] = -(right + left) / (right - left);
+		mat[3][1] = -(bottom+top) / (bottom-top);
+		mat[3][2] = -zn / (zf - zn);
+		//mat[1][1] *= -1;//flip y for Vulkan
+		return mat;
+	}
 	std::unique_ptr<VulkanPipelineLayout> VulkanSprite::spritePipelineLayoutPtr;
 	std::unique_ptr<VulkanPipeline> VulkanSprite::spritePipelinePtr;
 	int VulkanSprite::instances = 0;
@@ -117,7 +138,9 @@ void main(){
 		}
 		instances++;
 		pdevice->GetDimensions(&_width, &_height);
-		_orthoproj = glm::ortho(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);
+		_orthoproj = vulkOrthoRH(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);// myvulkOrthoRH(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);
+		//_orthoproj[1][1] *= -1;
+		
 	}
 
 	VulkanSprite::~VulkanSprite()
@@ -162,8 +185,7 @@ void main(){
 			glm::mat4 t = glm::translate(id, position);
 			glm::mat4 s = glm::scale(id, glm::vec3(_ptexture->width * _scale.x, _ptexture->height * _scale.y, 0.f));
 			glm::mat4 model = t * s;
-			PushConst pushConst = { _orthoproj ,model };
-
+			PushConst pushConst = { _orthoproj ,model };			
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[_descriptorIndex], 0, nullptr);
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline);
 			vkCmdPushConstants(cmd, _pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConst), &pushConst);

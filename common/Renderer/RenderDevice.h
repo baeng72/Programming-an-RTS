@@ -2,6 +2,7 @@
 #include <memory>
 #include "../Core/defines.h"
 #include "../Core/types.h"
+
 namespace Renderer {
 
 	class RenderDevice {
@@ -10,6 +11,8 @@ namespace Renderer {
 		virtual void Init() = 0;
 		virtual void StartRender() = 0;
 		virtual void EndRender() = 0;
+		virtual void StartShadowRender() = 0;
+		virtual void EndShadowRender() = 0;
 		virtual void SetVSync(bool vsync) = 0;
 		virtual void EnableGeometry(bool geom) = 0;
 		virtual void EnableWireframe(bool wireframe) = 0;

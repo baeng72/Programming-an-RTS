@@ -1,6 +1,7 @@
 #include "VulkanMultiMesh.h"
 #include "VulkSwapchain.h"
 #include "VulkState.h"
+#include "../../Core/hash.h"
 #include "../../Core/Log.h"
 namespace Mesh {
 	MultiMesh* MultiMesh::Create(Renderer::RenderDevice* pdevice,  mat4& xform, std::vector<float>& vertices, std::vector<uint32_t>& indices, uint32_t vertexStride, std::vector<Mesh::Primitive>& primitives) {
@@ -53,6 +54,16 @@ namespace Vulkan {
 				_radius = std::max(_radius, l);
 			}
 		}
+		{
+			uint32_t indSize = (uint32_t)(sizeof(uint32_t) * indices.size());
+			uint32_t vertSize =(uint32_t) vertices.size();
+			uint32_t primSize = (uint32_t)primitives.size();
+			size_t vhash = HASH(&vertSize);
+			size_t ihash = HASH(&indSize);
+			size_t shash = HASH(&vertexStride);
+			size_t phash = HASH(&primSize);
+			_hash = (vhash * Core::fnvprime) ^ (ihash * Core::fnvprime) ^ (shash * Core::fnvprime) ^ phash;
+		}
 	}
 
 
@@ -66,12 +77,17 @@ namespace Vulkan {
 	uint32_t VulkanMultiMesh::GetMaterialIndex(uint32_t part)const {
 		return _primitives[part].materialIndex;
 	}
-	void VulkanMultiMesh::Bind()const {
+	void VulkanMultiMesh::Bind() {
 		Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
 		Vulkan::VulkFrameData& frameData = *pframedata;
 		vkCmdBindIndexBuffer(frameData.cmd, _indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 		VkDeviceSize offsets[1] = { 0 };
 		vkCmdBindVertexBuffers(frameData.cmd, 0, 1, &_vertexBuffer.buffer, offsets);
+	}
+
+	size_t VulkanMultiMesh::GetHash()
+	{
+		return _hash;
 	}
 
 	void VulkanMultiMesh::Render(uint32_t part)const
@@ -109,13 +125,16 @@ namespace Vulkan {
 			Vulkan::VertexBufferBuilder::begin(context.device, context.queue, context.commandBuffer, context.memoryProperties)
 				.AddVertices(vertSize, pvertices)
 				.build(_vertexBuffer, vertexLocations);
+			
 		}
 		{
 			std::vector<uint32_t> indexLocations;
 			Vulkan::IndexBufferBuilder::begin(context.device, context.queue, context.commandBuffer, context.memoryProperties)
 				.AddIndices(indSize, pindices)
 				.build(_indexBuffer, indexLocations);
+			//_hash ^= Core::HashFNV1A(pindices,indSize);
 		}
+		
 	}
 
 	/*void VulkanMultiMesh::CreateShaders(std::shared_ptr<Renderer::ShaderManager>& shaderManager) {

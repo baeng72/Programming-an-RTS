@@ -168,8 +168,13 @@ namespace Vulkan {
 		rpProps.resolveFormat = flags.enableMSAA ? rpProps.colorFormat : VK_FORMAT_UNDEFINED;
 		renderPass = initRenderPass(device, rpProps);
 		FramebufferProperties fbProps;
+#ifdef __USE__VECTOR__
+		fbProps.colorAttachments = swapchainImageViews.data();
+		fbProps.colorAttachmentCount = (uint32_t) swapchainImageViews.size();
+#else
 		fbProps.colorAttachments = swapchainImageViews;
 		fbProps.colorAttachmentCount = imageCount;
+#endif
 		fbProps.depthAttachment = flags.enableDepthBuffer ? depthImage.imageView : VK_NULL_HANDLE;
 		fbProps.resolveAttachment = flags.enableMSAA ? msaaImage.imageView : VK_NULL_HANDLE;
 		fbProps.width = flags.clientWidth;
@@ -259,17 +264,17 @@ namespace Vulkan {
 			cleanupRenderPass(device, renderPass);
 			renderPass = VK_NULL_HANDLE;
 		}
-#ifdef __USE_VECTOR__
+#ifdef __USE__VECTOR__
 		if (swapchainImageViews.size()) {
 			cleanupSwapchainImageViews(device, swapchainImageViews);
 			swapchainImageViews.clear();
 		}
 #else
-		cleanupSwapchainImageViews(device, swapchainImageViews, imageCount);
+		cleanupSwapchainImageViews(device, swapchainImageViews,imageCount);
 #endif
 	}
 
-	uint32_t VulkSwapchain::NextFrame(uint64_t timeout) {
+	uint32_t VulkSwapchain::NextFrame(uint64_t timeout) {		
 		currFrame = (currFrame + 1) % maxFrames;
 		currFence = fences[currFrame];
 		vkWaitForFences(device, 1, &currFence, VK_TRUE, timeout);
@@ -292,9 +297,6 @@ namespace Vulkan {
 	}
 
 	VkCommandBuffer VulkSwapchain::BeginRender(bool startRenderPass) {
-
-
-
 		VkResult res = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, presentCompletes[currFrame], nullptr, &index);
 		assert(res == VK_SUCCESS);
 
@@ -314,19 +316,27 @@ namespace Vulkan {
 	}
 
 	void VulkSwapchain::EndRender(VkCommandBuffer cmd, bool present) {
-		vkCmdEndRenderPass(cmd);
+		VkResult res;
+		{
+			//EASY_BLOCK("EndRenderPass/CommandBuffer");
+			vkCmdEndRenderPass(cmd);
 
-		VkResult res = vkEndCommandBuffer(cmd);
-		assert(res == VK_SUCCESS);
-
-		submitInfo.pWaitSemaphores = &presentCompletes[currFrame];
-		submitInfo.pSignalSemaphores = &renderCompletes[currFrame];
-		submitInfo.pCommandBuffers = &cmd;
-		res = vkQueueSubmit(graphicsQueue, 1, &submitInfo, currFence);
-		assert(res == VK_SUCCESS);
+			res = vkEndCommandBuffer(cmd);
+			assert(res == VK_SUCCESS);
+		}
+		{
+			//EASY_BLOCK("vkQueueSubmit");
+			
+			submitInfo.pWaitSemaphores = &presentCompletes[currFrame];
+			submitInfo.pSignalSemaphores = &renderCompletes[currFrame];
+			submitInfo.pCommandBuffers = &cmd;
+			res = vkQueueSubmit(graphicsQueue, 1, &submitInfo, currFence);
+			assert(res == VK_SUCCESS);
+		}
+		
 		if (present) {
-
-
+			//EASY_BLOCK("vkQueuePresentKHR");
+			
 			presentInfo.pWaitSemaphores = &renderCompletes[currFrame];
 			res = vkQueuePresentKHR(presentQueue, &presentInfo);
 			assert(res == VK_SUCCESS);

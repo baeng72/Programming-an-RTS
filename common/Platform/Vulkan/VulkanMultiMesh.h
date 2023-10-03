@@ -17,7 +17,7 @@ namespace Vulkan {
 		vec3 _max;
 		vec3 _center;
 		float _radius;
-		
+		size_t _hash;
 		/*void CreateShaders(std::shared_ptr<Renderer::ShaderManager>& shaderManager);*/
 		void Create(float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize);
 	public:
@@ -25,7 +25,8 @@ namespace Vulkan {
 		virtual ~VulkanMultiMesh();
 		virtual uint32_t GetPartCount()const override;
 		virtual uint32_t GetMaterialIndex(uint32_t part)const override;
-		virtual void Bind()const override;
+		virtual void Bind() override;
+		virtual size_t GetHash()override;
 		virtual void Render(uint32_t iPart)const  override;
 		virtual void GetBoundingBox(vec3& min, vec3& max)override;
 		virtual void GetBoundingSphere(vec3& center, float& radius)override;

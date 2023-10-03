@@ -9,9 +9,7 @@
 #include "ShaderCompiler.h"
 #include "VulkanShaderManager.h"
 #include <spirv_reflect.h>
-Renderer::ShaderManager* Renderer::ShaderManager::Create(Renderer::RenderDevice* pdevice) {
-	return new Vulkan::VulkanShaderManager(pdevice);
-}
+
 
 namespace Vulkan {
 	

@@ -1,6 +1,6 @@
 #pragma once
 #include "RenderDevice.h"
-#include <glm/glm.hpp>
+//#include <glm/glm.hpp>
 namespace Renderer {
 	class Texture {
 	public:

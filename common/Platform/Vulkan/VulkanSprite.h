@@ -27,6 +27,6 @@ namespace Vulkan {
 	public:
 		VulkanSprite(Renderer::RenderDevice* pdevice);
 		virtual ~VulkanSprite();		
-		virtual void Draw(Renderer::Texture* ptexture, glm::vec3 position) override;
+		virtual void Draw(Renderer::Texture* ptexture, vec3 position) override;
 	};
 }

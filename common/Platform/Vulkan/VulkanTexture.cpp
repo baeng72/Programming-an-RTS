@@ -3,15 +3,7 @@
 #include "VulkanTexture.h"
 #include "VulkState.h"
 #include <Windows.h>
-Renderer::Texture* Renderer::Texture::Create(Renderer::RenderDevice* pdevice, const char* pfile) {
-	return new Vulkan::VulkanTextureImpl(pdevice,pfile,glm::vec2(-1.f));
-}
-Renderer::Texture* Renderer::Texture::Create(Renderer::RenderDevice* pdevice, const char* pfile,glm::vec2 size) {
-	return new Vulkan::VulkanTextureImpl(pdevice, pfile,size);
-}
-Renderer::Texture* Renderer::Texture::Create(Renderer::RenderDevice* pdevice, int width, int height, int bytesperpixel, uint8_t* pixels) {
-	return new Vulkan::VulkanTextureImpl(pdevice, width, height, bytesperpixel, pixels);
-}
+
 namespace Vulkan {
 	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, const char* pfile,glm::vec2 size):_size(size)
 	{		
