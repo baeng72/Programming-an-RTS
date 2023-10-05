@@ -4,6 +4,9 @@
 namespace GL {
 	ShaderUtil::ShaderUtil() {
 		_programID = -1;
+		_frontFace = GL_CW;
+		_cullFace = GL_FRONT_FACE;
+		_enableBlend = true;
 	}
 	GLuint ShaderUtil::compileShader(const char* shaderSrc, GLenum shaderType) {
 		GLuint shaderID = -1;
@@ -59,8 +62,14 @@ namespace GL {
 			glGetProgramiv(_programID, GL_ACTIVE_UNIFORMS, &count);
 			for (int i = 0; i < count; i++) {
 				glGetActiveUniform(_programID, (GLuint)i, bufSize, &length, &size, &type, name);
+				
+				int location = glGetUniformLocation(_programID, name);
 				size_t hash = Core::HashFNV1A(name, strlen(name));
-				_uniformMap[hash] = i;
+				_uniformMap[hash] = location;
+				if (type == GL_SAMPLER_2D) {
+					int textureoffset = (int)_textureMap.size();
+					_textureMap[hash] = textureoffset;
+				}
 			}
 		}
 		/*{
@@ -79,6 +88,7 @@ namespace GL {
 			}
 		}*/
 	}
+	
 	ShaderUtil::ShaderUtil(const char* vertexSrc, const char* fragmentSrc)
 	{
 		compile(vertexSrc, nullptr, fragmentSrc);
@@ -143,4 +153,77 @@ namespace GL {
 			return GL_FRAGMENT_SHADER;
 		return (int)-1;
 	}
+	void ShaderUtil::SetTexture(int texID) {
+		glBindTexture(GL_TEXTURE_2D, texID);
+		
+		GLERR();
+	}
+	void ShaderUtil::SetTexture(const char*pname,int texID) {
+		size_t hash = Core::HashFNV1A(pname, strlen(pname));
+		int location = _uniformMap[hash];
+		int offset = _textureMap[hash];
+		glActiveTexture(GL_TEXTURE0 + offset);
+		glBindTexture(GL_TEXTURE_2D, texID);
+		
+		glUniform1i(location, texID);
+		GLERR();
+	}
+	void ShaderUtil::SetTextures(int* ptexids, uint32_t count) {
+		//glUseProgram(_programID);
+		for (uint32_t i = 0; i < count; i++) {
+			glActiveTexture(i + GL_TEXTURE0);
+			int texid = ptexids[i];
+			glBindTexture(GL_TEXTURE_2D, texid);
+		}
+		glUniform1iv(0, count, (const GLint*)ptexids);
+		GLERR();
+	}
+	void ShaderUtil::SetTextures(const char* pname, int* texids, uint32_t count) {
+		size_t hash = Core::HashFNV1A(pname, strlen(pname));
+		int location = _uniformMap[hash];
+		//glUseProgram(_programID);
+		std::vector<int> locs(count);
+		int offset = _textureMap[hash];
+		
+
+		for (uint32_t i = 0; i < count; i++) {
+			glActiveTexture(GL_TEXTURE0 + offset+ i);
+			glBindTexture(GL_TEXTURE_2D, texids[i]);
+			locs[i] = offset+i;
+		}
+		glUniform1iv(location, count, (const GLint*)locs.data());
+		GLERR();
+	}
+	void ShaderUtil::SetStorageBuffer(GLuint buffer)
+	{
+		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		//glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer);
+		GLERR();
+	}
+
+	void ShaderUtil::Bind() {
+		if (_enableDepth)
+			glEnable(GL_DEPTH_TEST);
+		else
+			glDisable(GL_DEPTH_TEST);
+		GLERR();
+		
+		//glEnable(GL_CULL_FACE);
+		//GLERR();
+		if (_enableBlend) {
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+		}
+		glDepthFunc(GL_LEQUAL);
+		//glEnable(GL_CULL_FACE);
+		//GLERR();
+		//glCullFace(GL_BACK);
+		//glFrontFace(GL_CW);
+		//GLERR();
+		glUseProgram(_programID);
+		GLERR();
+	}
+
+	
 }

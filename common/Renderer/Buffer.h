@@ -9,7 +9,8 @@ namespace Renderer {
 		virtual void Set(void* ptr, uint32_t size,uint32_t offset=0)=0;
 		
 		virtual void* GetNativeHandle()const = 0;
-		virtual void* GetPtr()const = 0;
+		virtual void* MapPtr() = 0;
+		virtual void  UnmapPtr() = 0;
 		virtual uint32_t GetSize()const = 0;
 	};
 }

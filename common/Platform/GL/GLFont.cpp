@@ -154,7 +154,8 @@ void main() {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);			
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);			
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, bmpWidth, bmpHeight,0, GL_RED, GL_UNSIGNED_BYTE, buffer);
-			glBindTexture(GL_TEXTURE_2D, 0);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			//glBindTexture(GL_TEXTURE_2D, 0);
 #endif
 			delete[]buffer;
 			FT_Done_FreeType(ft);
@@ -270,13 +271,15 @@ void main() {
 	{
 		Update();
 		FrameData& frame = frames[currFrame];
-		_shader.Bind();
-		_shader.setMat4("projection", _orthoproj);
-		glBindTexture(GL_TEXTURE_2D, _texture);		
+		
+		//glBindTexture(GL_TEXTURE_2D, _texture);		
 		glBindVertexArray(_vao);
-		glUseProgram(_shader);
+		//glUseProgram(_shader);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
+		_shader.Bind();
+		_shader.setMat4("projection", _orthoproj);
+		_shader.SetTextures("text",(int*)&_texture,1u);
 		//glFrontFace(GL_CW);
 		glDrawElements(GL_TRIANGLES, frame.numIndices, GL_UNSIGNED_INT, 0);
 	}

@@ -31,12 +31,12 @@ namespace GL {
 		GLERR();
 		glClearColor(_clearColors[0], _clearColors[1], _clearColors[2], _clearColors[3]);
 		GLERR();
-		glClear(GL_COLOR_BUFFER_BIT);
+		GLuint flags = GL_COLOR_BUFFER_BIT;
+		if (_depthTest)
+			flags |= GL_DEPTH_BUFFER_BIT;
+		glClear(flags);
 		GLERR();
-		if (_depthTest) {
-			glClear(GL_DEPTH_BUFFER_BIT);
-			GLERR();
-		}
+		
 	}
 	void GLRenderDevice::EndRender()
 	{

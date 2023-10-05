@@ -57,27 +57,29 @@ namespace GL {
 	}
 	bool GLShader::SetUniformData(const char* pname, void* ptr, uint32_t len, bool dynamic)
 	{
-		int i = _pshader->GetUniformLocation(pname);
+		
 		switch (len) {
 		case 4:
-			_pshader->setFloat(i, *(float*)ptr);
+			_pshader->setFloat(pname, (*(float*)ptr));
 			return true;
-			break;
+			
 		case 8:
-			_pshader->setVec2(i, *(vec2*)ptr);
+			_pshader->setVec2(pname, (vec2*)ptr);
 			return true;
-			break;
+			
 		case 12:
-			_pshader->setVec3(i, *(vec3*)ptr);
+			_pshader->setVec3(pname, (vec3*)ptr);
 			return true;
-			break;
+			
 		case 16:
-			_pshader->setVec4(i, *(vec4*)ptr);
+			_pshader->setVec4(pname, (vec4*)ptr);
 			return true;
-			break;
+			
 		case 64:
-			_pshader->setMat4(i, *(mat4*)ptr);
+			_pshader->setMat4(pname, (mat4*)ptr);
 			return true;
+		default:
+			assert(0);
 			break;
 
 		}
@@ -89,11 +91,33 @@ namespace GL {
 	}
 	bool GLShader::SetTexture(uint32_t, Renderer::Texture** pptexture, uint32_t count)
 	{
-		return false;
+		struct GLTextureInfo {
+			int textureID;
+			int width;
+			int height;
+		};
+		std::vector<int> texids(count);
+		for (uint32_t i = 0; i < count; i++) {
+			GLTextureInfo*pinfo=(GLTextureInfo*)pptexture[i]->GetNativeHandle();
+			texids[i] = pinfo->textureID;
+		}
+		_pshader->SetTextures(texids.data(),count);
+		return true;
 	}
 	bool GLShader::SetTexture(const char* pname, Renderer::Texture** pptexture, uint32_t count)
 	{
-		return false;
+		struct GLTextureInfo {
+			int textureID;
+			int width;
+			int height;
+		};
+		std::vector<int> texids(count);
+		for (uint32_t i = 0; i < count; i++) {
+			GLTextureInfo* pinfo = (GLTextureInfo*)pptexture[i]->GetNativeHandle();
+			texids[i] = pinfo->textureID;
+		}
+		_pshader->SetTextures(pname, texids.data(), count);
+		return true;
 	}
 	bool GLShader::SetTextures(Renderer::Texture** pptextures, uint32_t count)
 	{
@@ -105,7 +129,11 @@ namespace GL {
 	}
 	bool GLShader::SetStorageBuffer(uint32_t i, Renderer::Buffer* pbuffer, bool dynamic)
 	{
-		return false;
+		
+		GLuint buffer = *(GLuint*)pbuffer->GetNativeHandle();
+		_pshader->SetStorageBuffer(buffer);
+		
+		return true;
 	}
 	bool GLShader::SetStorageBuffer(const char* pname, Renderer::Buffer* pbuffer, bool dynamic)
 	{

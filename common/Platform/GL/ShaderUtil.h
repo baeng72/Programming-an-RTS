@@ -14,6 +14,11 @@ namespace GL {
 		std::unordered_map<int, std::string> PreProcess(const std::string& src);
 		int ShaderTypeFromString(const std::string& type);
 		std::unordered_map<size_t, int> _uniformMap;
+		std::unordered_map<size_t, int> _textureMap;//bad name
+		GLenum _frontFace;
+		GLenum _cullFace;
+		bool _enableBlend;
+		bool _enableDepth;
 	public:
 		ShaderUtil();
 		ShaderUtil(const char* vertexSrc, const char* fragmentSrc);
@@ -31,6 +36,7 @@ namespace GL {
 			glUniform1f(location, value);
 			GLERR();
 		}
+		
 		void setVec2(unsigned int location, vec2& value)const {
 			glUniform2fv(location, 1, &value[0]);
 			GLERR();
@@ -43,6 +49,17 @@ namespace GL {
 			GLERR();
 			glUniform2fv(location, 1, &value[0]);
 			GLERR();
+		}
+		void setVec2(unsigned int location, vec2* pvalue)const {
+			glUniform2fv(location, 1, (const GLfloat*)pvalue);
+			GLERR();
+		}
+		void setVec2(const char* pname, vec2* pvalue) {
+			size_t hash = Core::HashFNV1A(pname, strlen(pname));
+			int location = _uniformMap[hash];
+			glUniform2fv(location, 1, (const GLfloat*)pvalue);
+			GLERR();
+
 		}
 		void setVec3(unsigned int location, vec3& value)const {
 			glUniform3fv(location, 1, &value[0]);
@@ -57,7 +74,16 @@ namespace GL {
 			glUniform3fv(location, 1, &value[0]);
 			GLERR();
 		}
-
+		void setVec3(unsigned int location, vec3* pvalue)const {
+			glUniform3fv(location, 1, (const GLfloat*)pvalue);
+			GLERR();
+		}
+		void setVec3(const char* pname, vec3* pvalue) {
+			size_t hash = Core::HashFNV1A(pname, strlen(pname));
+			int location = _uniformMap[hash];
+			glUniform3fv(location, 1, (const GLfloat*)pvalue);
+			GLERR();
+		}
 		void setVec4(unsigned int location, vec4& value)const {
 			glUniform4fv(location, 1, &value[0]);
 			GLERR();
@@ -69,6 +95,16 @@ namespace GL {
 			
 			GLERR();
 			glUniform4fv(location, 1, &value[0]);
+			GLERR();
+		}
+		void setVec4(unsigned int location, vec4* pvalue)const {
+			glUniform4fv(location, 1, (const GLfloat*)pvalue);
+			GLERR();
+		}
+		void setVec4(const char* pname, vec4* pvalue) {
+			size_t hash = Core::HashFNV1A(pname, strlen(pname));
+			int location = _uniformMap[hash];
+			glUniform4fv(location, 1, (const GLfloat*)pvalue);
 			GLERR();
 		}
 		void setMat4(unsigned int location, mat4& value)const {
@@ -84,6 +120,18 @@ namespace GL {
 			glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]);
 			GLERR();
 		}
+		void setMat4(unsigned int location, mat4* pvalue)const {
+			GLERR();
+			glUniformMatrix4fv(location, 1, GL_FALSE, (const GLfloat*)pvalue);
+			GLERR();
+		}
+		void setMat4(const char* name, mat4* pvalue) {
+			size_t hash = Core::HashFNV1A(name, strlen(name));
+			int location = _uniformMap[hash];
+			glUniformMatrix4fv(location, 1, GL_FALSE, (const GLfloat*)pvalue);
+			GLERR();
+			
+		}
 		int GetUniformLocation(const char* name) {
 			
 			size_t hash = Core::HashFNV1A(name, strlen(name));
@@ -92,10 +140,16 @@ namespace GL {
 			GLERR();
 			return location;
 		}
+		void SetTexture(int texID);
+		void SetTexture(const char* pname, int texID);
+		void SetTextures(int* ptexids, uint32_t count);
+		void SetTextures(const char* pname, int* texids, uint32_t count);
+		void SetStorageBuffer(GLuint buffer);	
+		void SetFrontFace(GLenum ff) { _frontFace = ff; }
+		void SetCullFace(GLenum cf) { _cullFace = cf; }
+		void EnableBlend(bool blend) { _enableBlend = blend; }
+		void EnableDepth(bool depth) { _enableDepth = depth; }
 		operator GLuint() { return _programID; }
-		void Bind() { 
-			glUseProgram(_programID); 
-			GLERR();
-		}
+		void Bind();
 	};
 }
