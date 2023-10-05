@@ -163,7 +163,7 @@ namespace Animation {
 			count = (count + buffer_block-1) & ~(buffer_block-1);
 			VkDeviceSize size = sizeof(mat4) * std::max(_boneCount,20u);//initialial allocation
 			_boneBuffer.reset(Renderer::Buffer::Create(_pdevice, (uint32_t)size,count,false, true));
-			_bonePtrBase = (mat4*)_boneBuffer->GetPtr();
+			_bonePtrBase = (mat4*)_boneBuffer->MapPtr();//may need to change for OpenGL
 			_skeletonsAllocated = (uint32_t)count;
 		}
 	}

@@ -6,4 +6,4 @@ file(GLOB HDR_FILES "*.h")
 #source_group("Header Files" ${HDR_FILES})
 add_executable(${EXE_NAME} ${SRC_FILES} ${HDR_FILES})
 
-target_link_libraries(${EXE_NAME} common glfw glslang freetype meshoptimizer)
+target_link_libraries(${EXE_NAME} common glfw glslang freetype meshoptimizer glad easy_profiler)

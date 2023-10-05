@@ -20,7 +20,8 @@ namespace Vulkan {
 		virtual ~VulkanBufferImpl();
 		virtual void Set(void* ptr, uint32_t size,uint32_t offset)override;
 		virtual void* GetNativeHandle()const override;
-		virtual void* GetPtr()const override;
+		virtual void* MapPtr() override;
+		virtual void UnmapPtr() override;
 		virtual uint32_t GetSize()const override;
 	};
 }

@@ -87,7 +87,8 @@ bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevi
 		}
 		vertices[i].normal = glm::normalize(n);
 	}
-	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount*sizeof(uint32_t)));
+	Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float2},sizeof(TERRAINVertex) };
+	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount*sizeof(uint32_t),attributes));
 	return false;
 }
 
@@ -97,7 +98,7 @@ void PATCH::Release() {
 
 void PATCH::Render()
 {
-	
+	_mesh->Bind();
 	_mesh->Render();
 }
 
@@ -134,11 +135,17 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
 	_texture = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.06/textures/diffusemap.jpg"));
-	_size = size_;	
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.06/Shaders/terrain.glsl",false)));
-	Renderer::Texture* ptexture = _texture.get();
-	int texid = 0;
-	_shader->SetTexture(texid, &ptexture, 1);
+	_size = size_;
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.06/Shaders/Vulkan/terrain.glsl", false)));
+		Renderer::Texture* ptexture = _texture.get();
+		int texid = 0;
+		_shader->SetTexture(texid, &ptexture, 1);
+	}
+	else {
+		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.06/Shaders/GL/terrain.glsl", false)));
+	}
+	
 	_heightMap = std::make_unique<HEIGHTMAP>(_size, 20.f);
 	_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.06/textures/heightmap.jpg");
 	CreatePatches(3);
@@ -189,14 +196,28 @@ void TERRAIN::CreatePatches(int numPatches)
 
 void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLight&light)
 {
-	Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
-	int uboid = 0;
-	_shader->SetUniformData("UBO",&ubo, sizeof(ubo));
-
-	Renderer::FlatShaderPushConst pushConst{model };
-	
-	_shader->SetPushConstData(&pushConst,sizeof(pushConst));
 	_shader->Bind();
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
+		int uboid = 0;
+		_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
+
+		Renderer::FlatShaderPushConst pushConst{ model };
+
+		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
+	}
+	else {
+		Renderer::Texture* ptexture = _texture.get();
+		_shader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
+		_shader->SetUniformData("model", &model, sizeof(mat4));
+		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+		_shader->SetTexture("texmap", &ptexture, 1);
+
+	}
+	
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render();
 }

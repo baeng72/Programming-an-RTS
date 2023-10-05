@@ -91,7 +91,8 @@ bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevi
 		}
 		vertices[i].normal = glm::normalize(n);
 	}
-	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount*sizeof(uint32_t)));
+	Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float2,Renderer::ShaderDataType::Float2},sizeof(TERRAINVertex) };
+	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount*sizeof(uint32_t),attributes));
 	return false;
 }
 
@@ -101,7 +102,7 @@ void PATCH::Release() {
 
 void PATCH::Render()
 {
-
+	_mesh->Bind();
 	_mesh->Render();
 }
 
@@ -145,12 +146,18 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	_size = size_;
 	_shaders.resize(_diffuseMaps.size());//hacktastic, need to a better way  to do this
 	for (size_t i = 0; i < _diffuseMaps.size(); i++) {
-		_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.07/Shaders/terrain.glsl",false)));
+		if (Core::GetAPI() == Core::API::Vulkan) {
+			_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.07/Shaders/Vulkan/terrain.glsl", false)));
+		}
+		else {
+			_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.07/Shaders/GL/terrain.glsl", false,false)));
+			
+		}
 		
 		
 	}
 	
-	std::vector<Renderer::Texture*> textures{ _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get() };
+	//std::vector<Renderer::Texture*> textures{ _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get() };
 
 	
 	_alphaMaps.resize(_diffuseMaps.size());
@@ -222,13 +229,14 @@ void TERRAIN::CalculateAlphaMaps() {
 		}
 		//create a new texture
 		_alphaMaps[i].reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
+		if (Core::GetAPI() == Core::API::Vulkan) {
+			//what a hack
+			Renderer::Texture* pdiffuse = _diffuseMaps[i].get();
 
-		//what a hack
-		Renderer::Texture* pdiffuse = _diffuseMaps[i].get();
-
-		Renderer::Texture* palpha = _alphaMaps[i].get();
-		std::vector<Renderer::Texture*> textures = { pdiffuse,palpha };
-		_shaders[i]->SetTextures(textures.data(), 2);
+			Renderer::Texture* palpha = _alphaMaps[i].get();
+			std::vector<Renderer::Texture*> textures = { pdiffuse,palpha };
+			_shaders[i]->SetTextures(textures.data(), 2);
+		}
 	}
 	
 
@@ -236,6 +244,7 @@ void TERRAIN::CalculateAlphaMaps() {
 
 void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLight&light)
 {
+	
 	Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
 	int uboid = 0;
 	
@@ -245,10 +254,28 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	
 	for (size_t m = 0; m < _diffuseMaps.size(); m++) {
 		Renderer::Shader* pshader = _shaders[m].get();
-		pshader->SetUniformData("UBO", &ubo, sizeof(ubo));
-		pshader->SetPushConstData(&pushConst, sizeof(pushConst));
-		//draw for each diffuse map, could do it in one draw call per patch passing a buffer or something?
 		pshader->Bind();
+		if (Core::GetAPI() == Core::API::Vulkan) {
+			pshader->SetUniformData("UBO", &ubo, sizeof(ubo));
+			pshader->SetPushConstData(&pushConst, sizeof(pushConst));
+			//draw for each diffuse map, could do it in one draw call per patch passing a buffer or something?
+		}
+		else {
+			
+			
+			pshader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
+			pshader->SetUniformData("model", &model, sizeof(mat4));
+			pshader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+			pshader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+			pshader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+			pshader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+			Renderer::Texture* pdiffuse = _diffuseMaps[m].get();
+
+			Renderer::Texture* palpha = _alphaMaps[m].get();			
+			pshader->SetTexture("texmap", &pdiffuse, 1);
+			pshader->SetTexture("alphamap", &palpha, 1);
+		}
+		
 		
 		for (size_t i = 0; i < _patches.size(); i++)
 			_patches[i]->Render();

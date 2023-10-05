@@ -1,12 +1,7 @@
 
 #include "VulkanBuffer.h"
 #include "VulkState.h"
-Renderer::Buffer* Renderer::Buffer::Create(Renderer::RenderDevice* pdevice,uint32_t size,uint32_t count,bool isUniform,bool isDynamic) {
-	return new Vulkan::VulkanBufferImpl(pdevice,nullptr,size,count,isUniform,isDynamic);
-}
-Renderer::Buffer* Renderer::Buffer::Create(Renderer::RenderDevice* pdevice, void*ptr,uint32_t size,uint32_t count,bool isUniform,bool isDynamic) {
-	return new Vulkan::VulkanBufferImpl(pdevice, ptr, size,count,isUniform,isDynamic);
-}
+
 namespace Vulkan {
 	
 	
@@ -58,12 +53,16 @@ namespace Vulkan {
 		return (void*)&_data;
 	}
 
+	void VulkanBufferImpl::UnmapPtr() 
+	{
+	}
+
 	uint32_t VulkanBufferImpl::GetSize() const
 	{
 		return _data.size;
 	}
 
-	void* VulkanBufferImpl::GetPtr()const {
+	void* VulkanBufferImpl::MapPtr() {
 		return _data.ptr;
 	}
 

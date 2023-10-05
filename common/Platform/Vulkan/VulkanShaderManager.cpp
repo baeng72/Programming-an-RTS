@@ -822,7 +822,7 @@ namespace Vulkan {
 		}
 		return size;
 	}
-	void VulkanShaderManager::CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,bool cullBackFaces, bool enableBlend, Renderer::ShaderStorageType* ptypes, uint32_t numtypes)
+	void VulkanShaderManager::CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,bool cullBackFaces, bool enableBlend,bool enableDepth, Renderer::ShaderStorageType* ptypes, uint32_t numtypes)
 	{
 		LOG_INFO("Compiling shader {0}", name);
 		ShaderCompiler compiler;
@@ -1187,6 +1187,7 @@ namespace Vulkan {
 			VkPipeline pipeline = VK_NULL_HANDLE;
 			PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
 				.setBlend(enableBlend?VK_TRUE:VK_FALSE)
+				.setDepthTest(enableDepth?VK_TRUE:VK_FALSE)
 				.setDepthCompareOp(VK_COMPARE_OP_LESS_OR_EQUAL)
 				.setCullMode(cullBackFaces ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_FRONT_BIT)
 				.setDepthTest(VK_TRUE)//need this to be a parameter
@@ -1351,7 +1352,7 @@ namespace Vulkan {
 			return VK_SHADER_STAGE_FRAGMENT_BIT;
 		return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 	}
-	void* VulkanShaderManager::CreateShaderData(const char* shaderPath,bool cullBackFaces,bool enableBlend, Renderer::ShaderStorageType* ptypes, uint32_t numtypes) {
+	void* VulkanShaderManager::CreateShaderData(const char* shaderPath,bool cullBackFaces,bool enableBlend,bool enableDepth, Renderer::ShaderStorageType* ptypes, uint32_t numtypes) {
 		std::string filepath = shaderPath;
 		auto lastSlash = filepath.find_last_of("/\\");
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
@@ -1361,7 +1362,7 @@ namespace Vulkan {
 		if (_shaderList.find(name) == _shaderList.end()) {
 			std::string source = readFile(filepath);
 			const std::unordered_map<VkShaderStageFlagBits, std::string> shaderSources = PreProcess(source);
-			CompileShader(name,shaderSources,cullBackFaces,enableBlend,ptypes,numtypes);
+			CompileShader(name,shaderSources,cullBackFaces,enableBlend,enableDepth,ptypes,numtypes);
 		}
 		return &_shaderList[name];
 	}

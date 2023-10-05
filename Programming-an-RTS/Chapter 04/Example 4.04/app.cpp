@@ -45,9 +45,10 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
 	//_device->EnableGeometry(true);	
 	_device->EnableLines(true);
+	_device->SetVSync(false);
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
-	_device->SetVSync(false);
+	//_device->SetVSync(false);
 	_font.reset(Renderer::Font::Create());
 	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
 	_shaderManager.reset(Renderer::ShaderManager::Create(_device.get()));

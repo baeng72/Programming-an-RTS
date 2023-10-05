@@ -101,16 +101,24 @@ bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevi
 		}
 		vertices[i].normal = glm::normalize(n);
 	}
-	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount*sizeof(uint32_t)));
+	Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float2},sizeof(TERRAINVertex) };
+	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount*sizeof(uint32_t),attributes));
 	_shader.reset(Renderer::Shader::Create(pdevice, shaderData));
 	int colorid = 0;
 	_shader->SetStorageBuffer(colorid, _attrBuffer.get());
-	std::vector<Renderer::Texture*> tex;
+	_tex.clear();
 	for (auto& t : textures)
 	{
-		tex.push_back(t.get());
+		_tex.push_back(t.get());
 	}
-	_shader->SetTexture(colorid, tex.data(), (uint32_t)tex.size());
+	if (Core::GetAPI() == Core::API::GL) {
+		//_shader->SetTexture("texmaps[0]", _tex.data(), (uint32_t)_tex.size());
+	}
+	else
+	{
+		_shader->SetTexture(colorid,_tex.data(), (uint32_t)_tex.size());
+	}
+	
 	return false;
 }
 
@@ -120,13 +128,30 @@ void PATCH::Release() {
 
 void PATCH::Render(glm::mat4&viewProj,glm::mat4&model, Renderer::DirectionalLight& light)
 {
-	Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
-	int uboid = 0;
-	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-
-	Renderer::FlatShaderPushConst pushConst{ model };
-	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
 	_shader->Bind();
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
+		int uboid = 0;
+		_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
+
+		Renderer::FlatShaderPushConst pushConst{ model };
+		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
+	}
+	else {
+		
+		_shader->SetTexture("texmaps[0]", _tex.data(), (uint32_t)_tex.size());
+	
+		int attrid = 0;
+		_shader->SetStorageBuffer(attrid, _attrBuffer.get());
+		_shader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
+		_shader->SetUniformData("model", &model, sizeof(mat4));
+		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+	}
+	
+	_mesh->Bind();
 	_mesh->Render();
 }
 
@@ -193,7 +218,13 @@ void TERRAIN::GenerateRandomTerrain(int numPatches)
 void TERRAIN::CreatePatches(int numPatches)
 {
 	_pdevice->Wait();//who needs synchronisation when you can block GPU?
-	void* shaderData = _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.05/Shaders/terrain.glsl",false);
+	void* shaderData = nullptr;
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		shaderData = _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.05/Shaders/Vulkan/terrain.glsl", false);
+	}
+	else {
+		shaderData = _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.05/Shaders/GL/terrain.glsl", false);
+	}
 	for (int i = 0; i < _patches.size(); i++) {
 		if (_patches[i])
 			delete _patches[i];

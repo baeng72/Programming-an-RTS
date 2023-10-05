@@ -23,6 +23,7 @@ struct PATCH {
 	std::unique_ptr<Mesh::Mesh>	_mesh;
 	std::unique_ptr<Renderer::Shader> _shader;
 	std::unique_ptr<Renderer::Buffer> _attrBuffer;
+	std::vector<Renderer::Texture*>_tex;
 	PATCH();
 	~PATCH();
 	bool CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevice, void*shaderData,std::vector<std::unique_ptr<Renderer::Texture>>&textures);
