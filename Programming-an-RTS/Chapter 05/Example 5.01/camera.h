@@ -2,7 +2,7 @@
 #include <common.h>
 
 class CAMERA {
-	Window* _pwindow;
+	Core::Window* _pwindow;
 	float _alpha;
 	float _beta;
 	float _radius;
@@ -14,7 +14,7 @@ class CAMERA {
 public:
 	CAMERA();
 
-	void Init(Window* pwindow);
+	void Init(Core::Window* pwindow);
 
 	//Movement
 	void Scroll(glm::vec3 vec);		//Move focus

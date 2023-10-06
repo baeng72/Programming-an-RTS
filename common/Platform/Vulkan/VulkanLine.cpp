@@ -4,9 +4,7 @@
 #include "VulkSwapchain.h"
 #include "ShaderCompiler.h"
 #include "../../Core/Log.h"
-Renderer::Line* Renderer::Line::Create(Renderer::RenderDevice*pdevice,Renderer::LineVertex*pvertices,uint32_t vertexCount, float lineWidth,bool isLineList) {
-	return new Vulkan::VulkanLine(pdevice,pvertices,vertexCount,lineWidth,isLineList);
-}
+
 namespace Vulkan {
 	
 	

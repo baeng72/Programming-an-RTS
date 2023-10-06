@@ -116,7 +116,7 @@ namespace Assimp {
 		virtual uint32_t GetAnimationCount(uint32_t i) override;
 		virtual void GetAnimation(uint32_t i, uint32_t aniIdx, Mesh::AnimationClip& animation) override;
 		virtual Mesh::AnimatedMesh* GetAnimatedMesh(Mesh::MeshType, uint32_t i)override;
-		virtual Mesh::MultiMesh* GetMultiMesh() override;
+		virtual Mesh::MultiMesh* GetMultiMesh(Mesh::MeshType type) override;
 		virtual void GetMultiMeshTextures(std::vector<Renderer::Texture*>& textures)override;
 	};
 }

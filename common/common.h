@@ -7,6 +7,7 @@
 #include "Core/Timer.h"
 #include "Core/Profiler.h"
 #include "Core/Api.h"
+#include "Core/ThreadPool.h"
 
 //Mesh/model loading stuff
 #include "mesh/Model.h"

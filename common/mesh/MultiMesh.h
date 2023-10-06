@@ -2,12 +2,13 @@
 #include "../Renderer/RenderDevice.h"
 #include "../Renderer/Texture.h"
 #include "../Renderer/ShaderManager.h"
+#include "../Renderer/ShaderTypes.h"
 #include "BaseMesh.h"
 #include "MeshTypes.h"
 namespace Mesh {
 	class MultiMesh : public BaseMesh {
 	public:
-		static MultiMesh* Create(Renderer::RenderDevice* pdevice,  mat4&xform,std::vector<float>&vertices,std::vector<uint32_t>&indices, uint32_t vertexStride, std::vector<Primitive>& primitives);
+		static MultiMesh* Create(Renderer::RenderDevice* pdevice,  mat4&xform,std::vector<float>&vertices,std::vector<uint32_t>&indices, std::vector<Primitive>& primitives, Renderer::VertexAttributes& vertexAttributes);
 		virtual ~MultiMesh() = default;
 		virtual uint32_t GetPartCount()const = 0;
 		virtual uint32_t GetMaterialIndex(uint32_t part)const = 0;

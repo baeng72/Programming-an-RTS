@@ -21,7 +21,7 @@ namespace Vulkan {
 		/*void CreateShaders(std::shared_ptr<Renderer::ShaderManager>& shaderManager);*/
 		void Create(float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize);
 	public:
-		VulkanMultiMesh(Renderer::RenderDevice* pdevice,  mat4& xform, std::vector<float>& vertices, std::vector<uint32_t>& indices, uint32_t vertexStride, std::vector<Mesh::Primitive>& primitives);
+		VulkanMultiMesh(Renderer::RenderDevice* pdevice,  mat4& xform, std::vector<float>& vertices, std::vector<uint32_t>& indices, std::vector<Mesh::Primitive>& primitives, Renderer::VertexAttributes& vertexAttributes );
 		virtual ~VulkanMultiMesh();
 		virtual uint32_t GetPartCount()const override;
 		virtual uint32_t GetMaterialIndex(uint32_t part)const override;

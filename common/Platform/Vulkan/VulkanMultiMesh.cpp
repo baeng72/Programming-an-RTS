@@ -3,15 +3,12 @@
 #include "VulkState.h"
 #include "../../Core/hash.h"
 #include "../../Core/Log.h"
-namespace Mesh {
-	MultiMesh* MultiMesh::Create(Renderer::RenderDevice* pdevice,  mat4& xform, std::vector<float>& vertices, std::vector<uint32_t>& indices, uint32_t vertexStride, std::vector<Mesh::Primitive>& primitives) {
-		return new Vulkan::VulkanMultiMesh(pdevice,xform, vertices,indices,vertexStride, primitives);
-	}
-}
+
 
 namespace Vulkan {
-	VulkanMultiMesh::VulkanMultiMesh(Renderer::RenderDevice* pdevice, mat4& xform, std::vector<float>& vertices, std::vector<uint32_t>& indices, uint32_t vertexStride, std::vector<Mesh::Primitive>& primitives)
+	VulkanMultiMesh::VulkanMultiMesh(Renderer::RenderDevice* pdevice, mat4& xform, std::vector<float>& vertices, std::vector<uint32_t>& indices, std::vector<Mesh::Primitive>& primitives, Renderer::VertexAttributes& vertexAttributes)
 		:_pdevice(pdevice),_primitives(primitives){
+		uint32_t vertexStride = vertexAttributes.vertexStride;
 		LOG_INFO("Creating MultiMesh vertex/index data");
 		Create(vertices.data(), (uint32_t)vertices.size() * sizeof(float), indices.data(), (uint32_t)indices.size()*sizeof(uint32_t));
 		
