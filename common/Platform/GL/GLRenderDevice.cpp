@@ -99,10 +99,13 @@ namespace GL {
 	}
 	void GLRenderDevice::Clear(Rect& r, Color clr)
 	{
+		int width, height;
+		glfwGetFramebufferSize(_window, &width, &height);
 		glEnable(GL_SCISSOR_TEST);
 		GLERR();
-		glScissor(r.left, r.top, r.Width(), r.Height());
+		glScissor(r.left, height-r.bottom, r.Width(), r.Height());//flip y
 		GLERR();
+		glClearColor(clr.r, clr.g, clr.b, clr.a);
 		glClear(GL_COLOR_BUFFER_BIT);
 		GLERR();
 		glDisable(GL_SCISSOR_TEST);

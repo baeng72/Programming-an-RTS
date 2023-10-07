@@ -1,7 +1,7 @@
 #pragma once
 #include <common.h>
 #include "mouse.h"
-class APPLICATION : public Application {
+class APPLICATION : public Core::Application {
 	
 	std::unique_ptr<Renderer::RenderDevice> _device;		
 	std::unique_ptr<Renderer::Font> _font;
@@ -36,11 +36,12 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 
 	_mouse.Init(_device.get(),GetWindowPtr());
 	//setup rectangles
-	_rects[0] = { 200,100,350,250 };
-	_rects[1] = { 450,100,600,250 };
-	_rects[2] = { 200,350,350,500 };
-	_rects[3] = { 450,350,600,500 };
-
+	
+	_rects[0] = { 200,100,350,250 };//Red
+	_rects[1] = { 450,100,600,250 };//Green
+	_rects[2] = { 200,350,350,500 };//Blue
+	_rects[3] = { 450,350,600,500 };//Yellow
+	
 	return true;
 }
 
@@ -49,7 +50,7 @@ void APPLICATION::Update(float deltaTime) {
 		Quit();
 	_mouse.Update();
 	
-
+	
 	//change mouse
 	if (_mouse.WheelUp() && _mouse._speed < 3.f)
 		_mouse._speed += 0.1f;
@@ -67,7 +68,10 @@ void APPLICATION::Update(float deltaTime) {
 
 	char buffer[64];
 	sprintf_s(buffer, "%d Mouse Wheel", (int)(_mouse._speed * 10.f));
-	_font->Draw(buffer, 10, 10, glm::vec4(0.f, 0.f, 0.f, 1.f));
+
+	_font->Draw(buffer, 10, 10, vec4(0.f, 0.f, 0.f, 1.f));
+	wsprintf(buffer, "Mouse Pos: (%d,%d)", _mouse.x, _mouse.y);
+	_font->Draw(buffer, 10, 30, Color(0.f, 0.f, 0.f, 1.f));
 
 }
 
@@ -90,6 +94,11 @@ void APPLICATION::Render() {
 		else
 			_device->Clear(r, rectCols[i]);
 	}
+	
+	Rect r{ 0,0,10,10 };
+	_device->Clear(r, Color(.5f, .5f, .5f, 1.f));
+	Rect r2{ r.left,_height - r.Height(),10,_height-r.top };
+	_device->Clear(r2, Color(.5f, .5f, .5f, 1.f));
 	_mouse.Paint();
 	_device->EndRender();
 }
@@ -104,7 +113,19 @@ void APPLICATION::Cleanup() {
 	
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+#if defined(DEBUG) | defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+	if (argc > 1) {
+		if (!_strcmpi(argv[1], "gl")) {
+
+			Core::SetAPI(Core::API::GL);
+		}
+		else {
+			Core::SetAPI(Core::API::Vulkan);
+		}
+	}
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 5.2: Mouse Example")) {
 		app.Run();

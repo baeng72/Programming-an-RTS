@@ -12,7 +12,7 @@ MOUSE::~MOUSE() {
 	_textures.clear();
 }
 
-void MOUSE::Init(Renderer::RenderDevice* pdevice, Window*pwindow) {
+void MOUSE::Init(Renderer::RenderDevice* pdevice,Core::Window* pwindow) {
 	_pdevice = pdevice;
 	_pwindow = pwindow;
 	pwindow->ShowCursor(false);
