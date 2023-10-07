@@ -4,7 +4,7 @@
 #include "object.h"
 #include "camera.h"
 
-class APPLICATION : public Application {
+class APPLICATION : public Core::Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;	
 	std::shared_ptr<Renderer::ShaderManager> _shadermanager;
 	std::unique_ptr<Renderer::Font> _font;
@@ -152,7 +152,19 @@ void APPLICATION::Cleanup() {
 	UnloadObjectResources();
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+#if defined(DEBUG) | defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+	if (argc > 1) {
+		if (!_strcmpi(argv[1], "gl")) {
+
+			Core::SetAPI(Core::API::GL);
+		}
+		else {
+			Core::SetAPI(Core::API::Vulkan);
+		}
+	}
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 5.3: Brave Bob vs. Dragon (a.k.a. Picking Example)")) {
 		app.Run();

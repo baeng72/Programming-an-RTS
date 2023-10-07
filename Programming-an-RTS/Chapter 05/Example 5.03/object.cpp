@@ -19,8 +19,12 @@ bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Rendere
 	shapeMeshes.push_back(std::unique_ptr<Mesh::Mesh>(shape->CreateCube(1.f)));
 	shapeMeshes.push_back(std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(1.f, 12, 12)));
 	
-
-	shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.03/shaders/shape.glsl",false)));
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.03/shaders/Vulkan/shape.glsl", false)));
+	}
+	else {
+		shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.03/shaders/GL/shape.glsl", false)));
+	}
 
 	return true;
 }
@@ -90,17 +94,31 @@ void OBJECT::RenderBoundingVolume(int type,mat4 &matViewProj,Renderer::Direction
 		mat4 scale = glm::scale(id, size);
 		mat4 trans = glm::translate(id, center);
 		mat4 world = trans * scale;
-		Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
-		int uboid = 0;
-
-
-		struct PushConst {
-			mat4 world;
-			Color color;
-		}pushConst = { world,Color(0.f,1.f,0.f,0.5f) };
-		shapeShader->SetUniformData(uboid, &ubo, sizeof(ubo));
-		shapeShader->SetPushConstData(&pushConst, sizeof(pushConst));
 		shapeShader->Bind();
+		if (Core::GetAPI() == Core::API::Vulkan) {
+			Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
+			int uboid = 0;
+
+
+			struct PushConst {
+				mat4 world;
+				Color color;
+			}pushConst = { world,Color(0.f,1.f,0.f,0.5f) };
+			shapeShader->SetUniformData(uboid, &ubo, sizeof(ubo));
+			shapeShader->SetPushConstData(&pushConst, sizeof(pushConst));
+		}
+		else {
+			Color clr = Color(0.f, 1.f, 0.f, 0.5f);
+			shapeShader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
+			shapeShader->SetUniformData("model", &world, sizeof(mat4));
+			shapeShader->SetUniformData("color", &clr,sizeof(vec4));
+			shapeShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+			shapeShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+			shapeShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+			shapeShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+		}
+		
+		shapeMeshes[type - 1]->Bind();
 		shapeMeshes[type - 1]->Render();
 	}
 		break;
@@ -111,17 +129,31 @@ void OBJECT::RenderBoundingVolume(int type,mat4 &matViewProj,Renderer::Direction
 		mat4 scale = glm::scale(id, vec3(_BSphere.radius));
 		mat4 trans = glm::translate(id, center);
 		mat4 world = trans * scale;
-		Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
-		int uboid = 0;
-
-
-		struct PushConst {
-			mat4 world;
-			Color color;
-		}pushConst = { world,Color(0.f,1.f,0.f,0.5f) };
-		shapeShader->SetUniformData(uboid, &ubo, sizeof(ubo));
-		shapeShader->SetPushConstData(&pushConst, sizeof(pushConst));
 		shapeShader->Bind();
+		if (Core::GetAPI() == Core::API::Vulkan) {
+			Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
+			int uboid = 0;
+
+
+			struct PushConst {
+				mat4 world;
+				Color color;
+			}pushConst = { world,Color(0.f,1.f,0.f,0.5f) };
+			shapeShader->SetUniformData(uboid, &ubo, sizeof(ubo));
+			shapeShader->SetPushConstData(&pushConst, sizeof(pushConst));
+		}
+		else {
+			Color clr = Color(0.f, 1.f, 0.f, 0.5f);
+			shapeShader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
+			shapeShader->SetUniformData("model", &world, sizeof(mat4));
+			shapeShader->SetUniformData("color", &clr, sizeof(vec4));
+			shapeShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+			shapeShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+			shapeShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+			shapeShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+		}
+		
+		shapeMeshes[type - 1]->Bind();
 		shapeMeshes[type-1]->Render();
 	}
 		break;
