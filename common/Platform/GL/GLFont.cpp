@@ -76,6 +76,7 @@ void main() {
 			res = FT_New_Face(ft, pfont, 0, &face);
 			ASSERT(!res, "Unable to load font: {0}.", pfont);
 			assert(res == 0);
+
 			FT_Set_Pixel_Sizes(face, 0, fontSize);
 			uint32_t bmpWidth = 0;
 			std::vector<uint8_t> pixels;
@@ -104,9 +105,12 @@ void main() {
 
 					std::vector<uint8_t> charData(face->glyph->bitmap.width * face->glyph->bitmap.rows);
 
-					//for (unsigned int i = 0; i < face->glyph->bitmap.rows; i++) {
-					for (unsigned int i = 0;i< face->glyph->bitmap.rows - 1; i ++) {
-						for (unsigned int j = 0; j < face->glyph->bitmap.width; j++) {
+					
+					int rows = face->glyph->bitmap.rows;
+					int width = face->glyph->bitmap.width;
+					assert(pitch == width);
+					for (unsigned int i = 0;i< rows; i ++) {
+						for (unsigned int j = 0; j < width; j++) {
 							uint8_t byte = face->glyph->bitmap.buffer[i * pitch + j];
 							charData[i * pitch + j] = byte;
 						}
@@ -115,6 +119,10 @@ void main() {
 				}
 				bmpWidth += face->glyph->bitmap.width;
 			}
+
+			res = FT_Done_Face(face);
+			assert(res == 0);
+
 
 			invBmpWidth = 1 / (float)bmpWidth;
 
@@ -126,10 +134,7 @@ void main() {
 			{
 				Character& character = Characters[c];
 
-				std::vector<uint8_t>& charData = data[c];
-				if (c == 'a') {
-					int z = 0;
-				}
+				std::vector<uint8_t>& charData = data[c];				
 				uint32_t width = character.size.x;
 				uint32_t height = character.size.y;
 				for (uint32_t i = 0; i < height; i++) {
@@ -140,7 +145,15 @@ void main() {
 				}
 				xpos += width;
 			}
-			
+			uint32_t alignedWidth = bmpWidth + 3 & ~3;
+			//OpenGL textures rows have to be multiple of 4
+			std::vector<uint8_t> swap(bmpHeight * alignedWidth);
+			for (int y = 0; y < bmpHeight; y++) {
+				for (int x = 0; x < bmpWidth; x++) {
+					uint8_t b = buffer[y * bmpWidth + x];
+					swap[(bmpHeight - y-1) * alignedWidth + x] = b;
+				}
+			}
 #if 0
 			glCreateTextures(GL_TEXTURE_2D, 1, &_texture);
 			glTextureParameteri(_texture, GL_TEXTURE_MAX_LEVEL, 0);
@@ -153,7 +166,7 @@ void main() {
 			glBindTexture(GL_TEXTURE_2D, _texture);			
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);			
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);			
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, bmpWidth, bmpHeight,0, GL_RED, GL_UNSIGNED_BYTE, buffer);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, bmpWidth, bmpHeight,0, GL_RED, GL_UNSIGNED_BYTE, swap.data());
 			glGenerateMipmap(GL_TEXTURE_2D);
 			//glBindTexture(GL_TEXTURE_2D, 0);
 #endif
@@ -161,7 +174,7 @@ void main() {
 			FT_Done_FreeType(ft);
 		}
 		pdevice->GetDimensions(&_width, &_height);
-		_orthoproj = glm::ortho(0.f, (float)_width, (float)_height,0.f, -1.f, 1.f);
+		_orthoproj = glm::orthoRH_NO(0.f, (float)_width, (float)_height,0.f, -1.f, 1.f);
 		
 		glGenVertexArrays(1, &_vao);		
 	}
@@ -245,10 +258,10 @@ void main() {
 			float v = (hraw) / fbmpHeight;
 			float u1 = (float)(character.offset + character.size.x) * invBmpWidth;
 
-			FontVertex topleft = { {xpos,ypos,0.0f},color,{u0,0.f} };
-			FontVertex topright = { { xpos + w,ypos,0.0f},color,{u1,0.f} };
-			FontVertex bottomleft = { { xpos,(ypos + h),0.0f},color,{u0,v} };
-			FontVertex bottomright = { {xpos + w,(ypos + h),0.0f},color,{u1,v} };
+			FontVertex topleft = { {xpos,ypos,0.0f},color,{u0,1.f} };
+			FontVertex topright = { { xpos + w,ypos,0.0f},color,{u1,1.f} };
+			FontVertex bottomleft = { { xpos,(ypos + h),0.0f},color,{u0,1.f-v} };
+			FontVertex bottomright = { {xpos + w,(ypos + h),0.0f},color,{u1,1.f-v} };
 			vertices.push_back(topleft);
 			vertices.push_back(topright);
 			vertices.push_back(bottomleft);
@@ -275,8 +288,9 @@ void main() {
 		//glBindTexture(GL_TEXTURE_2D, _texture);		
 		glBindVertexArray(_vao);
 		//glUseProgram(_shader);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		
 		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		_shader.Bind();
 		_shader.setMat4("projection", _orthoproj);
 		_shader.SetTextures("text",(int*)&_texture,1u);
