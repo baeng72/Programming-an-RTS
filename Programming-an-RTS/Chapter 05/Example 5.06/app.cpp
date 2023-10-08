@@ -5,7 +5,7 @@
 #include "camera.h"
 #include "City.h"
 
-class APPLICATION : public Application {
+class APPLICATION : public Core::Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;	
 	std::shared_ptr<Renderer::ShaderManager> _shadermanager;
 	std::unique_ptr<Renderer::Font> _font;
@@ -130,7 +130,14 @@ void APPLICATION::Render() {
 	_device->Clear(r, Color(1.f));
 	////Setup camera view to orthogonal view looking down on city
 	mat4 viewTop = glm::lookAtLH((_city.GetCenter() + vec3(0.f, 100.f, 0.f)), _city.GetCenter(), vec3(0.f, 0.f, 1.f));
-	mat4 projectionTop = D3DXOrthoLH((float)_city._size.x * TILE_SIZE,  (float)_city._size.y * TILE_SIZE, 0.01f, 1000.f);
+	mat4 projectionTop;
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		projectionTop = vulkOrthoLH((float)_city._size.x * TILE_SIZE, (float)_city._size.y * TILE_SIZE, 0.01f, 1000.f);
+	}
+	else {
+		projectionTop = glOrthoLH((float)_city._size.x * TILE_SIZE, (float)_city._size.y * TILE_SIZE, 0.01f, 1000.f);
+	}
+	//mat4 projectionTop = D3DXOrthoLH((float)_city._size.x * TILE_SIZE,  (float)_city._size.y * TILE_SIZE, 0.01f, 1000.f);
 	
 	mat4 viewProjTop = projectionTop * viewTop;
 	_city.Render(nullptr, viewProjTop, _light);
@@ -159,7 +166,19 @@ void APPLICATION::Cleanup() {
 	UnloadObjectResources();
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+#if defined(DEBUG) | defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+	if (argc > 1) {
+		if (!_strcmpi(argv[1], "gl")) {
+
+			Core::SetAPI(Core::API::GL);
+		}
+		else {
+			Core::SetAPI(Core::API::Vulkan);
+		}
+	}
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 5.6: Frustum Culling")) {
 		app.Run();

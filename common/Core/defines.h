@@ -95,7 +95,7 @@ inline mat4 vulkOrthoLH(float width, float height, float zn, float zf) {
 	//vulkOrthoLH(-width,width,-height,height,zn,zf);
 	mat4 mat = mat4(1.f);
 	mat[0][0] = 2.f / width;
-	mat[1][1] = 2.f / height;//flip y
+	mat[1][1] = -2.f / height;//flip y
 	mat[2][2] = 1.f / (zf - zn);
 	mat[3][2] = -zn / (zf - zn);
 	//mat[1][1] *= -1;//flip y for Vulkan
@@ -106,7 +106,7 @@ inline mat4 vulkOrthoRH(float width, float height, float zn, float zf) {
 	//vulkOrthoRH(-width,width,-height,height,zn,zf);
 	mat4 mat = mat4(1.f);
 	mat[0][0] = 2.f / width;
-	mat[1][1] = 2.f / height;//flip y
+	mat[1][1] = -2.f / height;//flip y
 	mat[2][2] = -1.f / (zf - zn);
 	mat[3][2] = zn / (zf - zn);
 	//mat[1][1] *= -1;//flip y for Vulkan
@@ -116,7 +116,7 @@ inline mat4 vulkOrthoRH(float width, float height, float zn, float zf) {
 inline mat4 vulkOrthoRH(float left, float right, float top, float bottom, float zn, float zf) {
 	mat4 mat = mat4(1.f);
 	mat[0][0] = 2.f / (right - left);
-	mat[1][1] = 2.f / (bottom-top);
+	mat[1][1] = -2.f / (bottom-top);//flip y
 	mat[2][2] = -1.f / (zf - zn);
 	mat[3][0] = -(right + left) / (right - left);
 	mat[3][1] = -(bottom+top) / (bottom-top);
@@ -128,7 +128,7 @@ inline mat4 vulkOrthoRH(float left, float right, float top, float bottom, float 
 inline mat4 vulkOrthoLH(float left, float right, float top, float bottom, float zn, float zf) {
 	mat4 mat = mat4(1.f);
 	mat[0][0] = 2.f / (right - left);
-	mat[1][1] = -2.f / (bottom - top);;
+	mat[1][1] = -2.f / (bottom - top);//flip y
 	mat[2][2] = 1.f / (zf - zn);
 	mat[3][0] = -(right + left) / (right - left);
 	mat[3][1] = -(top + bottom) / (top - bottom);
