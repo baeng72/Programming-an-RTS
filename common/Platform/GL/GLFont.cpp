@@ -319,6 +319,7 @@ void main() {
 	{
 		_width = width;
 		_height = height;
-		_orthoproj = glm::ortho(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);
+		//_orthoproj = glm::ortho(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);
+		_orthoproj = glm::orthoRH_NO(0.f, (float)_width, (float)_height, 0.f, -1.f, 1.f);
 	}
 }
