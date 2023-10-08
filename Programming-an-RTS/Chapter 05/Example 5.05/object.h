@@ -25,7 +25,7 @@ public:
 	mat4 _matProj;
 	mat4 _matView;
 	OBJECT();
-	OBJECT(Window*pwindow,int t,vec3 pos, vec3 rot, float off);
+	OBJECT(Core::Window*pwindow,int t,vec3 pos, vec3 rot, float off);
 	void Render(glm::mat4&matVP,Renderer::DirectionalLight& light);
 	void Update(float delta);
 	void UpdateCameras();

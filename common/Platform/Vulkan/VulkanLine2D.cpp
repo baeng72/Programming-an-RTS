@@ -4,11 +4,7 @@
 #include "VulkSwapchain.h"
 #include "ShaderCompiler.h"
 #include "../../Core/Log.h"
-namespace Renderer {
-	Line2D* Line2D::Create(Renderer::RenderDevice* pdevice) {
-		return new Vulkan::VulkanLine2D(pdevice);
-	}
-}
+
 namespace Vulkan {
 	
 	

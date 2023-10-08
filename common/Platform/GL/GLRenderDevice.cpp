@@ -113,7 +113,9 @@ namespace GL {
 	}
 	void GLRenderDevice::SetViewport(ViewPort& vp)
 	{
-		glViewport((GLsizei)vp.x, (GLsizei)vp.y, (GLsizei)vp.width, (GLsizei)vp.height);
+		int width, height;
+		glfwGetFramebufferSize(_window, &width, &height);
+		glViewport((GLsizei)vp.x, (GLsizei)height-(GLsizei)vp.y-(GLsizei)vp.height, (GLsizei)vp.width, (GLsizei)vp.height);
 		GLERR();
 	}
 	float GLRenderDevice::GetCurrentTicks()

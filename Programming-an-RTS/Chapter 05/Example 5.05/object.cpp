@@ -44,7 +44,7 @@ OBJECT::OBJECT() {
 	_type = 0;
 }
 
-OBJECT::OBJECT(Window*pwindow,int t, vec3 pos, vec3 rot, float off) {
+OBJECT::OBJECT(Core::Window*pwindow,int t, vec3 pos, vec3 rot, float off) {
 	_type = t;
 	
 	_meshInstance.SetPosition(pos);

@@ -4,7 +4,7 @@
 
 class CAMERA {
 public:
-	Window* _pwindow;
+	Core::Window* _pwindow;
 	float _fov;
 	glm::vec3 _eye;
 	glm::vec3 _focus;
@@ -12,7 +12,7 @@ public:
 public:
 	CAMERA();
 
-	void Init(Window* pwindow);
+	void Init(Core::Window* pwindow);
 
 	
 	//Calculate matrices

@@ -120,8 +120,10 @@ void main(){
 
 					std::vector<uint8_t> charData(face->glyph->bitmap.width * face->glyph->bitmap.rows);
 
-					for (unsigned int i = 0; i < face->glyph->bitmap.rows; i++) {
-						for (unsigned int j = 0; j < face->glyph->bitmap.width; j++) {
+					int rows = face->glyph->bitmap.rows;
+					int width = face->glyph->bitmap.width;
+					for (unsigned int i = 0; i < rows; i++) {
+						for (unsigned int j = 0; j < width; j++) {
 							uint8_t byte = face->glyph->bitmap.buffer[i * pitch + j];
 							charData[i * pitch + j] = byte;
 						}
@@ -130,6 +132,9 @@ void main(){
 				}
 				bmpWidth += face->glyph->bitmap.width;
 			}
+
+			res = FT_Done_Face(face);
+			assert(res == 0);
 
 			invBmpWidth = 1 / (float)bmpWidth;
 
@@ -243,7 +248,7 @@ void main(){
 
 		}
 		pdevice->GetDimensions(&_width, &_height);
-		_orthoproj = glm::ortho(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);
+		_orthoproj = vulkOrthoRH(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);
 
 
 	}

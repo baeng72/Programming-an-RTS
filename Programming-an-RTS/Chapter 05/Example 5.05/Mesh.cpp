@@ -16,48 +16,72 @@ MESH::~MESH() {
 }
 void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::DirectionalLight& light)
 {
-	//This may fail on some systems.
-	//A pushconstant is guaranteed to be 128bytes, but may be bigger on some systems.
-	struct PushConst {
-		mat4 viewProj;
-		mat4 world;		
-		vec4 clrdiffuse;
-		vec4 clrspecular;
-	};
-	struct UBO { Renderer::DirectionalLight light; } ubo = { light };
-	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	_shader->Bind();
-	for (size_t i = 0; i < _meshes.size(); i++) {
-		PushConst pushConst{ matViewProj, matWorld * _xforms[i],_materials[i].diffuse,_materials[i].specular };
-		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-		_meshes[i]->Render();
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		//This may fail on some systems.
+		//A pushconstant is guaranteed to be 128bytes, but may be bigger on some systems.
+		
+		struct UBO { Renderer::DirectionalLight light; } ubo = { light };
+		_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
 	}
+	else {
+		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+	}
+	mat4 worldxform = matWorld * _xform;
+	_multiMesh->Bind();
+	for (uint32_t i = 0; i < _multiMesh->GetPartCount(); i++) {
+		if (Core::GetAPI() == Core::API::Vulkan) {
+			struct PushConst {
+				mat4 viewProj;
+				mat4 world;
+				vec4 clrdiffuse;
+				vec4 clrspecular;
+			};
+			PushConst pushConst = { matViewProj,worldxform,_meshColors[i],_meshSpeculars[i] };
+			_shader->SetPushConstData(&pushConst, sizeof(pushConst));
+		}
+		else {
+			_shader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
+			_shader->SetUniformData("model", &worldxform, sizeof(mat4));
+			_shader->SetUniformData("model", &worldxform, sizeof(mat4));
+			_shader->SetUniformData("color", &_meshColors[i], sizeof(vec4));
+		}
+		_multiMesh->Render(i);
+	}
+
+	
+	
 }
 
 void MESH::Release()
 {
 	_pdevice->Wait();//who needs synchronisation when you can block GPU?
-	_meshes.clear();
+	_multiMesh.reset();
 }
 
 bool MESH::Load( Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager> shaderManager, const char* pfilename) {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
 	std::unique_ptr<Mesh::Model> model = std::unique_ptr<Mesh::Model>(Mesh::Model::Create(pdevice, pfilename));
-	uint32_t meshCount = model->GetMeshCount();
-	_meshes.resize(meshCount);
-	_xforms.resize(meshCount);
-	for (uint32_t i = 0; i < meshCount; i++) {
-		_meshes[i] = std::unique_ptr<Mesh::Mesh>(model->GetMesh(Mesh::MeshType::position_normal, i));
-		_xforms[i] = model->GetMeshXForm(i);
 
+	std::unique_ptr<Mesh::MultiMesh> multiMesh = std::unique_ptr<Mesh::MultiMesh>(model->GetMultiMesh(Mesh::MeshType::position_normal));
+	uint32_t partCount = multiMesh->GetPartCount();
+
+	std::vector<vec4> diffuseMats(partCount);
+	std::vector<vec4> specularMats(partCount);
+	for (uint32_t i = 0; i < partCount; i++) {
+		auto matid = multiMesh->GetMaterialIndex(i);
+		auto mat = model->GetMaterial(matid);
+		diffuseMats[i] = mat->diffuse;
+		specularMats[i] = mat->specular;
 	}
-	uint32_t matCount = model->GetMaterialCount();
-	_materials.resize(matCount);
-	for (uint32_t i = 0; i < matCount; i++) {
-		_materials[i] = *model->GetMaterial(i);
-	}
-	
+	multiMesh->GetWorldXForm(_xform);
+	_meshColors = diffuseMats;
+	_meshSpeculars = specularMats;
+	_multiMesh = std::move(multiMesh);
 	
 	LoadShader();
 	return true;
@@ -69,7 +93,12 @@ bool MESH::Load( Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::Shad
 
 void MESH::LoadShader()
 {
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.05/shaders/mesh.glsl")));	
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.05/shaders/Vulkan/mesh.glsl")));
+	}
+	else {
+		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.05/shaders/GL/mesh.glsl")));
+	}
 	
 }
 
