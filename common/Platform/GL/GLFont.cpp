@@ -109,8 +109,8 @@ void main() {
 					int rows = face->glyph->bitmap.rows;
 					int width = face->glyph->bitmap.width;
 					assert(pitch == width);
-					for (unsigned int i = 0;i< rows; i ++) {
-						for (unsigned int j = 0; j < width; j++) {
+					for ( int i = 0;i< rows; i ++) {
+						for ( int j = 0; j < width; j++) {
 							uint8_t byte = face->glyph->bitmap.buffer[i * pitch + j];
 							charData[i * pitch + j] = byte;
 						}
@@ -148,8 +148,8 @@ void main() {
 			uint32_t alignedWidth = bmpWidth + 3 & ~3;
 			//OpenGL textures rows have to be multiple of 4
 			std::vector<uint8_t> swap(bmpHeight * alignedWidth);
-			for (int y = 0; y < bmpHeight; y++) {
-				for (int x = 0; x < bmpWidth; x++) {
+			for (uint32_t y = 0; y < bmpHeight; y++) {
+				for (uint32_t x = 0; x < bmpWidth; x++) {
 					uint8_t b = buffer[y * bmpWidth + x];
 					swap[(bmpHeight - y-1) * alignedWidth + x] = b;
 				}

@@ -13,5 +13,6 @@ namespace Core {
 		}
 		//return std::make_shared<GLFW_Window_Vulk>(width, height, title);
 		assert(0);
+		return nullptr;
 	}
 }

@@ -2,9 +2,9 @@
 
 #include "../../mesh/ProgressiveMesh.h"
 #include "../vulkan/VulkanEx.h"
-namespace MeshOptimizer {
+namespace Vulkan {
 
-	class OptProgressiveMesh : public Mesh::ProgressiveMesh {
+	class VulkanProgressiveMesh : public Mesh::ProgressiveMesh {
 		Renderer::RenderDevice* _pdevice;
 		Vulkan::Buffer _vertexBuffer;
 		Vulkan::Buffer _indexBuffer;
@@ -22,8 +22,8 @@ namespace MeshOptimizer {
 		std::vector<uint32_t> _rawIndices;
 		
 	public:
-		OptProgressiveMesh(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize,uint32_t vertStride, uint32_t* pindices, uint32_t indSize);
-		virtual ~OptProgressiveMesh();
+		VulkanProgressiveMesh(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize,uint32_t* pindices, uint32_t indSize, Renderer::VertexAttributes& vertexAttributes);
+		virtual ~VulkanProgressiveMesh();
 		virtual void SetIndexCount(uint32_t indexCount)override;
 		virtual uint32_t GetIndexCount()override;
 		virtual void Render()override;

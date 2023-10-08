@@ -9,7 +9,20 @@
 
 namespace Vulkan {
 	
-	
+	inline mat4 myvulkOrthoRH(float left, float right, float top, float bottom, float zn, float zf) {
+		mat4 mat = mat4(1.f);
+		float height = bottom - top;
+		float width = right - left;
+		mat[0][0] = 2.f / (width);
+		mat[1][1] = -2.f / (top-bottom);//flip y
+		mat[2][2] = -1.f / (zf - zn);
+		mat[3][0] = -(right + left) / (width);
+		mat[3][1] = -(top + bottom) / (height);
+		mat[3][2] = -zn / (zf - zn);
+		//mat[1][1] *= -1;//flip y for Vulkan
+		return mat;
+	}
+
 
 	VulkanFont::VulkanFont() :_renderdevice(nullptr),_width(0),_height(0),invBmpWidth(0.f) {
 		bmpHeight = 0;
@@ -122,8 +135,8 @@ void main(){
 
 					int rows = face->glyph->bitmap.rows;
 					int width = face->glyph->bitmap.width;
-					for (unsigned int i = 0; i < rows; i++) {
-						for (unsigned int j = 0; j < width; j++) {
+					for (int i = 0; i < rows; i++) {
+						for (int j = 0; j < width; j++) {
 							uint8_t byte = face->glyph->bitmap.buffer[i * pitch + j];
 							charData[i * pitch + j] = byte;
 						}
@@ -248,7 +261,7 @@ void main(){
 
 		}
 		pdevice->GetDimensions(&_width, &_height);
-		_orthoproj = vulkOrthoRH(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);
+		_orthoproj = myvulkOrthoRH(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);
 
 
 	}

@@ -1,23 +1,20 @@
-#include "OptProgressiveMesh.h"
+#include "VulkanProgressiveMesh.h"
 #include <meshoptimizer/src/meshoptimizer.h>
 #include "../Vulkan/VulkState.h"
 #include "../Vulkan/VulkSwapchain.h"
 #include "../Vulkan/VulkanEx.h"
 
-namespace Mesh {
-	ProgressiveMesh* ProgressiveMesh::Create(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize,uint32_t vertStride, uint32_t* pindices, uint32_t indSize) {
-		return new MeshOptimizer::OptProgressiveMesh(pdevice, pvertices, vertSize, vertStride, pindices, indSize);
-	}
-}
 
-namespace MeshOptimizer {
+
+namespace Vulkan {
 
 
 
 
-	OptProgressiveMesh::OptProgressiveMesh(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t vertStride, uint32_t* pindices, uint32_t indSize)
+	VulkanProgressiveMesh::VulkanProgressiveMesh(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize, Renderer::VertexAttributes& vertexAttributes)
 		:_pdevice(pdevice)
 	{
+		uint32_t vertStride = vertexAttributes.vertexStride;
 		uint32_t indCount = indSize / sizeof(uint32_t);
 		uint32_t vertCount = vertSize / vertStride;
 		std::vector<uint32_t> indices(pindices, pindices + indCount);
@@ -56,7 +53,7 @@ namespace MeshOptimizer {
 		}
 	}
 
-	OptProgressiveMesh::~OptProgressiveMesh()
+	VulkanProgressiveMesh::~VulkanProgressiveMesh()
 	{
 		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
 		Vulkan::VulkContext& context = *contextptr;
@@ -65,7 +62,7 @@ namespace MeshOptimizer {
 		Vulkan::cleanupBuffer(context.device, _indexBuffer);
 	}
 
-	void OptProgressiveMesh::SetIndexCount(uint32_t indexCount)
+	void VulkanProgressiveMesh::SetIndexCount(uint32_t indexCount)
 	{
 		if (indexCount == _rawIndexCount)
 			return;
@@ -88,12 +85,12 @@ namespace MeshOptimizer {
 		_currOffset = offset;
 	}
 
-	uint32_t OptProgressiveMesh::GetIndexCount()
+	uint32_t VulkanProgressiveMesh::GetIndexCount()
 	{
 		return _currIndexCount;
 	}
 
-	void OptProgressiveMesh::Render()
+	void VulkanProgressiveMesh::Render()
 	{
 		
 		Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());

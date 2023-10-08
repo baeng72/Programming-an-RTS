@@ -16,28 +16,71 @@ MESH::~MESH() {
 }
 void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::DirectionalLight& light)
 {
-	Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
-	int uboid = 0;
-
-
-	Renderer::FlatShaderPushConst pushConst{matWorld * _xform};
-
-	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
 	_shader->Bind();
+	mat4 worldxform = matWorld * _xform;
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		struct UBO {
+			mat4 matViewProj;
+			Renderer::DirectionalLight light;
+		}ubo = { matViewProj, light };
+
+		int uboid = 0;
+
+
+		struct PushConst {
+
+			mat4 matWorld;
+		}pushConst = { worldxform };
+
+
+		_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
+		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
+	}
+	else {
+		_shader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
+		_shader->SetUniformData("model", &worldxform, sizeof(mat4));
+		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+		auto texture = _texture.get();
+		_shader->SetTexture("texmap", &texture, 1);
+	}
+	_mesh->Bind();
 	_mesh->Render();
 }
 void MESH::RenderProgressive(mat4& matViewProj, mat4& matWorld, Renderer::DirectionalLight& light)
 {
-	Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
-	int uboid = 0;
-
-
-	Renderer::FlatShaderPushConst pushConst{ matWorld * _xform };
-
-	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
 	_shader->Bind();
+	mat4 worldxform = matWorld * _xform;
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		struct UBO {
+			mat4 matViewProj;
+			Renderer::DirectionalLight light;
+		}ubo = {matViewProj, light };
+
+		int uboid = 0;
+
+
+		struct PushConst {
+			
+			mat4 matWorld;
+		}pushConst = {  worldxform };
+
+		_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
+		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
+	}
+	else {
+		_shader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
+		_shader->SetUniformData("model", &worldxform, sizeof(mat4));
+		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+		auto texture = _texture.get();
+		_shader->SetTexture("texmap", &texture, 1);
+	}
+
 	_progressiveMesh->Render();
 }
 
@@ -96,10 +139,15 @@ bool MESH::Load( Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::Shad
 
 void MESH::LoadShader()
 {
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.08/shaders/mesh.glsl")));
-	int texid = 0;
-	std::vector<Renderer::Texture*> textures = { _texture.get() };
-	_shader->SetTexture(texid, textures.data(), 1);
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.08/shaders/Vulkan/mesh.glsl")));
+		int texid = 0;
+		std::vector<Renderer::Texture*> textures = { _texture.get() };
+		_shader->SetTexture(texid, textures.data(), 1);
+	}
+	else {
+		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.08/shaders/GL/mesh.glsl")));
+	}
 }
 
 MESHINSTANCE::MESHINSTANCE()
