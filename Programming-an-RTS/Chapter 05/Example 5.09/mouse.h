@@ -21,7 +21,7 @@ struct RAY {
 class MOUSE : public INTPOINT {
 	friend class CAMERA;
 	Renderer::RenderDevice* _pdevice;
-	Window* _pwindow;
+	Core::Window* _pwindow;
 	Rect _viewport;
 	std::vector<std::unique_ptr<Renderer::Texture>> _textures;
 	std::unique_ptr<Renderer::Sprite> _sprite;
@@ -38,7 +38,7 @@ public:
 public:
 	MOUSE();
 	~MOUSE();
-	void Init(Renderer::RenderDevice*pdevice,std::shared_ptr<Renderer::ShaderManager>&shaderManager,Window* pwindow);
+	void Init(Renderer::RenderDevice*pdevice,std::shared_ptr<Renderer::ShaderManager>&shaderManager,Core::Window* pwindow);
 	bool ClickLeft();
 	bool ClickRight();
 	bool WheelUp();

@@ -5,7 +5,7 @@
 class MOUSE;
 class CAMERA {
 	friend class APPLICATION;
-	Window* _pwindow;
+	Core::Window* _pwindow;
 	float _alpha;
 	float _beta;
 	float _radius;
@@ -20,7 +20,7 @@ public:
 public:
 	CAMERA();
 
-	void Init(Window* pwindow);
+	void Init(Core::Window* pwindow);
 
 	//Movement
 	void Scroll(glm::vec3 vec);		//Move focus

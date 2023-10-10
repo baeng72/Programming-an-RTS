@@ -16,8 +16,10 @@ class OBJECT {
 	INTPOINT _mappos;
 	MESHINSTANCE _meshInstance;
 	int _type;
+	
 public:
 	OBJECT();
 	OBJECT(int t,INTPOINT mp, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca);
-	void Render(glm::mat4& viewProj, Renderer::DirectionalLight& light);
+	void Render(glm::mat4& viewProj, Renderer::DirectionalLight& light, Renderer::Texture* plightmap);
+	
 };

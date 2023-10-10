@@ -43,7 +43,7 @@ public:
 	MESH(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager> pshadermanager, const char* pName);
 	~MESH();
 	bool Load(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager> shadermanager, const char* pName);
-	void Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::DirectionalLight& light);
+	void Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::DirectionalLight& light,Renderer::Texture*plightmap);
 	void Release();
 	void SetWireframe(bool wireframe) { _shader->SetWireframe(wireframe); }
 };
@@ -59,7 +59,7 @@ public:
 public:
 	MESHINSTANCE();
 	MESHINSTANCE(MESH* meshPtr);
-	void Render(glm::mat4& viewProj, Renderer::DirectionalLight& light);
+	void Render(glm::mat4& viewProj, Renderer::DirectionalLight& light,  Renderer::Texture* plightmap);
 	void SetMesh(MESH* meshPtr) { _mesh = meshPtr; }
 	void SetPosition(glm::vec3 p) { _pos = p; }
 	void SetRotation(glm::vec3 r) { _rot = r; }

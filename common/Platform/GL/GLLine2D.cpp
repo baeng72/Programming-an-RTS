@@ -49,6 +49,7 @@ void main(){
 		if (count < 2)
 			return;
 		glBindVertexArray(_vao);
+		glLineWidth(width);
 		_shader.Bind();
 		_shader.setMat4("projection", projection);
 		_shader.setVec4("color", color)	;
@@ -67,6 +68,8 @@ void main(){
 	{
 		_width = width;
 		_height = height;
-		projection = glOrthoRH(0.f, (float)width, 0.f, (float)height, 1.f, -1.f);
+
+		projection = glOrthoRH(0.f, (float)width, 0.f,(float)height, 1.f, -1.f);
+		
 	}
 }

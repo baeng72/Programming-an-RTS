@@ -42,6 +42,6 @@ OBJECT::OBJECT(int t,INTPOINT mp, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca) {
 	_meshInstance.SetMesh(objectMeshes[t]);
 }
 
-void OBJECT::Render(glm::mat4& viewProj, Renderer::DirectionalLight& light) {
-	_meshInstance.Render(viewProj, light);//TODO: simple optimization, add function to shader manager to set ubo once, instance of setting for each shader instance
+void OBJECT::Render(glm::mat4& viewProj, Renderer::DirectionalLight& light,  Renderer::Texture* plightmap) {
+	_meshInstance.Render(viewProj, light,plightmap);//TODO: simple optimization, add function to shader manager to set ubo once, instance of setting for each shader instance
 }
