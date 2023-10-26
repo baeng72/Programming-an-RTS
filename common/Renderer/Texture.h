@@ -10,5 +10,6 @@ namespace Renderer {
 		virtual ~Texture() = default;		
 		virtual void* GetNativeHandle()const = 0;
 		virtual glm::vec2 GetScale()const = 0;
+		virtual void SetName(const char* pname) = 0;
 	};
 }

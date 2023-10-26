@@ -12,5 +12,6 @@ namespace Renderer {
 		virtual void* MapPtr() = 0;
 		virtual void  UnmapPtr() = 0;
 		virtual uint32_t GetSize()const = 0;
+		virtual void SetName(const char* pname) = 0;
 	};
 }
