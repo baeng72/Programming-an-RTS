@@ -54,13 +54,14 @@ layout(set=0,binding=0) uniform UBO{
 };
 
 layout (set=1,binding=0) uniform sampler2D texmap;
-
+layout (set=2,binding=0) uniform sampler2D lightmap;
 
 void main(){
 	
 	
 	vec4 inColor = texture(texmap,inUV);
-	
+	//lightmap 
+	float lm  = texture(lightmap,inUV).r;
 	
 	//normalize interpolated normal
 	vec3 normal = normalize(inNormal);
@@ -70,6 +71,6 @@ void main(){
 	
 	float specfactor = pow(shade,32);//hack specular (no view dir at moment)
 	vec3 spec = vec3(inColor) * vec3(light.specular) * specfactor ;
-	vec4 color = vec4(ambient + diffuse + spec,1);
-	outFragColor = color;	
+	vec3 color = vec3(ambient + diffuse + spec)*lm;
+	outFragColor = vec4(color,1.0);	
 }

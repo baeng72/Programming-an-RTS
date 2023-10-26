@@ -88,7 +88,7 @@ std::vector<std::string> SKINNEDMESH::GetAnimations()
 void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&light) {
 	
 	glm::mat4 r = glm::rotate(glm::mat4(1.f), -glm::pi<float>() * 0.5f, glm::vec3(0.f, 1.f, 0.f));
-
+	mat4 worldxform = _xform * matWorld;
 	uint32_t dynoffsets[1] = { _animationController->GetControllerOffset() * sizeof(mat4) };
 	_meshShader->Bind(dynoffsets, 1);
 	if (Core::GetAPI() == Core::API::Vulkan) {
@@ -98,7 +98,7 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 		}ubo = { matVP,light };
 		struct PushConst {
 			mat4 world;
-		}pushConst = { _xform * matWorld };
+		}pushConst = { worldxform};
 
 
 		_meshShader->SetUniformData("UBO", &ubo, sizeof(ubo));
@@ -109,7 +109,7 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 	else {
 
 		_meshShader->SetUniformData("viewProj", &matVP, sizeof(mat4));
-		_meshShader->SetUniformData("model", &matWorld, sizeof(mat4));
+		_meshShader->SetUniformData("model", &worldxform, sizeof(mat4));
 		_meshShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
 		_meshShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
 		_meshShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
