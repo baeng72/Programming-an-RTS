@@ -23,6 +23,7 @@ public:
 	void Load(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager>& shaderManager, const char* fileName);
 	void Update();
 	void SetPose(float time);
+	void SetPose(std::shared_ptr<Core::ThreadPool>&threads,float time);
 	void SetAnimation(const char* pname);
 	std::vector<std::string> GetAnimations();
 	void Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&light);

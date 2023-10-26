@@ -8,7 +8,7 @@ class SKINNEDMESH {
 	std::unique_ptr<Mesh::AnimationController> _animationController;
 	std::unique_ptr<Renderer::Shader> _meshShader;
 	std::unique_ptr<Renderer::Texture> _meshTexture;
-	std::unique_ptr<Mesh::Mesh> _mesh;
+	//std::unique_ptr<Mesh::Mesh> _mesh;
 	mat4 _xform;
 	std::vector<Mesh::AnimationClip> _animations;
 	

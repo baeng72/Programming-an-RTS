@@ -1,7 +1,7 @@
 #pragma once
 #include "heightMap.h"
 #include <stb/stb_image.h>
-#include <stb/stb_image_resize.h>
+#include <stb/stb_image_resize2.h>
 
 
 HEIGHTMAP::HEIGHTMAP(Renderer::RenderDevice* pdevice, INTPOINT size_)
@@ -29,9 +29,9 @@ bool HEIGHTMAP::LoadFromFile(const char* fileName)
 		//need to resize, probably better ways to do this, but meh
 		stbi_uc* newTexPixels = (stbi_uc*)malloc(_size.x * _size.y * 1);
 
-		stbir_resize_uint8(texPixels, texWidth, texHeight, texWidth,
+		stbir_resize_uint8_linear(texPixels, texWidth, texHeight, texWidth,
 			newTexPixels, _size.x, _size.y, 0,
-			1);
+			(stbir_pixel_layout)1);
 
 		stbi_image_free(texPixels);
 		texPixels = newTexPixels;

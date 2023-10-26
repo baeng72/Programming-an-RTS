@@ -2,7 +2,7 @@
 #include <common.h>
 #include"skinnedMesh.h"
 
-class APPLICATION : public Application {
+class APPLICATION : public Core::Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;
 	std::shared_ptr<Renderer::ShaderManager> _shadermanager;
 	std::unique_ptr<Renderer::Font> _font;
