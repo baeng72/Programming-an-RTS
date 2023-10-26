@@ -5,7 +5,10 @@ constexpr int MAX_FRAMES = 3;
 #else 
 constexpr int MAX_FRAMES = 2;
 #endif
-
+#include <memory>
+#include <vector>
+#include <array>
+#include <unordered_map>
 //may want to use different linear algebra stuff?
 #define __USE__GLM__ 
 #if defined __USE__GLM__

@@ -21,16 +21,21 @@ struct WindowCloseEvent : public Event {
 };
 struct KeyPressedEvent : public Event {
 	int key;
+	int scancode;
+	int mod;
 	bool repeat{ false };
-	KeyPressedEvent(int k, bool r) :Event(EventType::KeyPressed),key(k), repeat(r) {}
+	KeyPressedEvent(int k,int s, int m, bool r) :Event(EventType::KeyPressed),key(k), scancode(s), mod(m), repeat(r) {}
 };
 struct KeyReleasedEvent : public Event {
 	int key;
-	KeyReleasedEvent(int k):Event(EventType::KeyReleased), key(k) {}
+	int scancode;
+	int mod;
+	KeyReleasedEvent(int k,int s, int m):Event(EventType::KeyReleased), key(k), scancode(s), mod(m) {}
 };
 struct KeyTypedEvent : public Event {
 	int key;
-	KeyTypedEvent(int k) :Event(EventType::KeyTyped), key(k) {}
+	
+	KeyTypedEvent(int k) :Event(EventType::KeyTyped), key(k){}
 };
 struct MouseButtonPressedEvent : public Event {
 	int button;

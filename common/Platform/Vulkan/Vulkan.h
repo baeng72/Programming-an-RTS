@@ -13,6 +13,13 @@
 #endif
 #define __USE__VMA__
 #ifdef __USE__VMA__
+//#ifdef _DEBUG
+//#define VMA_DEBUG_LOG(format, ...) do { \
+//        printf(format, __VA_ARGS__); \
+//        printf("\n"); \
+//    } while(false)
+//
+//#endif
 #include "vk_mem_alloc.h"
 #endif
 
@@ -64,7 +71,9 @@ namespace Vulkan {
 	void initCommandBuffers(VkDevice device, VkCommandPool* commandPools, VkCommandBuffer* commandBuffers, uint32_t count);
 	void cleanupCommandBuffers(VkDevice device, std::vector<VkCommandPool>& commandPools, std::vector<VkCommandBuffer>& commandBuffers);
 	void cleanupCommandBuffer(VkDevice device, VkCommandPool commandPool, VkCommandBuffer commandBuffer);
+	void cleanupCommandBuffers(VkDevice device, VkCommandPool* commandPool, VkCommandBuffer* commandBuffers, uint32_t count);
 	void cleanupCommandPools(VkDevice device, std::vector<VkCommandPool>& commandPools);
+	void cleanupCommandPools(VkDevice device, VkCommandPool* commandPools,uint32_t count);
 	void cleanupCommandPool(VkDevice device, VkCommandPool commandPool);
 
 	VkSwapchainKHR initSwapchain(VkDevice device, VkSurfaceKHR surface, uint32_t width, uint32_t height, VkSurfaceCapabilitiesKHR& surfaceCaps, VkPresentModeKHR& presentMode, VkSurfaceFormatKHR& swapchainFormat, VkExtent2D& swapchainExtent, uint32_t imageCount = UINT32_MAX, VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE);
@@ -124,6 +133,11 @@ namespace Vulkan {
 	};
 	void initImage(VkDevice device, /*VkFormatProperties& formatProperties,*/ VkPhysicalDeviceMemoryProperties& memoryProperties, ImageProperties& props, Image& image);
 	void initImage(VkDevice device, VkImageCreateInfo& pCreateInfo, Image& image, bool isMapped = false);
+#ifdef __USE__VMA__
+	void setImageName(Image& image, const char* pname);
+#else
+#define setImageName(b,p)
+#endif
 	struct SamplerProperties {
 		VkFilter filter{ VK_FILTER_LINEAR };
 		VkSamplerAddressMode addressMode{ VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE };
@@ -134,6 +148,11 @@ namespace Vulkan {
 		SamplerProperties samplerProps;
 	};
 	void initTexture(VkDevice device, /*VkFormatProperties& formatProperties,*/ VkPhysicalDeviceMemoryProperties& memoryProperties, TextureProperties& props, Texture& image);
+#ifdef __USE__VMA__
+	void setTextureName(Texture& text, const char* pname);
+#else
+#define setTextureName(b,p)
+#endif
 	void cleanupImage(VkDevice device, Image& image);
 	void cleanupSampler(VkDevice device, VkSampler sampler);
 	void cleanupTexture(VkDevice device, Texture& texture);
@@ -182,6 +201,7 @@ namespace Vulkan {
 	void initFramebuffers(VkDevice device, VkRenderPass renderPass, FramebufferProperties& props, std::vector<VkFramebuffer>& framebuffers);
 	void initFramebuffers(VkDevice device, VkRenderPass renderPass, FramebufferProperties& props, VkFramebuffer* framebuffers);
 	void cleanupFramebuffers(VkDevice device, std::vector<VkFramebuffer>& framebuffers);
+	void cleanupFramebuffers(VkDevice device, VkFramebuffer* framebuffers, uint32_t count);
 
 
 	struct BufferProperties {
@@ -207,6 +227,11 @@ namespace Vulkan {
 	};
 
 	void initBuffer(VkDevice device, VkPhysicalDeviceMemoryProperties& memoryProperties, BufferProperties& props, Buffer& buffer);
+#ifdef __USE__VMA__
+	void setBufferName(Buffer& buffer, const char* pname);
+#else
+#define setBufferName(b,p)
+#endif
 	void cleanupBuffer(VkDevice device, Buffer& buffer);
 
 	void* mapBuffer(VkDevice device, Buffer& buffer);

@@ -15,6 +15,7 @@ namespace GL {
 			frames[i].indSize = 0;
 			frames[i].vertexBuffer = -1;
 			frames[i].vertSize = 0;
+			frames[i].hash = SIZE_MAX;
 		}
 	}
 	GLFont::~GLFont()
@@ -180,53 +181,68 @@ void main() {
 	}
 	void GLFont::Update()
 	{
+		//hash vertices
+		
 		uint32_t vertSize = (uint32_t)( sizeof(FontVertex) * _vertices.size());
 		uint32_t indSize = (uint32_t)( sizeof(uint32_t) * _indices.size());
+		size_t hash = Core::HashFNV1A(_vertices.data(), vertSize);
 		currFrame++;
 		uint32_t frameIdx = currFrame % MAX_FRAMES;
 		uint32_t maxSize = std::max(vertSize, indSize);
 
 		FrameData& frame = frames[frameIdx];
+		currFrame = frameIdx;
 		glBindVertexArray(_vao);
-		if (frame.vertSize == 0 || frame.vertSize < vertSize) {
-			if (frame.vertexBuffer != -1) {
-				glDeleteBuffers(1, &frame.vertexBuffer);
-			
-			}
-			glGenBuffers(1, &frame.vertexBuffer);			
-					
-			glBindBuffer(GL_ARRAY_BUFFER, frame.vertexBuffer);			
-			glBufferData(GL_ARRAY_BUFFER, vertSize, _vertices.data(), GL_DYNAMIC_DRAW);					
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(FontVertex), 0);			
-			glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),(void*)sizeof(vec3));			
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(FontVertex), (void*)(sizeof(vec3)+sizeof(vec4)));			
-			glEnableVertexAttribArray(0);			
-			glEnableVertexAttribArray(1);			
-			glEnableVertexAttribArray(2);
-		}
-		else if (vertSize > 0) {
+		if (frame.hash == hash) {
 			glBindBuffer(GL_ARRAY_BUFFER, frame.vertexBuffer);
-			glBufferData(GL_ARRAY_BUFFER, vertSize, _vertices.data(), GL_DYNAMIC_DRAW);
-		}
-		frame.vertSize = vertSize;
-		if (frame.indSize == 0 || frame.indSize < indSize) {
-			if (frame.indexBuffer != -1) {
-				glDeleteBuffers(1, &frame.indexBuffer);
-			}
-			glGenBuffers(1, &frame.indexBuffer);
-			
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, frame.indexBuffer);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indSize, _indices.data(), GL_DYNAMIC_DRAW);
+		
 		}
 		else {
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, frame.indexBuffer);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indSize, _indices.data(), GL_DYNAMIC_DRAW);
+
+			frame.hash = hash;
+
+			if (frame.vertSize == 0 || frame.vertSize < vertSize) {
+				if (frame.vertexBuffer != -1) {
+					glDeleteBuffers(1, &frame.vertexBuffer);
+
+				}
+				glGenBuffers(1, &frame.vertexBuffer);
+
+				glBindBuffer(GL_ARRAY_BUFFER, frame.vertexBuffer);
+				glBufferData(GL_ARRAY_BUFFER, vertSize, _vertices.data(), GL_DYNAMIC_DRAW);
+				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(FontVertex), 0);
+				glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex), (void*)sizeof(vec3));
+				glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(FontVertex), (void*)(sizeof(vec3) + sizeof(vec4)));
+				glEnableVertexAttribArray(0);
+				glEnableVertexAttribArray(1);
+				glEnableVertexAttribArray(2);
+			}
+			else if (vertSize > 0) {
+				glBindBuffer(GL_ARRAY_BUFFER, frame.vertexBuffer);
+				glBufferData(GL_ARRAY_BUFFER, vertSize, _vertices.data(), GL_DYNAMIC_DRAW);
+			}
+			frame.vertSize = vertSize;
+			if (frame.indSize == 0 || frame.indSize < indSize) {
+				if (frame.indexBuffer != -1) {
+					glDeleteBuffers(1, &frame.indexBuffer);
+				}
+				glGenBuffers(1, &frame.indexBuffer);
+
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, frame.indexBuffer);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, indSize, _indices.data(), GL_DYNAMIC_DRAW);
+			}
+			else {
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, frame.indexBuffer);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, indSize, _indices.data(), GL_DYNAMIC_DRAW);
+			}
+			frame.indSize = indSize;
+			frame.numIndices = (uint32_t)_indices.size();
 		}
-		frame.indSize = indSize;
-		frame.numIndices = (uint32_t)_indices.size();
-		currFrame = frameIdx;
+		
 		_vertices.clear();
 		_indices.clear();
+		
 	}
 	void GLFont::Draw(const char* ptext, int xpos, int ypos, glm::vec4 color)
 	{
@@ -286,7 +302,7 @@ void main() {
 		FrameData& frame = frames[currFrame];
 		
 		//glBindTexture(GL_TEXTURE_2D, _texture);		
-		glBindVertexArray(_vao);
+		//glBindVertexArray(_vao);
 		//glUseProgram(_shader);
 		
 		glEnable(GL_BLEND);

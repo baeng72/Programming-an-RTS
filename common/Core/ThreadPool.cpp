@@ -2,11 +2,13 @@
 #include "Log.h"
 namespace Core {
 	
-	ThreadPool::ThreadPool()
+	ThreadPool::ThreadPool(uint32_t threads)
 		:_terminate(false)
 	{
 		LOG_INFO("Starting ThreadPool");
-		const uint32_t numThreads = std::thread::hardware_concurrency();//max number of supported threads
+		uint32_t numThreads = std::thread::hardware_concurrency();//max number of supported threads
+		if (threads > 0 && threads < numThreads)
+			numThreads = threads;
 		for (uint32_t i = 0; i < numThreads; i++) {
 			_threads.emplace_back(std::thread(&ThreadPool::ThreadLoop, this));
 		}

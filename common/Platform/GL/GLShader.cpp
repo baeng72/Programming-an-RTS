@@ -9,8 +9,18 @@ namespace GL {
 
 	}
 	void GLShader::Bind(uint32_t* pdynoffsets, uint32_t dynoffcount)
+		
 	{
+		
 		_pshader->Bind();
+		if (pdynoffsets && dynoffcount > 0) {
+
+			GLint buffer=0;
+			glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING, &buffer);
+			GLERR();
+			glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 0, buffer, (GLintptr)pdynoffsets[0],8*256);
+			GLERR();
+		}
 	}
 	void GLShader::SetWireframe(bool wireframe)
 	{

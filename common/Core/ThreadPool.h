@@ -14,7 +14,7 @@ namespace Core {
 		std::vector<std::thread> _threads;
 		std::queue < std::function<void()>> _jobs;
 	public:
-		ThreadPool();
+		ThreadPool(uint32_t threads=-1);
 		~ThreadPool();
 		void QueueJob(const std::function<void()>& job);
 		void Stop();

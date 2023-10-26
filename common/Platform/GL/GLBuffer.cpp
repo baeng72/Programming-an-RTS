@@ -48,14 +48,19 @@ namespace GL {
 	void* GLBuffer::MapPtr() 
 	{
 		GLint bufMask = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT;
-		void* ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, _size, bufMask);
+		GLenum bufferType = _isUniform ? GL_UNIFORM_BUFFER : GL_SHADER_STORAGE_BUFFER;
+		
+		glBindBuffer(bufferType, _buffer);
+		
+		void* ptr = glMapBufferRange(bufferType, 0, _size, bufMask);
 		_mapped = true;
 		return ptr;
 	}
 	void GLBuffer::UnmapPtr() 
 	{
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _buffer);
+		GLenum bufferType = _isUniform ? GL_UNIFORM_BUFFER : GL_SHADER_STORAGE_BUFFER;
+		glUnmapBuffer(bufferType);
+		
 		_mapped = false;
 	}
 	uint32_t GLBuffer::GetSize() const

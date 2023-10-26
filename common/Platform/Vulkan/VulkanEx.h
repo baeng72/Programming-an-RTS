@@ -331,6 +331,7 @@ namespace Vulkan {
 		bool isMapped{ false };
 		IndexBufferBuilder(VkDevice device_, VkQueue queue_, VkCommandBuffer cmd_, VkPhysicalDeviceMemoryProperties& memoryProperties_);
 	public:
+		~IndexBufferBuilder();
 		static IndexBufferBuilder begin(VkDevice device_, VkQueue queue_, VkCommandBuffer cmd_, VkPhysicalDeviceMemoryProperties& memoryProperties_);
 		IndexBufferBuilder& AddIndices(VkDeviceSize indexSize, uint32_t* pIndexData, bool mapped = false);
 		void build(Buffer& buffer_, std::vector<uint32_t>& indexLocations, void** ptr = nullptr);

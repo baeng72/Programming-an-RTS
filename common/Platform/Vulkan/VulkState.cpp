@@ -12,7 +12,7 @@ namespace Vulkan {
 	}
 
 	VulkState::~VulkState() {
-
+		Cleanup();
 	}
 
 	bool VulkState::Init(VulkStateInitFlags& initFlags, GLFWwindow* windowHandle) {

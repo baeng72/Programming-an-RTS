@@ -93,8 +93,8 @@ void main(){
 	VulkanLine2D::~VulkanLine2D()
 	{
 		
-		linePipelineLayoutPtr.release();
-		linePipelinePtr.release();
+		linePipelineLayoutPtr.reset();
+		linePipelinePtr.reset();
 		
 	}
 

@@ -131,8 +131,16 @@
 
 #define KEY_LAST               KEY_MENU
 
+#define KEY_MOD_SHIFT           0x0001
+#define KEY_MOD_CONTROL         0x0002
+#define KEY_MOD_ALT             0x0004
+#define KEY_MOD_SUPER           0x0008
+#define KEY_MOD_CAPS_LOCK       0x0010
+#define KEY_MOD_NUM_LOCK        0x0020
+
 #define MOUSE_BUTTON_LEFT 0
 #define MOUSE_BUTTON_RIGHT 1
+#define MOUSE_BUTTON_MIDDLE 2
 namespace Core {
 	class Window {
 	public:
@@ -145,6 +153,7 @@ namespace Core {
 		virtual void OnUpdate() = 0;
 		virtual bool IsKeyPressed(int key) = 0;
 		virtual void GetWindowSize(int& width, int& height) = 0;
+		virtual void GetWindowPos(int& width, int& height) = 0;
 		virtual void GetCursorPos(float& xpos, float& ypos) = 0;
 		virtual bool IsMouseButtonPressed(int button) = 0;
 		virtual void GetScrollPos(float& xoffset, float& yoffset) = 0;

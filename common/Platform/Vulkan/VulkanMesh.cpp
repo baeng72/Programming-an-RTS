@@ -49,6 +49,7 @@ namespace Vulkan {
 				.AddVertices(vertSize, pvertices)
 				.build(_vertexBuffer, vertexLocations);
 			_hash = Core::HashFNV1A(pvertices, vertSize);
+			setBufferName(_vertexBuffer, "VulkanMeshVertices");
 			
 		}
 		{
@@ -57,6 +58,7 @@ namespace Vulkan {
 				.AddIndices(indSize, pindices)
 				.build(_indexBuffer, indexLocations);
 			_indexCount = indSize / sizeof(uint32_t);
+			setBufferName(_indexBuffer, "VulkanMeshIndices");
 			//_hash ^= Core::HashFNV1A(pindices, indSize); //necessary to distinguish between meshes? 
 		}
 	}

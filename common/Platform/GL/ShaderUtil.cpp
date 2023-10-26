@@ -198,6 +198,7 @@ namespace GL {
 	{
 		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		//glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer);
 		GLERR();
 	}

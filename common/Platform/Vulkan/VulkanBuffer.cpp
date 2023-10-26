@@ -62,6 +62,11 @@ namespace Vulkan {
 		return _data.size;
 	}
 
+	void VulkanBufferImpl::SetName(const char* pname)
+	{
+		setBufferName(_data.buffer, pname);
+	}
+
 	void* VulkanBufferImpl::MapPtr() {
 		return _data.ptr;
 	}

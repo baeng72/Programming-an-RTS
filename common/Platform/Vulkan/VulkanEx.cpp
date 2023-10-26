@@ -682,6 +682,11 @@ IndexBufferBuilder::IndexBufferBuilder(VkDevice device_, VkQueue queue_, VkComma
 
 }
 
+IndexBufferBuilder::~IndexBufferBuilder() {
+	indexSizes.clear();
+	indexPtrs.clear();
+}
+
 IndexBufferBuilder IndexBufferBuilder::begin(VkDevice device_, VkQueue queue_, VkCommandBuffer cmd_, VkPhysicalDeviceMemoryProperties& memoryProperties_) {
 	IndexBufferBuilder builder(device_, queue_, cmd_, memoryProperties_);
 	return builder;

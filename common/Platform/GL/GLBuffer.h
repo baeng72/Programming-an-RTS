@@ -17,5 +17,6 @@ namespace GL {
 		virtual void* MapPtr() override;
 		virtual void UnmapPtr() override;
 		virtual uint32_t GetSize()const override;
+		virtual void SetName(const char* pname)override {}
 	};
 }

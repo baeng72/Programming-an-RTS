@@ -29,7 +29,10 @@ namespace Vulkan {
 			VkDeviceSize vertSize;
 			VkDeviceSize indSize;
 			uint32_t numIndices;
+			size_t hash;
 		};
+		Vulkan::Buffer _stagingBuffer;
+
 		FrameData frames[MAX_FRAMES];//double-buffering
 		uint32_t currFrame;
 		std::unique_ptr<VulkanTexture> fontTexturePtr;

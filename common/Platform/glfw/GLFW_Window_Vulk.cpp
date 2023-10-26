@@ -37,7 +37,8 @@ namespace GLFW {
 			data._width = width;
 			data._height = height;
 			WindowResizeEvent event(width, height);
-			data._evFunc(event);
+			for (auto& func : data._evFunc)
+				func(event);
 
 			/*WindowResizeEvent event(width, height);
 			data.EventCallback(event);*/
@@ -46,26 +47,30 @@ namespace GLFW {
 		glfwSetWindowCloseCallback(_window, [](GLFWwindow* window) {
 			WinData& data = *(WinData*)glfwGetWindowUserPointer(window);
 			WindowCloseEvent event;
-			data._evFunc(event);
+			for (auto& func : data._evFunc)
+				func(event);
 			});
 		glfwSetKeyCallback(_window, [](GLFWwindow* window, int key, int scancode, int action, int modes) {
 			WinData& data = *(WinData*)glfwGetWindowUserPointer(window);
 			switch (action) {
 			case GLFW_PRESS: {
-				KeyPressedEvent event(key, false);
-				data._evFunc(event);
+				KeyPressedEvent event(key,scancode,modes, false);
+				for (auto& func : data._evFunc)
+					func(event);
 				//data.keys.insert(key);
 			}
 						   break;
 			case GLFW_RELEASE: {
-				KeyReleasedEvent event(key);
-				data._evFunc(event);
+				KeyReleasedEvent event(key,scancode,modes);
+				for (auto& func : data._evFunc)
+					func(event);
 			}
 							 break;
 			case GLFW_REPEAT:
 			{
-				KeyPressedEvent event(key, true);
-				data._evFunc(event);
+				KeyPressedEvent event(key,scancode,modes, true);
+				for (auto& func : data._evFunc)
+					func(event);
 			}
 			break;
 			}
@@ -77,13 +82,15 @@ namespace GLFW {
 			case GLFW_PRESS:
 			{
 				MouseButtonPressedEvent event(button);
-				data._evFunc(event);
+				for (auto& func : data._evFunc)
+					func(event);
 			}
 			break;
 			case GLFW_RELEASE:
 			{
 				MouseButtonReleasedEvent event(button);
-				data._evFunc(event);
+				for (auto& func : data._evFunc)
+					func(event);
 			}
 			break;
 			}
@@ -94,20 +101,23 @@ namespace GLFW {
 			data.xoffset = (float)xoffset;
 			data.yoffset = (float)yoffset;
 			MouseScrolledEvent event((float)xoffset, (float)yoffset);
-			data._evFunc(event);
+			for (auto& func : data._evFunc)
+				func(event);
 			});
 
 		glfwSetCursorPosCallback(_window, [](GLFWwindow* window, double xPos, double yPos) {
 			WinData& data = *(WinData*)glfwGetWindowUserPointer(window);
 			MouseMovedEvent event((float)xPos, (float)yPos);
-			data._evFunc(event);
+			for (auto& func : data._evFunc)
+				func(event);
 
 			});
 
 		glfwSetCharCallback(_window, [](GLFWwindow* window, unsigned int keycode) {
 			WinData& data = *(WinData*)glfwGetWindowUserPointer(window);
 			KeyTypedEvent event(keycode);
-			data._evFunc(event);
+			for (auto& func : data._evFunc)
+				func(event);
 
 			});
 		SetWindowCenter();
@@ -121,7 +131,7 @@ namespace GLFW {
 
 	void GLFW_Window_Vulk::SetEventHandler(const std::function<void(Event&)>& func)
 	{
-		winData._evFunc = func;
+		winData._evFunc.push_back(func);
 	}
 
 	void GLFW_Window_Vulk::OnBeginUpdate() {

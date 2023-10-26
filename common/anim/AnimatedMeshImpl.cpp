@@ -1,18 +1,19 @@
 #pragma once
 #include "AnimatedMeshImpl.h"
-
+#include "../Core/Log.h"
+#include "../Core/hash.h"
 #include "../Platform/Vulkan/VulkState.h"
 #include "../Platform/Vulkan/VulkSwapchain.h"
 
 namespace Mesh {
-	AnimatedMesh* AnimatedMesh::Create(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t vertStride, uint32_t* pindices, uint32_t indSize, Skeleton& skeleton, std::vector<AnimationClip>& animations) {
-		return new Animation::AnimatedMeshImpl(pdevice, pvertices, vertSize, vertStride, pindices, indSize, skeleton, animations);
+	AnimatedMesh* AnimatedMesh::Create(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize, Renderer::VertexAttributes& attributes, Skeleton& skeleton, std::vector<AnimationClip>& animations) {
+		return new Animation::AnimatedMeshImpl(pdevice, pvertices, vertSize, pindices, indSize, attributes, skeleton, animations);
 	}
 }
 
 namespace Animation {
 	
-	AnimatedMeshImpl::AnimatedMeshImpl(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t vertStride, uint32_t* pindices, uint32_t indSize, Mesh::Skeleton& skeleton, std::vector<Mesh::AnimationClip>& animations)
+	AnimatedMeshImpl::AnimatedMeshImpl(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize, Renderer::VertexAttributes& attributes, Mesh::Skeleton& skeleton, std::vector<Mesh::AnimationClip>& animations)
 		:_pdevice(pdevice),_skeleton(skeleton),_animations(animations),_boneCount((uint32_t)skeleton.boneHierarchy.size()){
 		_skeletonsAllocated = 0u;
 		_controllerCount = 0;
@@ -84,22 +85,30 @@ namespace Animation {
 			}
 			
 		}*/
-		_matrixPalette.resize(_skeleton.boneHierarchy.size());//reserve space for bone hierarchy
+		//_matrixPalette.resize(_skeleton.boneHierarchy.size());//reserve space for bone hierarchy
 		AllocateBoneBuffer(4);
 		
-		Create(pvertices, vertSize, pindices, indSize);
+		Create(pvertices, vertSize, pindices, indSize,attributes);
 		
+		/*size_t vhash = HASH(&vertSize);
+		size_t ihash = HASH(&indSize);
+		size_t shash = HASH(&attributes.vertexStride);
+		
+		_hash = (vhash * Core::fnvprime) ^ (ihash * Core::fnvprime) ^ shash;*/
 	}
 	
 	AnimatedMeshImpl::~AnimatedMeshImpl() {
-		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
+		/*Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
 		Vulkan::VulkContext& context = *contextptr;
 
 		Vulkan::cleanupBuffer(context.device, _vertexBuffer);
-		Vulkan::cleanupBuffer(context.device, _indexBuffer);
+		Vulkan::cleanupBuffer(context.device, _indexBuffer);*/
+		_vibuffer.reset();
+		_boneBuffer.reset();
 	}
-	void AnimatedMeshImpl::Create(float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize) {
-		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
+	void AnimatedMeshImpl::Create(float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize,Renderer::VertexAttributes&attributes) {\
+		_vibuffer = std::unique_ptr<Renderer::VIBuffer>(Renderer::VIBuffer::Create(_pdevice, pvertices, vertSize, pindices, indSize, attributes, true));
+		/*Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
 		Vulkan::VulkContext& context = *contextptr;
 		{
 
@@ -108,6 +117,8 @@ namespace Animation {
 			Vulkan::VertexBufferBuilder::begin(context.device, context.queue, context.commandBuffer, context.memoryProperties)
 				.AddVertices(vertSize, pvertices)
 				.build(_vertexBuffer, vertexLocations);
+			setBufferName(_vertexBuffer, "AnimatedMeshImplVertices");
+			
 		}
 		{
 			std::vector<uint32_t> indexLocations;
@@ -115,7 +126,9 @@ namespace Animation {
 				.AddIndices(indSize, pindices)
 				.build(_indexBuffer, indexLocations);
 			_indexCount = indSize / sizeof(uint32_t);
+			setBufferName(_indexBuffer, "AnimatedMeshImplIndices");
 		}
+		*/
 	}
 
 	Mesh::AnimationController* AnimatedMeshImpl::GetController()
@@ -124,7 +137,7 @@ namespace Animation {
 		AllocateBoneBuffer((uint32_t)(_controllerCount + 1));
 		//int index = (int)_boneOffsetMap.size();
 		auto pcontroller= Mesh::AnimationController::Create(_animations, _skeleton,_controllerCount++);
-		size_t ctrlhash = reinterpret_cast<size_t>(pcontroller);
+		//size_t ctrlhash = reinterpret_cast<size_t>(pcontroller);
 		
 		//_boneOffsetMap[ctrlhash] = index;
 		return pcontroller;
@@ -134,22 +147,37 @@ namespace Animation {
 	{
 		return _boneBuffer.get();
 	}
+
+	void AnimatedMeshImpl::Bind()
+	{
+		
+		/*Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
+		Vulkan::VulkFrameData& frameData = *pframedata;
+		vkCmdBindIndexBuffer(frameData.cmd, _indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(frameData.cmd, 0, 1, &_vertexBuffer.buffer, offsets);*/
+		_vibuffer->Bind();
+	}
+
+	size_t AnimatedMeshImpl::GetHash()
+	{
+		//return _hash;
+		return _vibuffer->GetHash();
+	}
 	
 	void AnimatedMeshImpl::Render(/*Renderer::Shader* pshader,*/ Mesh::AnimationController* pcontroller)
 	{
 		uint32_t boneCount = _boneCount;
 		uint32_t skeletonSize = sizeof(mat4) * boneCount;
 		uint32_t offset = pcontroller->GetControllerOffset();// _boneOffsetMap[reinterpret_cast<size_t>(pcontroller)];
+		_bonePtrBase = (mat4*)_boneBuffer->MapPtr();
 		mat4* ppalette = &_bonePtrBase[offset];
 		pcontroller->GetPose(ppalette,skeletonSize);
-		//uint32_t dynoffsets[1] = { offset*skeletonSize};
-		//pshader->Bind(dynoffsets,1);
-		Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
-		Vulkan::VulkFrameData& frameData = *pframedata;
-		vkCmdBindIndexBuffer(frameData.cmd, _indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-		VkDeviceSize offsets[1] = { 0 };
-		vkCmdBindVertexBuffers(frameData.cmd, 0, 1, &_vertexBuffer.buffer, offsets);
-		vkCmdDrawIndexed(frameData.cmd, _indexCount, 1, 0, 0, 0);
+		/*Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
+		Vulkan::VulkFrameData& frameData = *pframedata;		
+		vkCmdDrawIndexed(frameData.cmd, _indexCount, 1, 0, 0, 0);*/
+		_boneBuffer->UnmapPtr();
+		_vibuffer->Render();
 	}
 
 	/*void AnimatedMeshImpl::UpdateShader(Renderer::Shader* pshader)
@@ -163,8 +191,10 @@ namespace Animation {
 			count = (count + buffer_block-1) & ~(buffer_block-1);
 			VkDeviceSize size = sizeof(mat4) * std::max(_boneCount,20u);//initialial allocation
 			_boneBuffer.reset(Renderer::Buffer::Create(_pdevice, (uint32_t)size,count,false, true));
+			
 			_bonePtrBase = (mat4*)_boneBuffer->MapPtr();//may need to change for OpenGL
 			_skeletonsAllocated = (uint32_t)count;
+			_boneBuffer->UnmapPtr();
 		}
 	}
 	//void AnimatedMeshImpl::SetAnimation(int anim, bool fade)

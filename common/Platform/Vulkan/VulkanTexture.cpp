@@ -95,4 +95,8 @@ namespace Vulkan {
 		glm::vec2 scale = glm::vec2(_size.x/(float)_texture.width,_size.y/(float) _texture.height);
 		return scale;
 	}
+	void VulkanTextureImpl::SetName(const char* pname)
+	{
+		Vulkan::setTextureName(_texture, pname);
+	}
 }

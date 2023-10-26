@@ -1,6 +1,6 @@
 #include "stb_image_impl.h"
 #include <stb_image.h>
-#include <stb_image_resize.h>
+#include <stb_image_resize2.h>
 #include "../../Core/Log.h"
 
 Renderer::Image* Renderer::Image::Create(const char* pfilename, int desiredwidth, int desiredheight) {
@@ -27,8 +27,8 @@ namespace STB {
 			//need to resize, probably better ways to do this, but meh
 			stbi_uc* newTexPixels = (stbi_uc*)malloc(desiredwidth * desiredheight * _channels);
 
-			stbir_resize_uint8(_pixels,_width, _height, _width,
-				newTexPixels, desiredwidth, desiredheight, 0,_channels);
+			stbir_resize_uint8_linear(_pixels,_width, _height, _width,
+				newTexPixels, desiredwidth, desiredheight, 0,(stbir_pixel_layout)_channels);
 
 			stbi_image_free(_pixels);
 			_pixels = newTexPixels;

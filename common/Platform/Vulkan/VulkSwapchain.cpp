@@ -237,6 +237,8 @@ namespace Vulkan {
 		cleanupFramebuffers(device, framebuffers);
 		framebuffers.clear();
 #else
+		cleanupCommandBuffers(device, commandPools, commandBuffers,MAX_FRAME_COUNT);
+		cleanupCommandPools(device, commandPools,MAX_FRAME_COUNT);
 		for (int i = 0; i < MAX_FRAME_COUNT; i++) {
 			if (presentCompletes[i] != VK_NULL_HANDLE) {
 				cleanupSemaphore(device, presentCompletes[i]);
@@ -251,6 +253,7 @@ namespace Vulkan {
 				fences[i] = VK_NULL_HANDLE;
 			}
 		}
+		cleanupFramebuffers(device, framebuffers,MAX_FRAME_COUNT);
 #endif
 		if (msaaImage.image != VK_NULL_HANDLE) {
 			cleanupImage(device, msaaImage);

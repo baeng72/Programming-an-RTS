@@ -11,7 +11,7 @@ namespace GLFW {
 			std::string title;
 			uint32_t _width;
 			uint32_t _height;
-			std::function<void(Event&)> _evFunc;
+			std::vector<std::function<void(Event&)>> _evFunc;
 			float xoffset;
 			float yoffset;
 
@@ -53,6 +53,9 @@ namespace GLFW {
 		}
 		virtual void SetTitle(const char* ptitle)override {
 			glfwSetWindowTitle(_window, ptitle);
+		}
+		virtual void GetWindowPos(int& xpos, int& ypos)override {
+			glfwGetWindowPos(_window, &xpos, &ypos);
 		}
 	};
 }

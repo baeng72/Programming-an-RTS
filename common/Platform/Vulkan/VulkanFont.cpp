@@ -1,5 +1,6 @@
 
 #include "../../Core/Log.h"
+#include "../../Core/hash.h"
 #include "VulkanFont.h"
 #include "VulkState.h"
 #include "VulkSwapchain.h"
@@ -32,7 +33,10 @@ namespace Vulkan {
 			frames[i].indSize = 0;
 			frames[i].vertexBuffer.buffer = VK_NULL_HANDLE;
 			frames[i].vertSize = 0;
+			frames[i].hash = SIZE_MAX;
 		}
+		_stagingBuffer.buffer = VK_NULL_HANDLE;
+		_stagingBuffer.size = 0;
 	}
 
 	VulkanFont::~VulkanFont()
@@ -40,6 +44,12 @@ namespace Vulkan {
 		VulkContext* contextptr = reinterpret_cast<VulkContext*>(_renderdevice->GetDeviceContext());
 		VulkContext& context = *contextptr;
 		vkDeviceWaitIdle(context.device);
+		for (int i = 0; i < MAX_FRAMES; i++) {
+			cleanupBuffer(context.device, frames[i].vertexBuffer);
+			cleanupBuffer(context.device, frames[i].indexBuffer);
+		}
+		if (_stagingBuffer.buffer != VK_NULL_HANDLE)
+			cleanupBuffer(context.device, _stagingBuffer);
 	}
 
 	void VulkanFont::Init(Renderer::RenderDevice* pdevice, const char* pfont, int fontSize)
@@ -192,7 +202,7 @@ void main(){
 #endif
 			initTexture(context.device, context.memoryProperties, props, texture);
 			transitionImage(context.device, context.queue, context.commandBuffer, texture.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, texture.mipLevels);
-
+			setTextureName(texture, "FontTexture");
 			Buffer stagingBuffer;
 			BufferProperties bufProps;
 #ifdef __USE__VMA__
@@ -327,60 +337,74 @@ void main(){
 		VkCommandBuffer cmd = frameData.cmd;
 		VkDeviceSize vertSize = sizeof(FontVertex) * _vertices.size();
 		VkDeviceSize indSize = sizeof(uint32_t) * _indices.size();
+		size_t hash = Core::HashFNV1A(_vertices.data(), vertSize);
 		currFrame++;
 		uint32_t frameIdx = currFrame % MAX_FRAMES;
 		VkDeviceSize maxSize = std::max(vertSize, indSize);
 		
 		FrameData& frame = frames[frameIdx];
-		bool needStaging = !(frame.vertSize == 0 || frame.vertSize < vertSize || frame.indSize == 0 || frame.indSize < indSize);
-		Vulkan::Buffer stagingBuffer;
-		void* ptr = nullptr;
-		if (needStaging) {
-			stagingBuffer = StagingBufferBuilder::begin(context.device, context.memoryProperties)
-				.setSize(maxSize)
-				.build();
-			ptr = Vulkan::mapBuffer(context.device, stagingBuffer);
-		}
-		if (frame.vertSize == 0 || frame.vertSize < vertSize) {
-			if (frame.vertexBuffer.buffer != VK_NULL_HANDLE) {
-				cleanupBuffer(context.device, frame.vertexBuffer);
-			}
-			std::vector<uint32_t> vertexLocations;
-			VertexBufferBuilder::begin(context.device, context.queue, context.commandBuffer, context.memoryProperties)
-				.AddVertices(vertSize, (float*)_vertices.data())
-				.build(frame.vertexBuffer, vertexLocations);
+		if (frame.hash != hash) {
 		
-		}
-		else if (vertSize > 0) {
-			//stream vertices
-			
-			memcpy(ptr, _vertices.data(), vertSize);			
-			Vulkan::CopyBufferTo(context.device, context.queue, context.commandBuffer, stagingBuffer, frame.vertexBuffer, vertSize);
-			
-
-		}
-		frame.vertSize = vertSize;
-		if (frame.indSize == 0 || frame.indSize < indSize) {
-			if (frame.indexBuffer.buffer != VK_NULL_HANDLE) {
-				cleanupBuffer(context.device, frame.indexBuffer);
+			bool needStaging = !(frame.vertSize == 0 || frame.vertSize < vertSize || frame.indSize == 0 || frame.indSize < indSize);
+			//Vulkan::Buffer stagingBuffer;
+			void* ptr = nullptr;
+			if (needStaging) {
+				if (_stagingBuffer.size < maxSize) {
+					if (_stagingBuffer.buffer != VK_NULL_HANDLE) {
+						Vulkan::cleanupBuffer(context.device, _stagingBuffer);
+						_stagingBuffer.buffer = VK_NULL_HANDLE;
+						_stagingBuffer.size = 0;
+					}
+					_stagingBuffer = StagingBufferBuilder::begin(context.device, context.memoryProperties)
+						.setSize(maxSize)
+						.build();
+					setBufferName(_stagingBuffer, "VulkanFontStaging");
+				}
+				ptr = Vulkan::mapBuffer(context.device, _stagingBuffer);
 			}
-			std::vector<uint32_t> indexLocations;
-			IndexBufferBuilder::begin(context.device, context.queue, context.commandBuffer, context.memoryProperties)
-				.AddIndices(indSize, _indices.data())
-				.build(frame.indexBuffer, indexLocations);
-			
-		}
-		else if (indSize > 0) {
-			//stream indices
-			memcpy(ptr, _indices.data(), indSize);
-			Vulkan::CopyBufferTo(context.device, context.queue, context.commandBuffer, stagingBuffer, frame.indexBuffer, indSize);
-			
-		}
-		frame.indSize = indSize;
-		frame.numIndices = (uint32_t)_indices.size();
-		if (needStaging) {
-			Vulkan::unmapBuffer(context.device, stagingBuffer);
-			Vulkan::cleanupBuffer(context.device, stagingBuffer);
+
+			if (frame.vertSize == 0 || frame.vertSize < vertSize) {
+				if (frame.vertexBuffer.buffer != VK_NULL_HANDLE) {
+					cleanupBuffer(context.device, frame.vertexBuffer);
+				}
+				std::vector<uint32_t> vertexLocations;
+				VertexBufferBuilder::begin(context.device, context.queue, context.commandBuffer, context.memoryProperties)
+					.AddVertices(vertSize, (float*)_vertices.data())
+					.build(frame.vertexBuffer, vertexLocations);
+
+			}
+			else if (vertSize > 0) {
+				//stream vertices
+
+				memcpy(ptr, _vertices.data(), vertSize);
+				Vulkan::CopyBufferTo(context.device, context.queue, context.commandBuffer, _stagingBuffer, frame.vertexBuffer, vertSize);
+
+
+			}
+			frame.vertSize = vertSize;
+			if (frame.indSize == 0 || frame.indSize < indSize) {
+				if (frame.indexBuffer.buffer != VK_NULL_HANDLE) {
+					cleanupBuffer(context.device, frame.indexBuffer);
+				}
+				std::vector<uint32_t> indexLocations;
+				IndexBufferBuilder::begin(context.device, context.queue, context.commandBuffer, context.memoryProperties)
+					.AddIndices(indSize, _indices.data())
+					.build(frame.indexBuffer, indexLocations);
+
+			}
+			else if (indSize > 0) {
+				//stream indices
+				memcpy(ptr, _indices.data(), indSize);
+				Vulkan::CopyBufferTo(context.device, context.queue, context.commandBuffer, _stagingBuffer, frame.indexBuffer, indSize);
+
+			}
+			frame.indSize = indSize;
+			frame.numIndices = (uint32_t)_indices.size();
+			if (needStaging) {
+				Vulkan::unmapBuffer(context.device, _stagingBuffer);
+				//Vulkan::cleanupBuffer(context.device, stagingBuffer);
+			}
+			frame.hash = hash;
 		}
 		currFrame = frameIdx;
 		_vertices.clear();

@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "../Renderer/VIBuffer.h"
 #include "../mesh/AnimatedMesh.h"
 #include "../Platform/Vulkan/VulkanEx.h"
 namespace Animation {
@@ -7,6 +8,7 @@ namespace Animation {
 	class AnimatedMeshImpl : public Mesh::AnimatedMesh {
 		Renderer::RenderDevice* _pdevice;
 		std::vector<Mesh::AnimationClip> _animations;
+		std::unique_ptr<Renderer::VIBuffer> _vibuffer;
 		/*struct AnimationData {
 			std::vector<float> times;
 			std::vector<std::vector<vec3>> positions;
@@ -17,7 +19,7 @@ namespace Animation {
 		
 		std::vector<AnimationData> _animationFrames;*/
 		Mesh::Skeleton _skeleton;
-		std::vector<mat4> _matrixPalette;
+		//std::vector<mat4> _matrixPalette;
 		/*std::vector<float> _clipTimes;
 		std::vector<mat4> _poseXForms;
 		std::vector<mat4> _matrixPalette;
@@ -33,8 +35,8 @@ namespace Animation {
 		float _blendLength;
 		float _blendTime;
 		float GetClipLength();*/
-		Vulkan::Buffer _vertexBuffer;
-		Vulkan::Buffer _indexBuffer;
+		/*Vulkan::Buffer _vertexBuffer;
+		Vulkan::Buffer _indexBuffer;*/
 		std::unique_ptr<Renderer::Buffer> _boneBuffer;
 		uint32_t		_indexCount;
 		uint32_t		_boneCount;
@@ -42,10 +44,11 @@ namespace Animation {
 		mat4* _bonePtrBase;
 		//std::unordered_map<size_t,uint32_t> _boneOffsetMap;
 		int				_controllerCount;
+		//size_t			_hash;
 		void AllocateBoneBuffer(uint32_t count);
-		void Create(float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize);
+		void Create(float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize,Renderer::VertexAttributes&attributes);
 	public:
-		AnimatedMeshImpl(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t vertStride, uint32_t* pindices, uint32_t indSize,Mesh::Skeleton&skeleton, std::vector<Mesh::AnimationClip>& animations);
+		AnimatedMeshImpl(Renderer::RenderDevice* pdevice, float* pvertices, uint32_t vertSize, uint32_t* pindices, uint32_t indSize, Renderer::VertexAttributes& attributes,Mesh::Skeleton&skeleton, std::vector<Mesh::AnimationClip>& animations);
 		virtual ~AnimatedMeshImpl();
 		virtual void Render(/*Renderer::Shader* pshader,*/ Mesh::AnimationController* pcontroller)override;
 		//virtual void UpdateShader(Renderer::Shader* pshader) override;
@@ -60,6 +63,8 @@ namespace Animation {
 		//virtual int GetBoneIndex(const char* boneName) override;
 		//virtual int GetBonePoseXForm(int boneID, mat4& xform) override;
 		virtual Renderer::Buffer* GetBoneBuffer()const override;
+		virtual void Bind()override;
+		virtual size_t GetHash()override;
 	};
 }
 

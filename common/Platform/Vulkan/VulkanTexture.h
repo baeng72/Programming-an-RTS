@@ -13,6 +13,7 @@ namespace Vulkan{
 		virtual ~VulkanTextureImpl();		
 		virtual void* GetNativeHandle()const override;
 		virtual glm::vec2 GetScale()const override;
+		virtual void SetName(const char* pname)override;
 	};
 }
 

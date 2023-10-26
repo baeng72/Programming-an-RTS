@@ -439,11 +439,24 @@ namespace Vulkan{
 		cleanupCommandBuffers(device, commandPools, commandBuffers);
 	}
 
-
+	void cleanupCommandBuffers(VkDevice device, VkCommandPool* commandPools, VkCommandBuffer* commandBuffers, uint32_t count) {
+		for (uint32_t i = 0; i < count; i++) {
+			vkFreeCommandBuffers(device, commandPools[i],1, &commandBuffers[i]);
+		}
+	
+		
+		
+	}
 
 	void cleanupCommandPools(VkDevice device, std::vector<VkCommandPool>& commandPools) {
 		for (auto& commandPool : commandPools) {
 			vkDestroyCommandPool(device, commandPool, nullptr);
+		}
+	}
+
+	void cleanupCommandPools(VkDevice device, VkCommandPool*commandPools,uint32_t count) {
+		for (uint32_t i = 0; i < count;i++) {
+			vkDestroyCommandPool(device, commandPools[i], nullptr);
 		}
 	}
 
@@ -615,7 +628,11 @@ namespace Vulkan{
 		initSampler(device, props.samplerProps, texture);
 
 	}
-
+#ifdef __USE__VMA__
+	void setTextureName(Texture& image, const char* pname) {
+		vmaSetAllocationName(allocator, image.allocation, pname);
+	}
+#endif
 	void initImage(VkDevice device, VkImageCreateInfo& imageCI, Image& image, bool isMapped) {
 #ifdef __USE__VMA__
 		VmaAllocationCreateInfo imageAllocCreateInfo = {};
@@ -700,7 +717,11 @@ namespace Vulkan{
 		image.mipLevels = mipLevels;
 		image.layerCount = props.layers;
 	}
-
+#ifdef __USE__VMA__
+	void setImageName(Image&image,const char* pname) {
+		vmaSetAllocationName(allocator, image.allocation, pname);
+	}
+#endif
 	void initSampler(VkDevice device, SamplerProperties& props, Texture& texture) {
 		VkSamplerCreateInfo samplerCI{ VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
 		samplerCI.magFilter = samplerCI.minFilter = props.filter;// VK_FILTER_LINEAR;
@@ -1307,6 +1328,11 @@ namespace Vulkan{
 			vkDestroyFramebuffer(device, framebuffer, nullptr);
 		}
 	}
+	void cleanupFramebuffers(VkDevice device, VkFramebuffer* framebuffers, uint32_t count) {
+		for (uint32_t i = 0; i < count; i++) {
+			vkDestroyFramebuffer(device, framebuffers[i], nullptr);
+		}
+	}
 
 	void initBuffer(VkDevice device, VkPhysicalDeviceMemoryProperties& memoryProperties, BufferProperties& props, Buffer& buffer) {
 		VkBufferCreateInfo bufferCI{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
@@ -1337,7 +1363,11 @@ namespace Vulkan{
 		buffer.size = memReqs.size;
 #endif
 	}
-
+#ifdef __USE__VMA__
+	void setBufferName(Buffer& buffer, const char* pname) {
+		vmaSetAllocationName(allocator, buffer.allocation, pname);
+	}
+#endif
 	void cleanupBuffer(VkDevice device, Buffer& buffer) {
 		if (buffer.buffer != VK_NULL_HANDLE) {
 #ifdef __USE__VMA__

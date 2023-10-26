@@ -1,7 +1,7 @@
 #pragma
 
 #include "../../Renderer/Shader.h"
-#include <glad/glad.h>
+
 #include "ShaderUtil.h"
 namespace GL {
 	class GLShader : public Renderer::Shader {
