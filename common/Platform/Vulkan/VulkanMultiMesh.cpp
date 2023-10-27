@@ -66,6 +66,10 @@ namespace Vulkan {
 
 	VulkanMultiMesh::~VulkanMultiMesh()
 	{
+		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
+		Vulkan::VulkContext& context = *contextptr;
+		cleanupBuffer(context.device, _indexBuffer);
+		cleanupBuffer(context.device, _vertexBuffer);
 	}
 
 	uint32_t VulkanMultiMesh::GetPartCount()const {

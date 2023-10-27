@@ -11,17 +11,17 @@ namespace GL {
 		glGenBuffers(1, &_buffer);		
 		if (isUniform) {
 			glBindBuffer(GL_UNIFORM_BUFFER, _buffer);
-			glBufferData(GL_UNIFORM_BUFFER, size, ptr, GL_DYNAMIC_DRAW);
+			glBufferData(GL_UNIFORM_BUFFER, size*count, ptr, GL_DYNAMIC_DRAW);
 			//glBindBufferBase(GL_UNIFORM_BUFFER, 0, _buffer);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		}
 		else {
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, _buffer);
-			glBufferData(GL_SHADER_STORAGE_BUFFER, size, ptr, GL_DYNAMIC_DRAW);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, size*count, ptr, GL_DYNAMIC_DRAW);
 			//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _buffer);
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);			
 		}		
-		_size = size;
+		_size = size*count;
 	}
 	GLBuffer::~GLBuffer()
 	{

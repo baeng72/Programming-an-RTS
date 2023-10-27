@@ -2,7 +2,7 @@
 
 namespace GL {
 	GLShader::GLShader(Renderer::RenderDevice* pdevice, void* shaderData)
-		:_pdevice(pdevice),_pshader(reinterpret_cast<ShaderUtil*>(shaderData))
+		:_pdevice(pdevice),_pshader(reinterpret_cast<ShaderUtil*>(shaderData)),_buffer(UINT32_MAX)
 	{
 	}
 	GLShader::~GLShader() {
@@ -16,9 +16,13 @@ namespace GL {
 		if (pdynoffsets && dynoffcount > 0) {
 
 			GLint buffer=0;
-			glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING, &buffer);
-			GLERR();
-			glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 0, buffer, (GLintptr)pdynoffsets[0],8*256);
+			if (_buffer != UINT32_MAX)
+				buffer = _buffer;
+			else {
+				glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING, &buffer);
+				GLERR();
+			}
+			glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 0, buffer, (GLintptr)pdynoffsets[0],20*64);
 			GLERR();
 		}
 	}
@@ -147,7 +151,10 @@ namespace GL {
 	}
 	bool GLShader::SetStorageBuffer(const char* pname, Renderer::Buffer* pbuffer, bool dynamic)
 	{
-		return false;
+		GLuint buffer = *(GLuint*)pbuffer->GetNativeHandle();
+		_buffer = buffer;
+		_pshader->SetStorageBuffer(buffer);
+		return true;
 	}
 	bool GLShader::SetStorageData(uint32_t i, void* ptr, uint32_t len, bool dynamic)
 	{

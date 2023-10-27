@@ -146,8 +146,8 @@ void main(){
 	VulkanSprite::~VulkanSprite()
 	{
 		if (--instances == 0) {
-			spritePipelineLayoutPtr.release();
-			spritePipelinePtr.release();
+			spritePipelineLayoutPtr.reset();
+			spritePipelinePtr.reset();
 		}
 	}
 	

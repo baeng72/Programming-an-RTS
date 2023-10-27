@@ -227,7 +227,7 @@ namespace Vulkan {
 	};
 
 	void initBuffer(VkDevice device, VkPhysicalDeviceMemoryProperties& memoryProperties, BufferProperties& props, Buffer& buffer);
-#ifdef __USE__VMA__
+#if defined(__USE__VMA__) && defined(_DEBUG)
 	void setBufferName(Buffer& buffer, const char* pname);
 #else
 #define setBufferName(b,p)

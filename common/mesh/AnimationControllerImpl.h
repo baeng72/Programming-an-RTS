@@ -55,7 +55,7 @@ namespace Mesh {
 		virtual int GetBoneIndex(const char* boneName) override;
 		virtual int GetBonePoseXForm(int boneID, mat4& xform) override;
 		virtual int GetControllerID() override { return _id; };
-		virtual int GetControllerOffset()const override {		return (int)(_id *  _boneCount);		}
+		virtual int GetControllerOffset()const override {		return (int)(_id * std::max(_boneCount, 20));		}
 		virtual bool Pause(bool pause)override { return false; }
 	};
 }

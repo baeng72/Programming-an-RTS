@@ -33,6 +33,7 @@ namespace Vulkan {
 		if (ptr)
 			memcpy(_data.ptr, ptr, size);
 		_data.descriptorType = descriptorType;
+		setBufferName(_data.buffer, "VulkanBuffer");
 	}
 
 	VulkanBufferImpl::~VulkanBufferImpl()

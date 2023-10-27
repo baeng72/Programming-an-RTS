@@ -94,9 +94,11 @@ void main(){
 
 	VulkanLine::~VulkanLine()
 	{
-		
-		linePipelineLayoutPtr.release();
-		linePipelinePtr.release();
+		VulkContext* contextptr = reinterpret_cast<VulkContext*>(_pdevice->GetDeviceContext());
+		VulkContext& context = *contextptr;
+		cleanupBuffer(context.device, _vertexBuffer);
+		linePipelineLayoutPtr.reset();
+		linePipelinePtr.reset();
 		
 	}
 	

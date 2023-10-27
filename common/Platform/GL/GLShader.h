@@ -7,6 +7,7 @@ namespace GL {
 	class GLShader : public Renderer::Shader {
 		Renderer::RenderDevice* _pdevice;
 		ShaderUtil* _pshader;
+		unsigned int _buffer;
 	public:
 		GLShader(Renderer::RenderDevice* pdevice, void* shaderData);
 		virtual ~GLShader();

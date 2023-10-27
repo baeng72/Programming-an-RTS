@@ -150,9 +150,11 @@ void main(){
 
 	VulkanParticleSwarm::~VulkanParticleSwarm()
 	{
-		
-		particlePipelineLayoutPtr.release();
-		particlePipelinePtr.release();
+		VulkContext* contextptr = reinterpret_cast<VulkContext*>(_pdevice->GetDeviceContext());
+		VulkContext& context = *contextptr;
+		cleanupBuffer(context.device, _vertexBuffer);
+		particlePipelineLayoutPtr.reset();
+		particlePipelinePtr.reset();
 		
 	}
 	
