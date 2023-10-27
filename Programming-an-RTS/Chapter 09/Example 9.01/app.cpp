@@ -7,9 +7,10 @@
 #include "unit.h"
 
 
-class APPLICATION : public Application {
+class APPLICATION : public Core::Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;	
 	std::shared_ptr<Renderer::ShaderManager> _shadermanager;
+	std::shared_ptr<Core::ThreadPool> _threads;
 	std::unique_ptr<Renderer::Font> _font;		
 	std::unique_ptr<Renderer::Line2D> _line;
 	Renderer::DirectionalLight _light;	
@@ -45,12 +46,12 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	LOG_INFO("Application::Init()");
 	if (!Application::Init(width, height, title))
 		return false;
-
+	_threads.reset(new Core::ThreadPool());
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
 	_device->EnableDepthBuffer(true);
 	_device->EnableLines(true);
 	_device->EnableGeometry(true);
-	_device->SetVSync(true);
+	_device->SetVSync(false);
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	_font.reset(Renderer::Font::Create());
@@ -86,7 +87,8 @@ void APPLICATION::Update(float deltaTime) {
 	_camera.Update(_mouse, _terrain, deltaTime);
 	_mouse.Update(_terrain);
 	for (auto unit : _units) {
-		unit->Update(deltaTime);
+		_threads->QueueJob([unit, deltaTime]() {unit->Update(deltaTime); });
+		//unit->Update(deltaTime);
 	}
 	if (IsKeyPressed(KEY_ESCAPE))
 		Quit();
@@ -171,7 +173,13 @@ void APPLICATION::Cleanup() {
 	UnloadUnitResources();
 	UnloadMapObjectResources();
 	UnloadObjectResources();
-	_terrain.Release();
+	
+	_threads->Stop();
+	for (auto unit : _units) {
+		delete unit;
+	}
+	_units.clear();
+	_terrain.Cleanup();
 }
 
 void APPLICATION::AddUnits() {
@@ -198,6 +206,7 @@ void APPLICATION::AddUnits() {
 void APPLICATION::Select(mat4& matProj,mat4 &matView) {
 	mat4 matVP = matProj * matView;
 	vec4 viewport{ 0,0,(float)_width,(float)_height };
+	
 	if (_mouse.ClickLeft()) {
 		//If the mouse button is pressed
 		for (auto unit : _units) {
@@ -219,6 +228,7 @@ void APPLICATION::Select(mat4& matProj,mat4 &matView) {
 			//Area selection in progress
 			INTPOINT p1 = _startSelect;
 			INTPOINT p2 = _mouse;
+			
 			if (p1.x > p2.x) {
 				std::swap(p1.x, p2.x);
 			}
@@ -226,8 +236,7 @@ void APPLICATION::Select(mat4& matProj,mat4 &matView) {
 				std::swap(p1.y, p2.y);
 			}
 
-			Rect selRect{ p1.x,p1.y,p2.x,p2.y };
-
+			
 			//Draw selection rectangle
 			vec2 box[] = { vec2(p1.x, p1.y), vec2(p2.x, p1.y),
 									 vec2(p2.x, p2.y), vec2(p1.x, p2.y),
@@ -235,6 +244,8 @@ void APPLICATION::Select(mat4& matProj,mat4 &matView) {
 
 
 			_line->Draw(box, 5, Color(1.f), 1.f);
+		
+			Rect selRect{ p1.x,p1.y,p2.x,p2.y };
 
 			for (auto unit : _units) {
 				INTPOINT p = GetScreenPos(matVP, viewport, unit->_position);
@@ -271,7 +282,21 @@ int APPLICATION::GetUnit(mat4& matProj,mat4&matView) {
 }
 
 
-int main() {
+
+int main(int argc, char* argv[]) {
+#if defined(DEBUG) | defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	//_CrtSetBreakAlloc(465433);
+#endif
+	if (argc > 1) {
+		if (!_strcmpi(argv[1], "gl")) {
+
+			Core::SetAPI(Core::API::GL);
+		}
+		else {
+			Core::SetAPI(Core::API::Vulkan);
+		}
+	}
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 9.1: Unit Example")) {
 		app.Run(); 

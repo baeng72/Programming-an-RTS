@@ -86,6 +86,7 @@ UNIT::~UNIT() {
 		if (tile)
 			tile->_pMapObject = nullptr;
 	}
+	_animationController.reset();
 }
 
 void UNIT::Render(mat4& matVP, Renderer::DirectionalLight& light) {

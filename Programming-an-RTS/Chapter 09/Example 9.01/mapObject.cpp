@@ -14,7 +14,16 @@ void UnloadMapObjectResources() {
 }
 
 INTPOINT GetScreenPos(mat4&matVP,vec4&viewport, vec3& pos) {
-	vec3 p = glm::project(pos, glm::mat4(1.f), matVP, viewport);
+	vec3 p;
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		p = glm::projectZO(pos, glm::mat4(1.f), matVP, viewport);
+	}
+	else {
+		p = glm::projectNO(pos, glm::mat4(1.f), matVP, viewport);
+		float py = 2.f * p.y / (float)viewport.w - 1.f;
+		py *= -1;
+		p.y = viewport.w * (py + 1.f) * 0.5f;
+	}
 	return INTPOINT((int)p.x, (int)p.y);
 }
 

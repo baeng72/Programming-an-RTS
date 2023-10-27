@@ -91,11 +91,11 @@ public:
 public:
 	TERRAIN();
 	void Cleanup();
-	void Init(Renderer::RenderDevice* pdevice,Window*pwindow, std::shared_ptr<Renderer::ShaderManager> manager, INTPOINT size_);
-	void GenerateRandomTerrain(Window*pwindow,int numPatches);
+	void Init(Renderer::RenderDevice* pdevice,Core::Window*pwindow, std::shared_ptr<Renderer::ShaderManager> manager, INTPOINT size_);
+	void GenerateRandomTerrain(Core::Window*pwindow,int numPatches);
 	void CreatePatches(int numPatches);
 	void CalculateAlphaMaps();
-	void CalculateLightMap(Window*pwindow);
+	void CalculateLightMap(Core::Window*pwindow);
 	void Render(mat4&viewProj, mat4&model, Renderer::DirectionalLight&light,CAMERA&camera);
 	void Progress(const char* ptext, float prc);
 	vec3 GetNormal(int x, int y);
