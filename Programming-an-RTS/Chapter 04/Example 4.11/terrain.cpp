@@ -240,6 +240,7 @@ void TERRAIN::CalculateAlphaMaps() {
 	}
 	//create a new texture
 	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
+	delete[] pdata;
 	if (Core::GetAPI() == Core::API::Vulkan) {
 		std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
 		_shader->SetTextures(textures.data(), 4);

@@ -18,6 +18,7 @@ HEIGHTMAP::HEIGHTMAP(Renderer::RenderDevice* pdevice, INTPOINT size_)
 HEIGHTMAP::~HEIGHTMAP()
 {
 	delete[] _pHeightMap;
+	_heightMapTexture.reset();
 }
 
 bool HEIGHTMAP::LoadFromFile(const char* fileName)

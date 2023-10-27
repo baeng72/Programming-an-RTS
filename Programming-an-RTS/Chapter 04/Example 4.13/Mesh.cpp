@@ -44,7 +44,9 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 
 void MESH::Release()
 {
+	
 	_pdevice->Wait();//who needs synchronisation when you can block GPU?
+	_shader.reset();
 	_mesh.reset();
 }
 

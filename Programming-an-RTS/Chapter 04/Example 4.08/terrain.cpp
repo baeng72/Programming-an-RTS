@@ -114,6 +114,7 @@ TERRAIN::TERRAIN()
 }
 void TERRAIN::Cleanup()
 {
+	Release();
 }
 void TERRAIN::Release() {
 	_pdevice->Wait();//who needs synchronisation when you can block GPU?

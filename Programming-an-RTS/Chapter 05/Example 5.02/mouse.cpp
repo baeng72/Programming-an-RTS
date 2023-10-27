@@ -9,6 +9,7 @@ MOUSE::MOUSE() {
 
 MOUSE::~MOUSE() {
 	_pwindow->ShowCursor(true);
+	_sprite.reset();
 	_textures.clear();
 }
 

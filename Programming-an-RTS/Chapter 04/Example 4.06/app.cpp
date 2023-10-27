@@ -123,7 +123,7 @@ void APPLICATION::Quit() {
 }
 
 void APPLICATION::Cleanup() {
-
+	_terrain.Cleanup();
 }
 
 int main(int argc, char* argv[]) {

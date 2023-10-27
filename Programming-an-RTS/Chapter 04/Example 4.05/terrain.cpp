@@ -123,7 +123,9 @@ bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevi
 }
 
 void PATCH::Release() {
+	_attrBuffer.reset();
 	_mesh.reset();
+	_shader.reset();
 }
 
 void PATCH::Render(glm::mat4&viewProj,glm::mat4&model, Renderer::DirectionalLight& light)
@@ -163,6 +165,7 @@ TERRAIN::TERRAIN()
 }
 void TERRAIN::Cleanup()
 {
+	
 }
 void TERRAIN::Release() {
 	_pdevice->Wait();//who needs synchronisation when you can block GPU?

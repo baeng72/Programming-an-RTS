@@ -213,6 +213,9 @@ void APPLICATION::Quit() {
 
 void APPLICATION::Cleanup() {
 	UnloadObjectResources();
+	_terrain.Release();
+	_line.reset();
+	_font.reset();
 }
 
 

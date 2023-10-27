@@ -150,6 +150,7 @@ void APPLICATION::Cleanup() {
 	_device->Wait();
 	//_meshes.clear();
 	_multiMesh.reset();
+	_shader.reset();
 }
 
 int main(int argc, char* argv[]) {

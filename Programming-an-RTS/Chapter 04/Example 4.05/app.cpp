@@ -40,7 +40,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 		return false;
 
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
-	//_device->EnableGeometry(true);	
+	_device->EnableGeometry(true);	
 	_device->EnableLines(true);
 	_device->EnableDepthBuffer(true);
 	_device->SetVSync(false);
@@ -124,7 +124,7 @@ void APPLICATION::Quit() {
 }
 
 void APPLICATION::Cleanup() {
-
+	_terrain.Release();
 }
 
 int main(int argc, char* argv[]) {

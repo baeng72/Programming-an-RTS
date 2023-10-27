@@ -97,7 +97,8 @@ void APPLICATION::Quit() {
 }
 
 void APPLICATION::Cleanup() {
-
+	_device->Wait();
+	_heightMap.reset();
 }
 
 int main(int argc, char* argv[]) {
