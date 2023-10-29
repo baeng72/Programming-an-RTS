@@ -39,5 +39,5 @@ namespace Core {
 		
 	};
 
-	Application* Create();
+	Application* CreateApplication();
 }

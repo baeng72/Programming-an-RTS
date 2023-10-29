@@ -140,6 +140,9 @@ TERRAIN::TERRAIN()
 }
 void TERRAIN::Cleanup()
 {
+	Release();
+	if (_pMaptiles)
+		delete[]_pMaptiles;
 }
 void TERRAIN::Release() {
 	_pdevice->Wait();//who needs synchronisation when you can block GPU?
@@ -295,6 +298,7 @@ void TERRAIN::CalculateAlphaMaps() {
 	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
 	/*std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
 	_shader->SetTextures(textures.data(), 4);*/
+	delete[]pdata;
 
 }
 
@@ -366,6 +370,7 @@ void TERRAIN::CalculateLightMap(Core::Window* pwindow)
 		std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get(),_lightMap.get() };
 		_shader->SetTextures(textures.data(), 5);
 	}
+	delete[]map;
 }
 
 void TERRAIN::Progress(const char*ptext, float prc)

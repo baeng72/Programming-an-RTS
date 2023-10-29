@@ -195,6 +195,7 @@ void main(){
 				memcpy(ptr, pvertices, vertSize);
 				unmapBuffer(context.device, stagingBuffer);
 				CopyBufferTo(context.device, context.queue, context.commandBuffer, stagingBuffer, _vertexBuffer, vertSize);
+				cleanupBuffer(context.device, stagingBuffer);
 				_vertexCount = vertexCount;
 			}
 		}

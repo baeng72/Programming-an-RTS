@@ -156,28 +156,29 @@ namespace Vulkan {
 
 	bool VulkanShader::SetUniformData(const char* pname, void* ptr, uint32_t len,bool dynamic)
 	{
+		{
+			std::string name = pname;
+			if (dynamic) {
+				auto& names = _pShaderData->uniformDynamicNames;
+				ASSERT(std::find(names.begin(), names.end(), name) != names.end(), "Unknown shader name!");
+				if (_pShaderData->uniformDynamicMap.find(name) != _pShaderData->uniformDynamicMap.end()) {
+					VkDeviceSize size = _pShaderData->uniformDynamicSizeMap[name];
+					void* pdst = _pShaderData->uniformDynamicMap[name];
+					memcpy(pdst, ptr, std::min(len, (uint32_t)size));
+					return true;
 
-		std::string name = pname;
-		if (dynamic) {
-			auto& names = _pShaderData->uniformDynamicNames;
-			ASSERT(std::find(names.begin(), names.end(), name) != names.end(), "Unknown shader name!");
-			if (_pShaderData->uniformDynamicMap.find(name) != _pShaderData->uniformDynamicMap.end()) {
-				VkDeviceSize size = _pShaderData->uniformDynamicSizeMap[name];
-				void* pdst = _pShaderData->uniformDynamicMap[name];
-				memcpy(pdst, ptr, std::min(len, (uint32_t)size));
-				return true;
-
+				}
 			}
-		}
-		else {
-			auto& names = _pShaderData->uboNames;
-			ASSERT(std::find(names.begin(), names.end(), name) != names.end(), "Unknown shader name!");
-			if (_pShaderData->uboMap.find(name) != _pShaderData->uboMap.end()) {
-				VkDeviceSize size = _pShaderData->uboSizeMap[name];
-				void* pdst = _pShaderData->uboMap[name];
-				memcpy(pdst, ptr, std::min(len, (uint32_t)size));
-				return true;
+			else {
+				auto& names = _pShaderData->uboNames;
+				ASSERT(std::find(names.begin(), names.end(), name) != names.end(), "Unknown shader name!");
+				if (_pShaderData->uboMap.find(name) != _pShaderData->uboMap.end()) {
+					VkDeviceSize size = _pShaderData->uboSizeMap[name];
+					void* pdst = _pShaderData->uboMap[name];
+					memcpy(pdst, ptr, std::min(len, (uint32_t)size));
+					return true;
 
+				}
 			}
 		}
 		return false;

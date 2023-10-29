@@ -123,14 +123,15 @@ void APPLICATION::Render() {
 	mat4 matView = glm::lookAtLH(vec3(0.f, 10.f, -50.f), vec3(0.f, 3.f, 0.f), vec3(0.f, 1.f, 0.f));
 	//mat4 matProj = glm::ortho(0.f, 10.f, 0.f, 9.f, 0.1f, 1000.f);
 	//matProj[1][1] *= -1;
-	mat4 matProj;
+	mat4 matProj = Core::orthoWH(10.f, 9.f, 0.1f, 1000.f);
+	/*mat4 matProj;
 	if (Core::GetAPI() == Core::API::Vulkan) {
 		matProj = vulkOrthoLH(10.f, 9.f, 0.1f, 1000.f);
 	}
 	else {
 		matProj = glOrthoLH(10.f, 9.f, 0.1f, 1000.f);
 	}
-	//mat4 matProj = D3DXOrthoLH(10.f, 9.f, 0.1f, 1000.f);
+	*///mat4 matProj = D3DXOrthoLH(10.f, 9.f, 0.1f, 1000.f);
 	
 	mat4 matVP = matProj * matView;
 	_farmer1.Render(matVP, _light);
@@ -157,22 +158,13 @@ void APPLICATION::Cleanup() {
 	_farmerMesh.reset();
 }
 
-int main(int argc, char* argv[]) {
+void AppMain() {
 #if defined(DEBUG) | defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-	if (argc > 1) {
-		if (!_strcmpi(argv[1], "gl")) {
-
-			Core::SetAPI(Core::API::GL);
-		}
-		else {
-			Core::SetAPI(Core::API::Vulkan);
-		}
-	}
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 5.8: Progressive Meshes")) {
 		app.Run();
 	}
-	return 0;
+	
 }

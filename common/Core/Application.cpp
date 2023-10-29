@@ -9,7 +9,7 @@ namespace Core {
 	{
 		ASSERT(!_instance, "Only 1 application instance allowed!");//only 1 instance
 		_instance = this;
-		Logger::Init();
+		
 		_fps = _lastFps = 0;
 	}
 

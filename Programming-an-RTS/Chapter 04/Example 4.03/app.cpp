@@ -88,14 +88,14 @@ void APPLICATION::Render() {
 	mat4 matWorld = mat4(1.f);
 	mat4 matView = glm::lookAtLH(eye, lookat, up);
 	constexpr float fov = glm::radians(45.f);
-	mat4 matProj;
-	if (Core::GetAPI() == Core::API::Vulkan) {
+	mat4 matProj = Core::perspective(quaterpi, (float)_width, (float)_height, 1.f, 1000.f);
+	/*if (Core::GetAPI() == Core::API::Vulkan) {
 		matProj = glm::perspectiveFovLH_ZO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
 		matProj[1][1] *= -1;
 	}
 	else {
 		matProj = glm::perspectiveFovLH_NO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
-	}
+	}*/
 	mat4 viewProj = matProj * matView;
 
 	_font->Draw("Arrows: Move Camera", 10, 10);
@@ -119,22 +119,13 @@ void APPLICATION::Cleanup() {
 
 }
 
-int main(int argc, char* argv[]) {
+void AppMain(){
 #if defined(DEBUG) | defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-	if (argc > 1) {
-		if (!_strcmpi(argv[1], "gl")) {
-
-			Core::SetAPI(Core::API::GL);
-		}
-		else {
-			Core::SetAPI(Core::API::Vulkan);
-		}
-	}
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 4.3: Heightmap Editor")) {
 		app.Run();
 	}
-	return 0;
+
 }

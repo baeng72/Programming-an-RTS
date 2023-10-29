@@ -130,16 +130,8 @@ void APPLICATION::Render() {
 	glm::vec3 up(0.f, 1.f, 0.f);
 	glm::mat4 matWorld = glm::mat4(1.f);
 	glm::mat4 matView = glm::lookAtLH(eye, lookat, up);
+	glm::mat4 matProj = Core::perspective(quaterpi, (float)_width, (float)_height, 1.f, 1000.f);
 	
-	constexpr float fov = glm::radians(45.f);	
-	mat4 matProj;
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		matProj = glm::perspectiveFovLH_ZO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
-		matProj[1][1] *= -1;
-	}
-	else {
-		matProj = glm::perspectiveFovLH_NO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
-	}
 		
 	glm::mat4 viewProj = matProj * matView;
 
@@ -169,27 +161,18 @@ void APPLICATION::Quit() {
 
 void APPLICATION::Cleanup() {
 	UnloadObjectResources();
-	_terrain.Release();
+	_terrain.Cleanup();
 }
 
 
-int main(int argc, char* argv[]) {
+void AppMain(){
 #if defined(DEBUG) | defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	//_CrtSetBreakAlloc(5504);
+	//_CrtSetBreakAlloc(114016);
 #endif
-	if (argc > 1) {
-		if (!_strcmpi(argv[1], "gl")) {
-
-			Core::SetAPI(Core::API::GL);
-		}
-		else {
-			Core::SetAPI(Core::API::Vulkan);
-		}
-	}
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 4.12: Calculating Tile Cost")) {
 		app.Run();
 	}
-	return 0;
+	
 }

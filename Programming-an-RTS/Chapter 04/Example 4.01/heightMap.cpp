@@ -7,7 +7,7 @@
 HEIGHTMAP::HEIGHTMAP(Renderer::RenderDevice* pdevice, INTPOINT size_)
 	:_size(size_),_pDevice(pdevice),_maxHeight(15.f)
 {
-
+	_pHeightMap = nullptr;
 }
 
 HEIGHTMAP::~HEIGHTMAP()
@@ -40,6 +40,8 @@ bool HEIGHTMAP::LoadFromFile(const char* fileName)
 		texWidth = _size.x;
 		texHeight = _size.y;
 	}
+	if (_pHeightMap)
+		delete[]_pHeightMap;
 	_pHeightMap = new float[_size.x * _size.y];
 	//extract height values
 	for (int y = 0; y < _size.y; y++) {

@@ -103,13 +103,8 @@ void APPLICATION::Render() {
 	_device->StartRender();
 	mat4 matView = glm::lookAtLH(vec3(0.f, 10.f, -50.f), vec3(0.f, 4.f, 0.f), vec3(0.f, 1.f, 0.f));
 	//mat4 matProj = D3DXOrthoLH(10.f, 9.f, 0.1f, 1000.f);
-	mat4 matProj;
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		matProj = vulkOrthoLH(10.f, 9.f, 0.1f, 1000.f);
-	}
-	else {
-		matProj = glOrthoLH(10.f, 9.f, 0.1f, 1000.f);
-	}
+	mat4 matProj=Core::orthoWH(10.f,9.f,0.1f,1000.f);
+	
 	mat4 matVP = matProj * matView;
 	//Set Skeelton to 
 	vec3 dir = _light.direction;
@@ -143,22 +138,14 @@ void APPLICATION::Cleanup() {
 	
 }
 
-int main(int argc, char* argv[]) {
+void AppMain() {
 #if defined(DEBUG) | defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-	if (argc > 1) {
-		if (!_strcmpi(argv[1], "gl")) {
-
-			Core::SetAPI(Core::API::GL);
-		}
-		else {
-			Core::SetAPI(Core::API::Vulkan);
-		}
-	}
+	
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 7.4: Placing a Weapon in the hand")) {
 		app.Run();
 	}
-	return 0;
+	
 }

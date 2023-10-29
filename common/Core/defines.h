@@ -30,7 +30,10 @@ using mat4 = glm::mat4;
 using quat = glm::quat;
 using Color = glm::vec4;
 using ivec4 = glm::ivec4;
-
+constexpr float pi = glm::pi<float>();
+constexpr float twopi = 2.f * glm::pi<float>();
+constexpr float halfpi = 0.5f * glm::pi<float>();
+constexpr float quaterpi = 0.25f * glm::pi<float>();
 #else
 
 #endif
@@ -49,6 +52,19 @@ inline void decomposeMatrix(mat4& m, vec3& pos, quat& rot, vec3& scale) {
 /// <summary>
 /// GL Projections
 /// </summary>
+inline mat4 glPerspectiveLH(float fov, float width, float height, float zn, float zf) {
+	const float rad = fov;
+	const float h = glm::cos(static_cast<float>(0.5f) * rad) / glm::sin(static_cast<float>(0.5f) * rad);
+	const float w = h * height / width; ///todo max(width , Height) / min(width , Height)?
+
+	mat4 result = mat4(1.f);
+	result[0][0] = w;
+	result[1][1] = h;
+	result[2][2] = (zf + zn) / (zf - zn);
+	result[2][3] = static_cast<float>(1.f);
+	result[3][2] = -(static_cast<float>(2.f) * zf * zn) / (zf - zn);
+	return result;
+}
 inline mat4 glOrthoLH(float width, float height, float zn, float zf) {
 	//glOrthoLH(-width,width,-height,height,zn,zf);
 	mat4 mat = mat4(1.f);
@@ -91,9 +107,42 @@ inline mat4 glOrthoLH(float left, float right, float top, float bottom, float zn
 
 	return mat;
 }
+
+inline vec3 glProject(vec3 const& obj, mat4 const& model, mat4 const& mvp, vec4 const& viewport)
+{
+	vec4 tmp = vec4(obj, 1.f);
+	tmp = model * tmp;
+	tmp = mvp * tmp;
+	tmp.y *= -1;
+	tmp /= tmp.w;
+	tmp = tmp * 0.5f + 0.5f;
+	tmp[0] = tmp[0] * (viewport[2]) + (viewport[0]);
+	//tmp[1] = tmp[1] * (viewport[3]) + (viewport[1]);
+	tmp[1] = tmp[1] * (viewport[3]) + (viewport[1]);
+	/*float py = 2.f * tmp.y / (float)viewport.w - 1.f;
+	py *= -1;
+	tmp.y = viewport.w * (py + 1.f) * 0.5f;*/
+	return vec3(tmp);
+}
 //////////////////////////////
 //Vulkan projections
 //////////////////////////////
+
+inline mat4 vulkPerspectiveLH(float fov, float width, float height, float zn, float zf) {
+	const float rad = fov;
+	const float h = glm::cos(static_cast<float>(0.5f) * rad) / glm::sin(static_cast<float>(0.5f) * rad);
+	const float w = h * height / width; ///todo max(width , Height) / min(width , Height)?
+	mat4 result=mat4(1.f);
+	
+	result[0][0] = w;
+	result[1][1] = -h;//flip y
+	result[2][2] = zf / (zf - zn);
+	result[2][3] = 1.f;
+	result[3][2] = -zf * zn / (zf - zn);
+
+	return result;
+}
+
 inline mat4 vulkOrthoLH(float width, float height, float zn, float zf) {
 	//vulkOrthoLH(-width,width,-height,height,zn,zf);
 	mat4 mat = mat4(1.f);
@@ -144,7 +193,20 @@ inline mat4 vulkOrthoRH(float left, float right, float top, float bottom, float 
 	return mat;
 }
 
+inline vec3 vulkProject(const vec3&obj, const mat4&model,const mat4&mvp,const vec4&viewport){
+	vec4 tmp = vec4(obj, 1.f);
+	tmp = model * tmp;
+	tmp = mvp * tmp;
 
+	tmp /= tmp.w;
+	tmp.x = tmp.x * static_cast<float>(0.5f) + static_cast<float>(0.5f);
+	tmp.y = tmp.y * static_cast<float>(0.5f) + static_cast<float>(0.5f);
+
+	tmp[0] = tmp[0] * (viewport[2]) + (viewport[0]);
+	tmp[1] = tmp[1] * (viewport[3]) + (viewport[1]);
+
+	return vec3(tmp);
+}
 
 #ifdef _WIN32
 

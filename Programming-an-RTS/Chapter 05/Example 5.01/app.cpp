@@ -153,22 +153,13 @@ void APPLICATION::Cleanup() {
 	_shader.reset();
 }
 
-int main(int argc, char* argv[]) {
+void AppMain(){
 #if defined(DEBUG) | defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-	if (argc > 1) {
-		if (!_strcmpi(argv[1], "gl")) {
-
-			Core::SetAPI(Core::API::GL);
-		}
-		else {
-			Core::SetAPI(Core::API::Vulkan);
-		}
-	}
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 5.1: Camera Example")) {
 		app.Run();
 	}
-	return 0;
+	
 }
