@@ -312,6 +312,7 @@ void main() {
 		_shader.SetTextures("text",(int*)&_texture,1u);
 		//glFrontFace(GL_CW);
 		glDrawElements(GL_TRIANGLES, frame.numIndices, GL_UNSIGNED_INT, 0);
+		GLERR();
 	}
 	void GLFont::GetTextSize(const char* ptext, float& width, float& height)
 	{

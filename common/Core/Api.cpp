@@ -14,14 +14,14 @@ namespace Core {
 		gAPI = api;
 		switch (api) {
 		case API::Vulkan:
-			std::cout << "Vulkan API Selected" << std::endl;
+			//std::cout << "Vulkan API Selected" << std::endl;
 			perspective = vulkPerspectiveLH;// glm::perspectiveFovLH_ZO;
 			orthoWH = vulkOrthoLH;
 			orthoLTRB = vulkOrthoLH;
 			project = vulkProject;
 			break;
 		case API::GL:
-			std::cout << "OpenGL API Selected" << std::endl;
+			//std::cout << "OpenGL API Selected" << std::endl;
 			perspective = glPerspectiveLH;
 			orthoWH = glOrthoLH;
 			orthoLTRB = glOrthoLH;

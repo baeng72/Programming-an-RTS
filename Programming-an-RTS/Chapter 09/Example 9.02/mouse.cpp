@@ -12,7 +12,7 @@ MOUSE::~MOUSE() {
 	_textures.clear();
 }
 
-void MOUSE::Init(Renderer::RenderDevice* pdevice,  std::shared_ptr<Renderer::ShaderManager>& shaderManager, Window*pwindow) {
+void MOUSE::Init(Renderer::RenderDevice* pdevice,  std::shared_ptr<Renderer::ShaderManager>& shaderManager,Core::Window* pwindow) {
 	_pdevice = pdevice;
 	_pwindow = pwindow;
 	int width, height;
@@ -20,7 +20,7 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice,  std::shared_ptr<Renderer::Sha
 	x = width / 2;
 	y = height / 2;
 	pwindow->ShowCursor(false);
-	std::unique_ptr<Renderer::Image> image = std::unique_ptr<Renderer::Image>(Renderer::Image::Create("../../../../Resources/Chapter 05/Example 5.10/cursor/cursor.png"));
+	std::unique_ptr<Renderer::Image> image = std::unique_ptr<Renderer::Image>(Renderer::Image::Create("../../../../Resources/Chapter 09/Example 9.02/cursor/cursor.png"));
 	uint32_t* pixels = (uint32_t*)image->GetPixels();
 	int channels;
 	image->GetSize(width, height, channels);
@@ -57,7 +57,12 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice,  std::shared_ptr<Renderer::Sha
 	std::unique_ptr<Mesh::Shape> shape;
 	shape.reset(Mesh::Shape::Create(pdevice));
 	_sphereMesh = std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(0.2f, 5, 5));
-	_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.10/shaders/shape.glsl",false)));
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.02/shaders/Vulkan/shape.glsl", false)));
+	}
+	else {
+		_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.02/shaders/GL/shape.glsl", false)));
+	}
 }
 
 void MOUSE::Update(TERRAIN&terrain) {
@@ -87,7 +92,8 @@ void MOUSE::Update(TERRAIN&terrain) {
 }
 
 void MOUSE::Paint(mat4&matVP, Renderer::DirectionalLight& light) {
-	mat4 world = glm::translate(mat4(1.f), _ballPos);
+	/*mat4 world = glm::translate(mat4(1.f), _ballPos);
+
 	struct PC {
 		mat4 world;
 		Color color;
@@ -98,7 +104,31 @@ void MOUSE::Paint(mat4&matVP, Renderer::DirectionalLight& light) {
 		Renderer::DirectionalLight light;
 	}ubo = { matVP,light };
 	_sphereShader->SetUniformData("UBO",&ubo, sizeof(UBO));
+	_sphereShader->Bind();*/
 	_sphereShader->Bind();
+	mat4 world = glm::translate(mat4(1.f), _ballPos);
+	_sphereShader->Bind();
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		struct PC {
+			mat4 world;
+			Color color;
+		}pc = { world,Color(0.8f,0.8f,0.8f,1.0f) };
+		_sphereShader->SetPushConstData(&pc, sizeof(pc));
+		struct UBO {
+			mat4 vp;
+			Renderer::DirectionalLight light;
+		}ubo = { matVP,light };
+		_sphereShader->SetUniformData("UBO", &ubo, sizeof(UBO));
+	}
+	else {
+		_sphereShader->SetUniformData("viewProj", &matVP, sizeof(mat4));
+		_sphereShader->SetUniformData("model", &world, sizeof(mat4));
+		_sphereShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+		_sphereShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+		_sphereShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+		_sphereShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+	}
+	_sphereMesh->Bind();
 	_sphereMesh->Render();
 	_sprite->Draw(_textures[_type].get(), vec3(x, y, 0.f));
 }
@@ -112,10 +142,20 @@ RAY MOUSE::GetRay(mat4& matProj, mat4& matView, mat4& matWorld)
 	int32_t tx = x;
 	int32_t ty = y;
 	//convert from screen coordinates to ndc
-	float angle_x = (((2.f * tx) / width) - 1.f) / a;
-	float angle_y = (((2.f * ty) / height) - 1.f) / b;//viewport flipped in vulkan
+	//float angle_x = (((2.f * tx) / width) - 1.f) / a;
+	//float angle_y = (((2.f * ty) / height) - 1.f) / b;//viewport flipped in vulkan
 	//float angle_y = (((-2.f * ty) / height) + 1.f) / b;
-
+	float angle_x;
+	float angle_y;//viewport flipped in vulkan
+	//float angle_y = (((-2.f * ty) / height) + 1.f) / b;
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		angle_x = (((2.f * tx) / width) - 1.f) / a;
+		angle_y = (((2.f * ty) / height) - 1.f) / b;//viewport flipped in vulkan
+	}
+	else {
+		angle_x = (((2.f * tx) / width) - 1.f) / a;
+		angle_y = (((-2.f * ty) / height) + 1.f) / b;
+	}
 	vec4 org = vec4(0.f, 0.f, 0.f, 1.f);
 	vec4 dir = vec4(angle_x, angle_y, 1.f, 0.f);
 

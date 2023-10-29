@@ -18,16 +18,26 @@ MESH::~MESH() {
 
 void MESH::Render(Renderer::Shader* pshader,mat4&matWorld)
 {
-	
-	struct PushConst {
-		mat4 world;
-	}pushConst = { matWorld*_xform };
-	pshader->SetPushConstData(&pushConst, sizeof(pushConst));
+	mat4 worldxform = matWorld * _xform;
+	//pshader->Bind();
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		struct PushConst {
+			mat4 world;
+		}pushConst = { worldxform };
+		pshader->SetPushConstData(&pushConst, sizeof(pushConst));
+	}
+	else {
+		pshader->SetUniformData("model", &worldxform, sizeof(mat4));
+	}
 	_multiMesh->Bind();
 	int texid = 0;
 	for (uint32_t i = 0; i < _parts; i++) {
-		pshader->SetTexture(texid,&_textures[i],1);
-		pshader->Bind();
+		if (Core::GetAPI() == Core::API::Vulkan) {
+			pshader->SetTexture(texid, &_textures[i], 1);
+		}
+		else {
+			pshader->SetTexture("texmap", &_textures[i], 1);
+		}
 		_multiMesh->Render(i);
 	}
 }
@@ -47,7 +57,7 @@ bool MESH::Load(Renderer::RenderDevice* pdevice, const char* pfilename) {
 	_pdevice = pdevice;
 	//_shaderManager = shaderManager;
 	std::unique_ptr<Mesh::Model> model = std::unique_ptr<Mesh::Model>(Mesh::Model::Create(pdevice, pfilename));
-	_multiMesh = std::unique_ptr<Mesh::MultiMesh>(model->GetMultiMesh());
+	_multiMesh = std::unique_ptr<Mesh::MultiMesh>(model->GetMultiMesh(Mesh::MeshType::position_normal_uv));
 	_parts = _multiMesh->GetPartCount();
 	std::vector<Renderer::Texture*> textures;
 	model->GetMultiMeshTextures(textures);

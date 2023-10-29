@@ -7,7 +7,7 @@
 #include "building.h"
 
 
-class APPLICATION : public Application {
+class APPLICATION : public Core::Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;	
 	std::shared_ptr<Renderer::ShaderManager> _shadermanager;
 	std::shared_ptr<Renderer::Shader> _buildingShader;
@@ -53,14 +53,19 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
 	_device->EnableDepthBuffer(true);
 	_device->EnableLines(true);
-	_device->EnableGeometry(true);
+	//_device->EnableGeometry(true);
 	_device->SetVSync(true);
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	_font.reset(Renderer::Font::Create());
 	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
 	_shadermanager.reset(Renderer::ShaderManager::Create(_device.get()));
-	_buildingShader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.02/shaders/building.glsl")));
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		_buildingShader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.02/shaders/Vulkan/building.glsl")));
+	}
+	else {
+		_buildingShader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.02/shaders/GL/building.glsl")));
+	}
 	_line.reset(Renderer::Line2D::Create(_device.get()));
 	_line->Update(_width, _height);
 	
@@ -162,47 +167,85 @@ void APPLICATION::Render() {
 	_mouse.CalculateMappos(matProj, matView, _terrain);
 	glm::mat4 viewProj = matProj * matView;
 	_device->StartRender();
-
-	_terrain.Render(viewProj, matWorld, _light, _camera);
-
-	int uboid = 0;
-	struct UBO {
-		mat4 matVP;
-		Renderer::DirectionalLight light;
-	}ubo = { viewProj,_light };
-	_buildingShader->SetUniformData(uboid, &ubo, sizeof(ubo));
-	int texid = 1;//set lightmap
-	Renderer::Texture* plight = _terrain.GetLightMap();
-	_buildingShader->SetTexture(texid, &plight, 1);
 	struct PushConst {
 		mat4 matWorld;
 		vec4 teamColor;
 		vec4 color;
 	} pushConst;
 	pushConst.teamColor = vec4(1.f);
-	pushConst.color = vec4(1.f);
+	vec4 color = vec4(1.f);
+	pushConst.color = color;
+	_terrain.Render(viewProj, matWorld, _light, _camera);
+	_buildingShader->Bind();
+	vec2 mapSize(100.f);
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		int uboid = 0;
+		struct UBO {
+			mat4 matVP;
+			Renderer::DirectionalLight light;
+			vec2 mapSize;
+		}ubo = { viewProj,_light,mapSize };
+		_buildingShader->SetUniformData(uboid, &ubo, sizeof(ubo));
+		int texid = 1;//set lightmap
+		Renderer::Texture* plight = _terrain.GetLightMap();
+		_buildingShader->SetTexture(texid, &plight, 1);
+		
+	}
+	else {
+		_buildingShader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
+		
+		_buildingShader->SetUniformData("light.ambient", &_light.ambient, sizeof(vec4));
+		_buildingShader->SetUniformData("light.diffuse", &_light.diffuse, sizeof(vec4));
+		_buildingShader->SetUniformData("light.specular", &_light.specular, sizeof(vec4));
+		_buildingShader->SetUniformData("light.direction", &_light.direction, sizeof(vec3));
+		Renderer::Texture* plight = _terrain.GetLightMap();
+		_buildingShader->SetTexture("lightmap", &plight, 1);
+		_buildingShader->SetUniformData("mapSize", &mapSize, sizeof(vec2));
+		_buildingShader->SetUniformData("color", &color, sizeof(vec4));
+	}
+
 	for (auto building : _buildings) {
 		if (building && !_camera.Cull(building->GetBoundingBox())) {
-			pushConst.matWorld = building->GetWorldMatrix();
-			_buildingShader->SetPushConstData(&pushConst, sizeof(pushConst));
+			mat4 world = building->GetWorldMatrix();
+			if (Core::GetAPI() == Core::API::Vulkan) {
+				pushConst.matWorld = world;
+				_buildingShader->SetPushConstData(&pushConst, sizeof(pushConst));
+			}
+			else {
+				_buildingShader->SetUniformData("model", &world, sizeof(mat4));
+				
+			}
 			building->Render(_buildingShader.get());
 		}
 	}
 
 	//Render building to place
 	if (_placeBuilding) {
-		
+	
 		pushConst.matWorld = _pBuildToPlace->GetWorldMatrix();
 		
 		if (PlaceOk(_placeType, _mouse._mappos, &_terrain)) {
-			pushConst.teamColor=vec4(0.f, 1.f, 0.f, 1.f);
-			_buildingShader->SetPushConstData(&pushConst ,sizeof(pushConst));
+			vec4 teamColor = vec4(0.f, 1.f, 0.f, 1.f);
+			if (Core::GetAPI() == Core::API::Vulkan) {
+				pushConst.teamColor = teamColor;
+				_buildingShader->SetPushConstData(&pushConst, sizeof(pushConst));
+			}
+			else {
+				_buildingShader->SetUniformData("model", &pushConst.matWorld,sizeof(mat4));
+				_buildingShader->SetUniformData("teamColor", &teamColor, sizeof(vec4));
+			}
 			_pBuildToPlace->Render(_buildingShader.get());
 
 		}
 		else {
-			pushConst.teamColor=(vec4(1.f, 0.f, 0.f, 1.f));
-			_buildingShader->SetPushConstData(&pushConst, sizeof(pushConst));
+			vec4 teamColor = (vec4(1.f, 0.f, 0.f, 1.f));
+			if (Core::GetAPI() == Core::API::Vulkan) {
+				pushConst.teamColor = teamColor;
+				_buildingShader->SetPushConstData(&pushConst, sizeof(pushConst));
+			}
+			else {
+				_buildingShader->SetUniformData("teamColor", &teamColor, sizeof(vec4));
+			}
 			_pBuildToPlace->Render(_buildingShader.get());
 		}
 	}
@@ -235,7 +278,7 @@ void APPLICATION::Cleanup() {
 	UnloadBuildingResources();
 	UnloadMapObjectResources();
 	UnloadObjectResources();
-	_terrain.Release();
+	_terrain.Cleanup();
 }
 
 
@@ -274,10 +317,14 @@ int APPLICATION::GetBuilding(mat4& matProj, mat4& matView) {
 	return build;
 }
 
-int main() {
+void AppMain() {
+#if defined(DEBUG) | defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	//_CrtSetBreakAlloc(465433);
+#endif
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 9.2: Building Example")) {
 		app.Run(); 
 	}
-	return 0;
+	
 }

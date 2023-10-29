@@ -106,7 +106,10 @@ namespace GL {
 		glScissor(r.left, height-r.bottom, r.Width(), r.Height());//flip y
 		GLERR();
 		glClearColor(clr.r, clr.g, clr.b, clr.a);
-		glClear(GL_COLOR_BUFFER_BIT);
+		GLenum clearFlags = GL_COLOR_BUFFER_BIT;
+		/*if (_depthTest)
+			clearFlags |= GL_DEPTH_BUFFER_BIT;*/
+		glClear(clearFlags);
 		GLERR();
 		glDisable(GL_SCISSOR_TEST);
 		GLERR();
