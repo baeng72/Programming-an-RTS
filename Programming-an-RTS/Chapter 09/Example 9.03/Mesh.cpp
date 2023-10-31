@@ -22,8 +22,13 @@ void MESH::Render(Renderer::Shader* pshader)
 	_multiMesh->Bind();
 	int texid = 0;
 	for (uint32_t i = 0; i < _parts; i++) {
-		pshader->SetTexture(texid,&_textures[i],1);
-		pshader->Bind();
+		if (Core::GetAPI() == Core::API::Vulkan) {
+			pshader->SetTexture(texid, &_textures[i], 1);
+		}
+		else {
+			pshader->SetTexture("texmap", &_textures[i], 1);
+		}
+		//pshader->Bind();
 		_multiMesh->Render(i);
 	}
 }
@@ -43,7 +48,7 @@ bool MESH::Load(Renderer::RenderDevice* pdevice, const char* pfilename) {
 	_pdevice = pdevice;
 	
 	std::unique_ptr<Mesh::Model> model = std::unique_ptr<Mesh::Model>(Mesh::Model::Create(pdevice, pfilename));
-	_multiMesh = std::unique_ptr<Mesh::MultiMesh>(model->GetMultiMesh());
+	_multiMesh = std::unique_ptr<Mesh::MultiMesh>(model->GetMultiMesh(Mesh::MeshType::position_normal_uv));
 	_parts = _multiMesh->GetPartCount();
 	std::vector<Renderer::Texture*> textures;
 	model->GetMultiMeshTextures(textures);

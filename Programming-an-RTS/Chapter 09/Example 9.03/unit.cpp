@@ -2,7 +2,7 @@
 #include <iostream>
 std::vector<std::unique_ptr<SKINNEDMESH>> unitMeshes;
 
-void LoadUnitResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager>&shaderManager) {
+void LoadUnitResources(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager>& shaderManager) {
 	std::vector<std::string> fnames = {
 		"units/drone.x",
 		"units/soldier.x",
@@ -14,7 +14,7 @@ void LoadUnitResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 		std::string path = "../../../../Resources/Chapter 09/Example 9.03/" + fname;
 
 		unitMeshes[i] = std::make_unique<SKINNEDMESH>();
-		unitMeshes[i]->Load(pdevice, shaderManager,path.c_str());
+		unitMeshes[i]->Load(pdevice, shaderManager, path.c_str());
 
 
 	}
@@ -33,7 +33,7 @@ UNIT::UNIT(int type, int team, INTPOINT mp, TERRAIN* terrain) {
 	_team = team;
 	_mappos = mp;
 	_pTerrain = terrain;
-	
+
 	_mapsize.Set(1, 1);
 	_time = _pauseTime = 0.f;
 	_animation = _activeWP = 0;
@@ -90,12 +90,12 @@ UNIT::~UNIT() {
 	}
 }
 
-void UNIT::Render(Renderer::Shader*pshader) {
-	
+void UNIT::Render(Renderer::Shader* pshader) {
+
 	if (_type < unitMeshes.size() && unitMeshes[_type]) {
 		{
 			{
-	
+
 				SetAnimation(_animation);
 			}
 			{
@@ -103,13 +103,21 @@ void UNIT::Render(Renderer::Shader*pshader) {
 				_time = 0.f;
 			}
 		}
-		struct PushConst {
-			mat4 world;
-			vec4 color;
-		}pushConst = { unitMeshes[_type]->GetWorldXForm() * GetWorldMatrix(),vec4(1.f, 0.f, 0.f, 1.f) };
-		pshader->SetPushConstData(&pushConst, sizeof(pushConst));
+		mat4 worldxform = unitMeshes[_type]->GetWorldXForm() * GetWorldMatrix();
+		vec4 color = vec4(1.f, 0.f, 0.f, 1.f);
+		if (Core::GetAPI() == Core::API::Vulkan) {
+			struct PushConst {
+				mat4 world;
+				vec4 color;
+			}pushConst = { worldxform, color };
+			pshader->SetPushConstData(&pushConst, sizeof(pushConst));
+		}
+		else {
+			pshader->SetUniformData("model", &worldxform, sizeof(mat4));
+			pshader->SetUniformData("color", &color, sizeof(vec4));
+		}
 		unitMeshes[_type]->Render(pshader);
-	
+
 	}
 }
 
@@ -149,7 +157,7 @@ bool UNIT::CheckCollision(INTPOINT mp) {
 	return false;//no collision
 }
 
-void UNIT::Goto(INTPOINT mp,bool considerUnits,bool finalGoal) {
+void UNIT::Goto(INTPOINT mp, bool considerUnits, bool finalGoal) {
 	if (!_pTerrain) {
 		return;
 	}
@@ -162,12 +170,12 @@ void UNIT::Goto(INTPOINT mp,bool considerUnits,bool finalGoal) {
 	if (_moving) {	//if unit is currently moving
 		//Finish the active waypoint
 		_path.push_back(_mappos);
-		std::vector<INTPOINT> tmpPath = _pTerrain->GetPath(_mappos, mp,considerUnits);
+		std::vector<INTPOINT> tmpPath = _pTerrain->GetPath(_mappos, mp, considerUnits);
 		//add new path
 		_path.insert(_path.end(), tmpPath.begin(), tmpPath.end());
 	}
 	else {
-		_path = _pTerrain->GetPath(_mappos, mp,considerUnits);
+		_path = _pTerrain->GetPath(_mappos, mp, considerUnits);
 
 		if (_path.size()) {	//if a path was found
 			_moving = true;
@@ -260,4 +268,8 @@ void UNIT::SetAnimation(int i) {
 
 Renderer::Shader* UNIT::GetShader() {
 	return unitMeshes[_type]->GetShader();
+}
+
+Mesh::AnimationController* UNIT::GetAnimationController()const {
+	return unitMeshes[_type]->GetAnimationController();
 }

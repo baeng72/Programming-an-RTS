@@ -32,3 +32,6 @@
 [submodule "easy_profiler"]
 	path = ThirdParty/easy_profiler
 	url = https://github.com/yse/easy_profiler.git
+[submodule "imgui"]
+	path = ThirdParty/imgui
+	url = https://github.com/ocornut/imgui.git

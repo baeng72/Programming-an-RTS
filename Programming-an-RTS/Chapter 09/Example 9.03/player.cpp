@@ -2,10 +2,15 @@
 std::unique_ptr<Renderer::Shader> shader;
 
 std::unique_ptr<Renderer::Line2D> selLine;
-void LoadPlayerResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager>&shaderManager) {	
-	shader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/building.glsl")));
+void LoadPlayerResources(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager>& shaderManager) {
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		shader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/Vulkan/building.glsl")));
+	}
+	else {
+		shader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/GL/building.glsl")));
+	}
 	selLine = std::unique_ptr<Renderer::Line2D>(Renderer::Line2D::Create(pdevice));
-	
+
 
 }
 
@@ -18,8 +23,8 @@ void UnloadPlayerResources() {
 
 // PLAYER
 
-PLAYER::PLAYER(int teamNo, vec4 teamCol, INTPOINT startPos, TERRAIN* terrain,Renderer::RenderDevice*pdevice)
-	:_pdevice(pdevice){
+PLAYER::PLAYER(int teamNo, vec4 teamCol, INTPOINT startPos, TERRAIN* terrain, Renderer::RenderDevice* pdevice)
+	:_pdevice(pdevice) {
 	_teamNo = teamNo;
 	_teamColor = teamCol;
 	_pTerrain = terrain;
@@ -50,7 +55,7 @@ PLAYER::PLAYER(int teamNo, vec4 teamCol, INTPOINT startPos, TERRAIN* terrain,Ren
 		} while (!ok);
 		AddMapObject(i % 3, mp, false);
 	}
-	
+
 }
 
 PLAYER::~PLAYER() {
@@ -62,7 +67,7 @@ PLAYER::~PLAYER() {
 
 void PLAYER::AddMapObject(int type, INTPOINT mp, bool isBuilding) {
 	if (isBuilding)
-		_mapObjects.push_back(new BUILDING(type, _teamNo, mp, _pTerrain,false));
+		_mapObjects.push_back(new BUILDING(type, _teamNo, mp, _pTerrain, false));
 	else
 		_mapObjects.push_back(new UNIT(type, _teamNo, mp, _pTerrain));
 }
@@ -72,20 +77,44 @@ void PLAYER::RenderMapObjects(CAMERA& camera, Renderer::DirectionalLight& light)
 	mat4 matView = camera.GetViewMatrix();
 	mat4 matProj = camera.GetProjectionMatrix();
 	mat4 matVP = matProj * matView;
-	
+
 	//Render units
 	struct UBO {
 		mat4 matVP;
 		Renderer::DirectionalLight light;
-		
+
 	}ubo = { matVP,light };
-	
+
 	for (int i = 0; i < _mapObjects.size(); i++) {
 		if (_mapObjects[i]) {
 			//EASY_BLOCK("Cull and draw");
-			if (!camera.Cull(_mapObjects[i]->GetBoundingBox())) {	
-				Renderer::Shader* pshader = _mapObjects[i]->_isBuilding ? shader.get():_mapObjects[i]->GetShader();
-				pshader->SetUniformData("UBO", &ubo, sizeof(ubo));
+			if (!camera.Cull(_mapObjects[i]->GetBoundingBox())) {
+				Renderer::Shader* pshader;
+				if (_mapObjects[i]->_isBuilding) {
+					pshader = shader.get();
+					pshader->Bind();
+				}
+				else {
+					pshader = _mapObjects[i]->GetShader();
+					UNIT* punit = ((UNIT*)_mapObjects[i]);
+					Mesh::AnimationController* pcontroller = punit->GetAnimationController();
+					uint32_t dynoffsets[1] = { (uint32_t)pcontroller->GetControllerOffset() * sizeof(mat4) };
+
+					pshader->Bind(dynoffsets, 1);
+				}
+				//Renderer::Shader* pshader = _mapObjects[i]->_isBuilding ? shader.get() : _mapObjects[i]->GetShader();
+
+				if (Core::GetAPI() == Core::API::Vulkan) {
+					pshader->SetUniformData("UBO", &ubo, sizeof(ubo));
+				}
+				else {
+					pshader->SetUniformData("viewProj", &matVP, sizeof(mat4));
+					pshader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+					pshader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+					pshader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+					pshader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+				}
+				
 				_mapObjects[i]->Render(pshader);
 			}
 		}
@@ -134,7 +163,7 @@ INTPOINT PLAYER::FindClosestBuildingLocation(int buildType, INTPOINT mp) {
 		}
 	}
 	//no good place found
-	return INTPOINT(-1,-1);
+	return INTPOINT(-1, -1);
 }
 
 void PLAYER::Select(mat4& matProj, mat4& matView, MOUSE& mouse) {
@@ -228,7 +257,7 @@ INTPOINT PLAYER::GetCenter() {
 			p += _mapObjects[i]->_mappos;
 		}
 	}
-	p /= (int) _mapObjects.size();
+	p /= (int)_mapObjects.size();
 	return p;
 }
 

@@ -23,7 +23,7 @@ bool PlaceOk(int buildType, INTPOINT mp, TERRAIN* pterrain) {
 	if (pterrain == nullptr)
 		return false;
 
-	BUILDING b(buildType,0, mp, nullptr, false);
+	BUILDING b(buildType, 0, mp, nullptr, false);
 	Rect r = b.GetMapRect(1);
 
 	for (int y = r.top; y <= r.bottom; y++) {
@@ -47,7 +47,7 @@ bool PlaceOk(int buildType, INTPOINT mp, TERRAIN* pterrain) {
 /// BUILDING
 /////////////////////////////////////////////////////
 
-BUILDING::BUILDING(int type,int team, INTPOINT mp, TERRAIN* terrain, bool affectTerrain)
+BUILDING::BUILDING(int type, int team, INTPOINT mp, TERRAIN* terrain, bool affectTerrain)
 {
 	_isBuilding = true;
 	_type = type;
@@ -59,7 +59,7 @@ BUILDING::BUILDING(int type,int team, INTPOINT mp, TERRAIN* terrain, bool affect
 	_range = _damage = 0;
 	_meshInstance.SetMesh(buildingMeshes[_type].get());
 
-	if (_type==0) {
+	if (_type == 0) {
 		//Townhall
 		_hp = _hpMax = 600;
 		_sightRadius = 10;
@@ -108,7 +108,7 @@ BUILDING::BUILDING(int type,int team, INTPOINT mp, TERRAIN* terrain, bool affect
 		}
 		_pTerrain->UpdatePathfinding(&GetMapRect(1));
 	}
-	
+
 }
 
 BUILDING::~BUILDING()
@@ -127,18 +127,28 @@ BUILDING::~BUILDING()
 	}
 }
 
-void BUILDING::Render(Renderer::Shader*pshader)
+void BUILDING::Render(Renderer::Shader* pshader)
 {
 	mat4 matWorld = _meshInstance.GetWorldMatrix();
 	mat4 xform = _meshInstance.GetMeshXForm();
-	struct PushConst {
-		mat4 world;
-		vec4 teamColor;
-		vec4 color;
+	mat4 worldxform = matWorld * xform;
+	vec4 teamColor = vec4(1.f, 0.f, 0.f, 1.f);
+	vec4 color = vec4(1.f);
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		struct PushConst {
+			mat4 world;
+			vec4 teamColor;
+			vec4 color;
 
-	}pushConst = { matWorld * xform,vec4(1.f,0.f,0.f,1.f),vec4(1.f)};
-	pshader->SetPushConstData(&pushConst, sizeof(pushConst));
-	
+		}pushConst = { worldxform,teamColor,color };
+		pshader->SetPushConstData(&pushConst, sizeof(pushConst));
+	}
+	else {
+		pshader->SetUniformData("model", &worldxform, sizeof(mat4));
+		pshader->SetUniformData("teamColor", &teamColor, sizeof(vec4));
+		pshader->SetUniformData("color", &color, sizeof(vec4));
+	}
+
 	_meshInstance.Render(pshader);
 }
 

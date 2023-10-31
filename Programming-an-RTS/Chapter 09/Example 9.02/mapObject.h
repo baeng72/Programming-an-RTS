@@ -29,6 +29,7 @@ public:
 	bool _isBuilding;
 public:
 	MAPOBJECT();		//set all variables to 0;
+	virtual ~MAPOBJECT() = default;
 	Rect GetMapRect(int border);	//get map rectangle + border
 	void PaintSelected(mat4& matVP, vec4& viewport);			//Paint selected
 

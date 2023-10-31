@@ -13,6 +13,7 @@ struct HEIGHTMAP {
 	INTPOINT		_size;
 	float			_maxHeight;		//the height of the highest peak
 	float*			_pHeightMap;	//array with height values	
+	std::vector<float> _heightMap;
 	HEIGHTMAP(INTPOINT size_,float maxHeight);
 	~HEIGHTMAP();
 	bool LoadFromFile(const char* fileName);

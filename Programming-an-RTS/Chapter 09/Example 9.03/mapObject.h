@@ -6,7 +6,7 @@
 
 void LoadMapObjectResources(Renderer::RenderDevice* pdevice);
 void UnloadMapObjectResources();
-INTPOINT GetScreenPos(mat4&matVP,vec4&viewPort, vec3& pos);
+INTPOINT GetScreenPos(mat4& matVP, vec4& viewPort, vec3& pos);
 
 class MAPOBJECT {
 public:
@@ -25,10 +25,11 @@ public:
 	std::string _name;
 	MAPOBJECT* _pTarget;	//Used for targeting both units and buildings
 	vec3 _position;			//Actual world position
-	
+
 	bool _isBuilding;
 public:
 	MAPOBJECT();		//set all variables to 0;
+	virtual ~MAPOBJECT() = default;
 	Rect GetMapRect(int border);	//get map rectangle + border
 	void PaintSelected(mat4& matVP, vec4& viewport);			//Paint selected
 

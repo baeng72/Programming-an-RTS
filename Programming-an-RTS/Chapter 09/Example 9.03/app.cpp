@@ -9,8 +9,9 @@
 #include "player.h"
 
 
-class APPLICATION : public Application {
+class APPLICATION : public Core::Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;	
+	std::unique_ptr<Core::ThreadPool> _threads;
 	std::shared_ptr<Renderer::ShaderManager> _shadermanager;
 	std::shared_ptr<Renderer::Shader> _buildingShader;
 	std::unique_ptr<Renderer::Font> _font;		
@@ -39,21 +40,27 @@ APPLICATION::APPLICATION() {
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
-	LOG_INFO("Application::Init()");
+	LOG_INFO("Application::Init() thread id: {0}",std::this_thread::get_id());
 	if (!Application::Init(width, height, title))
 		return false;
 
+	_threads = std::make_unique<Core::ThreadPool>(8);
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
 	_device->EnableDepthBuffer(true);
 	_device->EnableLines(true);
 	_device->EnableGeometry(true);
-	_device->SetVSync(true);
+	_device->SetVSync(false);
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	_font.reset(Renderer::Font::Create());
 	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
 	_shadermanager.reset(Renderer::ShaderManager::Create(_device.get()));
-	_buildingShader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/building.glsl")));
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		_buildingShader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/Vulkan/building.glsl")));
+	}
+	else {
+		_buildingShader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/GL/building.glsl")));
+	}
 	_line.reset(Renderer::Line2D::Create(_device.get()));
 	_line->Update(_width, _height);
 	
@@ -87,8 +94,9 @@ void APPLICATION::Update(float deltaTime) {
 	_mouse.Update(_terrain);
 	//update players
 	for (auto& player : _players) {
-		if (player)
-			player->UpdateMapObjects(deltaTime);
+		if (player) {
+			_threads->QueueJob([player, deltaTime]() {player->UpdateMapObjects(deltaTime); });
+		}
 	}
 	//Order unitos of team 0 around...
 	if (_players.size() && _players[0]) {
@@ -157,11 +165,18 @@ void APPLICATION::Quit() {
 }
 
 void APPLICATION::Cleanup() {
+	_threads->Stop();
+	_device->Wait();
+
+	for (auto player : _players)
+		delete player;
+	UnloadPlayerResources();
 	UnloadUnitResources();
 	UnloadBuildingResources();
 	UnloadMapObjectResources();
 	UnloadObjectResources();
-	_terrain.Release();
+	_line.reset();
+	_terrain.Cleanup();
 }
 
 void APPLICATION::AddPlayers(int noPlayers) {
@@ -186,12 +201,15 @@ void APPLICATION::AddPlayers(int noPlayers) {
 	_camera._focus = _terrain.GetWorldPos(_players[0]->GetCenter());
 }
 
-int main() {
-	
+void AppMain() {
+#if defined(DEBUG) | defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	//_CrtSetBreakAlloc(715330);
+#endif
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 9.3: Player Example")) {
 		app.Run(); 
 	}
 	
-	return 0;
+	
 }

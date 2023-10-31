@@ -26,9 +26,9 @@ class UNIT : public MAPOBJECT {
 	float _movePrc;				//0.0-1.0, used to interpolate between lastWP and nextWP
 public:
 	UNIT(int type, int team, INTPOINT mp, TERRAIN* terrain);
-	~UNIT();
+	virtual ~UNIT();
 	//Abstract functions declared in MAPOBJECT
-	void Render(Renderer::Shader*pshader)override;
+	void Render(Renderer::Shader* pshader)override;
 	void Update(float deltaTime)override;
 	BBOX GetBoundingBox()override;
 	mat4 GetWorldMatrix()override;
@@ -42,4 +42,5 @@ public:
 	bool CheckCollision(INTPOINT mp);
 	void Pause(float time);
 	virtual Renderer::Shader* GetShader()override;
+	Mesh::AnimationController* UNIT::GetAnimationController()const;
 };

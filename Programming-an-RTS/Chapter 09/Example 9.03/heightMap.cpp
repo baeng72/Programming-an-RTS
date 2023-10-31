@@ -1,20 +1,21 @@
 #pragma once
 #include "heightMap.h"
 #include <stb/stb_image.h>
-#include <stb/stb_image_resize.h>
+#include <stb/stb_image_resize2.h>
 
 
 HEIGHTMAP::HEIGHTMAP(INTPOINT size_,float maxHeight)
 	:_size(size_),_maxHeight(maxHeight)
 {	
-	_pHeightMap = new float[_size.x * _size.y];
+	_heightMap.resize(_size.x * _size.y);
+	_pHeightMap = _heightMap.data();// new float[_size.x * _size.y];
 	memset(_pHeightMap, 0, sizeof(float) * _size.x * _size.y);
 
 }
 
 HEIGHTMAP::~HEIGHTMAP()
 {
-	delete[] _pHeightMap;
+	//delete[] _pHeightMap;
 }
 
 bool HEIGHTMAP::LoadFromFile(const char* fileName)
@@ -30,9 +31,9 @@ bool HEIGHTMAP::LoadFromFile(const char* fileName)
 		//need to resize, probably better ways to do this, but meh
 		stbi_uc* newTexPixels = (stbi_uc*)malloc(_size.x * _size.y * 1);
 
-		stbir_resize_uint8(texPixels, texWidth, texHeight, texWidth,
+		stbir_resize_uint8_linear(texPixels, texWidth, texHeight, texWidth,
 			newTexPixels, _size.x, _size.y, 0,
-			1);
+			(stbir_pixel_layout)1);
 
 		stbi_image_free(texPixels);
 		texPixels = newTexPixels;
@@ -138,7 +139,8 @@ void HEIGHTMAP::RaiseTerrain(Rect& r, float f)
 
 void HEIGHTMAP::SmoothTerrain()
 {
-	float* hm = new float[_size.x * _size.y];
+	std::vector<float> nhm(_size.x * _size.y);
+	float* hm = nhm.data();// new float[_size.x * _size.y];
 	memset(hm, 0, sizeof(float) * _size.x * _size.y);
 
 	for (int y = 0; y < _size.y; y++) {
@@ -157,8 +159,10 @@ void HEIGHTMAP::SmoothTerrain()
 			hm[x + y * _size.x] = totalHeight / (float)noNodes;
 		}
 	}
-	delete[] _pHeightMap;
+	//delete[] _pHeightMap;
+	_heightMap = nhm;
 	_pHeightMap = hm;
+
 	
 }
 
@@ -179,6 +183,7 @@ void HEIGHTMAP::Cap(float capHeight)
 }
 
 void HEIGHTMAP::operator*=(const HEIGHTMAP& rhs) {
+	
 	for (int y = 0; y < _size.y; y++) {
 		for (int x = 0; x < _size.x; x++) {
 			float a = _pHeightMap[x + y * _size.x] / _maxHeight;

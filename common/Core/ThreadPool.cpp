@@ -1,5 +1,6 @@
 #include "ThreadPool.h"
 #include "Log.h"
+#include "Timer.h"
 namespace Core {
 	
 	ThreadPool::ThreadPool(uint32_t threads)
@@ -31,7 +32,13 @@ namespace Core {
 				job = _jobs.front();
 				_jobs.pop();
 			}
-			job();
+			//LOG_INFO("Thread {0} starting job", std::this_thread::get_id());
+			//char buffer[128];
+			//sprintf_s(buffer, "Thread %lu",(int) std::hash<std::thread::id>{}(std::this_thread::get_id()));
+			//{
+			//	Timer t(buffer);
+				job();
+			//}
 		}
 	}
 	void ThreadPool::QueueJob(const std::function<void()>& job)

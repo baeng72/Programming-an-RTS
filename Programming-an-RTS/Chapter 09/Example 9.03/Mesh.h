@@ -52,6 +52,7 @@ public:
 		_multiMesh->GetBoundingSphere(bSphere.center,bSphere.radius); 
 		return bSphere;
 	}
+	size_t GetHash()const { return _multiMesh->GetHash(); }
 };
 
 class MESHINSTANCE {
@@ -77,4 +78,5 @@ public:
 	mat4 GetMeshXForm() { return _mesh->_xform; }
 	BBOX GetBoundingBox();
 	BSPHERE GetBoundingSphere();
+	size_t GetHash()const { return _mesh->GetHash(); }
 };

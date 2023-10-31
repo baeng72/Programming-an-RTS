@@ -12,12 +12,12 @@ class BUILDING : public MAPOBJECT {
 	BBOX _BBox;
 	MESHINSTANCE _meshInstance;
 	bool _affectTerrain;
-	
+
 public:
-	BUILDING(int type,int team, INTPOINT mp, TERRAIN* terrain, bool affectTerrain);
-	~BUILDING();
-	
-	void Render(Renderer::Shader*pshader)override;
+	BUILDING(int type, int team, INTPOINT mp, TERRAIN* terrain, bool affectTerrain);
+	virtual ~BUILDING();
+
+	void Render(Renderer::Shader* pshader)override;
 	void Update(float deltaTime)override;
 	BBOX GetBoundingBox()override;
 	mat4 GetWorldMatrix()override;

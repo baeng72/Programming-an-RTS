@@ -8,36 +8,43 @@ SKINNEDMESH::SKINNEDMESH() {
 SKINNEDMESH::~SKINNEDMESH() {
 	_pdevice->Wait();
 	_mesh.reset();
-	
+
 }
 
-void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager>&shaderManager, const char* fileName)
+void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager>& shaderManager, const char* fileName)
 {
 	_pdevice = pdevice;
 	std::unique_ptr<Mesh::Model> model = std::unique_ptr<Mesh::Model>(Mesh::Model::Create(pdevice, fileName));
-	_meshTexture = std::unique_ptr<Renderer::Texture>(model->GetTexture(model->GetMeshMaterialIndex(0),Mesh::TextureType::diffuse, 0));
+	_meshTexture = std::unique_ptr<Renderer::Texture>(model->GetTexture(model->GetMeshMaterialIndex(0), Mesh::TextureType::diffuse, 0));
 	_mesh = std::unique_ptr<Mesh::Mesh>(model->GetMesh(Mesh::MeshType::pos_norm_uv_bones, 0));
 	_animatedMesh = std::unique_ptr<Mesh::AnimatedMesh>(model->GetAnimatedMesh(Mesh::MeshType::pos_norm_uv_bones, 0));
 	_animationController = std::unique_ptr<Mesh::AnimationController>(_animatedMesh->GetController());
 	uint32_t animationCount = model->GetAnimationCount(0);
 	_animations.resize(animationCount);
-	
+
 	for (uint32_t i = 0; i < animationCount; ++i) {
 		model->GetAnimation(0, i, _animations[i]);
-	
-		
+
+
 	}
-	
+
 	_xform = model->GetMeshXForm(0);
 
 	Renderer::ShaderStorageType shaderTypes[] = { Renderer::ShaderStorageType::Uniform,Renderer::ShaderStorageType::StorageDynamic,Renderer::ShaderStorageType::Texture };
-	_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/skinnedmesh.glsl", true, true,
-		shaderTypes, 3)));
-	
-	Renderer::Texture* ptexture = _meshTexture.get();
-	int texid = 0;
-	_meshShader->SetTexture(texid, &ptexture, 1);
-	
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/Vulkan/skinnedmesh.glsl", true, true, true,
+			shaderTypes, 3)));
+
+		Renderer::Texture* ptexture = _meshTexture.get();
+		int texid = 0;
+		_meshShader->SetTexture(texid, &ptexture, 1);
+	}
+	else {
+		_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/GL/skinnedmesh.glsl", true, true, true,
+			shaderTypes, 3)));
+
+	}
+
 }
 
 
@@ -47,13 +54,13 @@ void SKINNEDMESH::Update() {
 
 void SKINNEDMESH::SetPose(float time)
 {
-	
+
 	if (_currAnimation == 2) {
 		int z = 0;
 	}
 	_animationController->Advance(time);
-	
-	
+
+
 }
 
 void SKINNEDMESH::SetAnimation(const char* pname)
@@ -82,19 +89,19 @@ std::vector<std::string> SKINNEDMESH::GetAnimations()
 	}
 	return animationNames;
 }
-void SKINNEDMESH::Render(Renderer::Shader*pshader) {
-	
-	{
-		
-		uint32_t dynoffsets[1] = { (uint32_t)_animationController->GetControllerOffset()*sizeof(mat4) };
-		
+void SKINNEDMESH::Render(Renderer::Shader* pshader) {
+
+	/*{
+
+		uint32_t dynoffsets[1] = { (uint32_t)_animationController->GetControllerOffset() * sizeof(mat4) };
+
 		pshader->Bind(dynoffsets, 1);
-	}
+	}*/
 	{
-		
+		_animatedMesh->Bind();
 		_animatedMesh->Render(_animationController.get());
 	}
-	
+
 }
 
 int SKINNEDMESH::GetBoneIndex(const char* boneName)

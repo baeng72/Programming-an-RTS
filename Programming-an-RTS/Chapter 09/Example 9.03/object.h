@@ -22,4 +22,5 @@ public:
 	OBJECT();
 	OBJECT(int t,INTPOINT mp, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca);
 	void Render(Renderer::Shader*pshader);
+	size_t GetHash()const { return _meshInstance.GetHash(); }
 };

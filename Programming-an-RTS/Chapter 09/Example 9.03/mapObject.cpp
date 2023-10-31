@@ -13,8 +13,8 @@ void UnloadMapObjectResources() {
 	line.reset();
 }
 
-INTPOINT GetScreenPos(mat4&matVP,vec4&viewport, vec3& pos) {
-	vec3 p = glm::project(pos, glm::mat4(1.f), matVP, viewport);
+INTPOINT GetScreenPos(mat4& matVP, vec4& viewport, vec3& pos) {
+	vec3 p = Core::project(pos, glm::mat4(1.f), matVP, viewport);// glm::project(pos, glm::mat4(1.f), matVP, viewport);
 	return INTPOINT((int)p.x, (int)p.y);
 }
 
@@ -28,7 +28,7 @@ MAPOBJECT::MAPOBJECT() {
 	_team = _type = 0;
 	_selected = _dead = false;
 	_pTarget = nullptr;
-	
+
 }
 
 Rect MAPOBJECT::GetMapRect(int border) {
@@ -41,7 +41,7 @@ Rect MAPOBJECT::GetMapRect(int border) {
 	return mr;
 }
 
-void MAPOBJECT::PaintSelected(mat4&matVP,vec4&viewport) {
+void MAPOBJECT::PaintSelected(mat4& matVP, vec4& viewport) {
 	if (!_selected)
 		return;
 

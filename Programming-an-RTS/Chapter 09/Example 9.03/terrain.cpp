@@ -113,7 +113,8 @@ bool PATCH::CreateMesh(TERRAIN&t, Rect source, Renderer::RenderDevice* pdevice)
 		_vertices[i] = vertices[i].position;
 	}
 	_indices = indices;
-	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount * sizeof(uint32_t)));
+	Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float2,Renderer::ShaderDataType::Float2},sizeof(TERRAINVertex) };
+	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount * sizeof(uint32_t),attributes));
 	
 	
 	return false;
@@ -127,22 +128,27 @@ void PATCH::Release() {
 
 void PATCH::Render()
 {
-
+	_mesh->Bind();
 	_mesh->Render();
 }
 
 
 TERRAIN::TERRAIN()
 {
+	
 	_pMaptiles = nullptr;
 	_pdevice = nullptr;
 	
 }
 void TERRAIN::Cleanup()
 {
+	Release();
+	if (_pMaptiles)
+		delete[] _pMaptiles;
 }
 void TERRAIN::Release() {
-	_pdevice->Wait();//who needs synchronisation when you can block GPU?
+	if(_pdevice)
+		_pdevice->Wait();//who needs synchronisation when you can block GPU?
 	for (int i = 0; i < _patches.size(); i++) {
 		if (_patches[i])
 			delete _patches[i];
@@ -152,7 +158,7 @@ void TERRAIN::Release() {
 	if (_heightMap) {
 		_heightMap.reset();
 	}
-
+	
 	_objects.clear();
 }
 
@@ -161,7 +167,7 @@ void TERRAIN::SetWireframe(bool wireframe)
 	_shader->SetWireframe(wireframe);	
 }
 
-void TERRAIN::Init(Renderer::RenderDevice* pdevice, Window* pwindow, std::shared_ptr<Renderer::ShaderManager> shaderManager, INTPOINT size_)
+void TERRAIN::Init(Renderer::RenderDevice* pdevice,Core::Window*pwindow, std::shared_ptr<Renderer::ShaderManager> shaderManager, INTPOINT size_)
 {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
@@ -178,9 +184,17 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice, Window* pwindow, std::shared
 	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.03/textures/mountain.jpg")));
 	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.03/textures/snow.jpg")));
 	
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/terrain.glsl",false)));
+	//_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/terrain.glsl",false)));
 
-	_objectShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/mesh.glsl")));
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/Vulkan/terrain.glsl", false)));
+		_objectShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/Vulkan/mesh.glsl")));
+		
+	}
+	else {
+		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/GL/terrain.glsl", false)));
+		_objectShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/GL/mesh.glsl")));
+	}
 	
 
 	_font.reset(Renderer::Font::Create());
@@ -191,7 +205,7 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice, Window* pwindow, std::shared
 	GenerateRandomTerrain(pwindow, 9);
 }
 
-void TERRAIN::GenerateRandomTerrain(Window* pwindow, int numPatches)
+void TERRAIN::GenerateRandomTerrain(Core::Window* pwindow, int numPatches)
 {
 	Release();
 
@@ -225,6 +239,7 @@ void TERRAIN::GenerateRandomTerrain(Window* pwindow, int numPatches)
 				AddObject(1, INTPOINT(x, y));//stone
 		}
 	}
+	
 	
 		InitPathfinding();
 		
@@ -297,10 +312,11 @@ void TERRAIN::CalculateAlphaMaps() {
 	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
 	/*std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
 	_shader->SetTextures(textures.data(), 4);*/
+	delete[] pdata;
 
 }
 
-void TERRAIN::CalculateLightMap(Window* pwindow)
+void TERRAIN::CalculateLightMap(Core::Window* pwindow)
 {
 	LOG_INFO("Terrain: Calclating LightMap...");
 	constexpr int LMAP_DIM = 256;
@@ -365,11 +381,14 @@ void TERRAIN::CalculateLightMap(Window* pwindow)
 		delete[] tmpBytes;
 	}
 	_lightMap.reset(Renderer::Texture::Create(_pdevice, LMAP_DIM,LMAP_DIM, 1, (uint8_t*)map));
-	std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get(),_lightMap.get() };
-	_shader->SetTextures(textures.data(), 5);
-	Renderer::Texture* plightmap = _lightMap.get();
-	int texid = 1;//set lightmap
-	_objectShader->SetTexture(texid, &plightmap, 1);
+	delete[] map;
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get(),_lightMap.get() };
+		_shader->SetTextures(textures.data(), 5);
+		Renderer::Texture* plightmap = _lightMap.get();
+		int texid = 1;//set lightmap
+		_objectShader->SetTexture(texid, &plightmap, 1);
+	}
 }
 
 void TERRAIN::Progress(const char*ptext, float prc)
@@ -397,19 +416,55 @@ void TERRAIN::Progress(const char*ptext, float prc)
 void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLight&light,CAMERA&camera)
 {
 	light.direction = _dirToSun;
-	Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
-	int uboid = 0;
-	
-
-	Renderer::FlatShaderPushConst pushConst{model };
-	
-	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-	_shader->SetPushConstData(&pushConst, sizeof(pushConst));
+	vec2 mapSize = vec2(_size.x, _size.y);
 	_shader->Bind();
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
+		int uboid = 0;
+
+
+		Renderer::FlatShaderPushConst pushConst{ model };
+
+		_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
+		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
+	}
+	else {
+		_shader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
+		_shader->SetUniformData("model", &model, sizeof(mat4));
+		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+		auto texmap = _diffuseMaps[0].get();
+		_shader->SetTexture("texmap1", &texmap, 1);
+		texmap = _diffuseMaps[1].get();
+		_shader->SetTexture("texmap2", &texmap, 1);
+		texmap = _diffuseMaps[2].get();
+		_shader->SetTexture("texmap3", &texmap, 1);
+		texmap = _alphaMap.get();
+		_shader->SetTexture("alphamap", &texmap, 1);
+		texmap = _lightMap.get();
+		_shader->SetTexture("lightmap", &texmap, 1);
+	}
+	
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render();
-	
-	_objectShader->SetUniformData("UBO", &ubo, sizeof(ubo));
+	_objectShader->Bind();
+	if (Core::GetAPI() == Core::API::Vulkan) {
+		Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
+		_objectShader->SetUniformData("UBO", &ubo, sizeof(ubo));
+	}
+	else {
+		_objectShader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
+		_objectShader->SetUniformData("model", &model, sizeof(mat4));
+		_objectShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+		_objectShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+		_objectShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+		_objectShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+		Renderer::Texture* plightmap = _lightMap.get();
+		_objectShader->SetTexture("lightmap", &plightmap, 1);
+		_objectShader->SetUniformData("mapSize", &mapSize, sizeof(vec2));
+	}
 	//render object
 	for (int i = 0; i < _objects.size(); i++) {
 		if (!camera.Cull(_objects[i]._BBox)) {
