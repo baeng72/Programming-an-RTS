@@ -82,6 +82,10 @@ namespace GL {
 	{
 		return nullptr;
 	}
+	void* GLRenderDevice::GetDefaultResources() const
+	{
+		return nullptr;
+	}
 	void GLRenderDevice::Wait() const
 	{
 		

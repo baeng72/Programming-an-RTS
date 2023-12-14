@@ -1922,6 +1922,11 @@ TextureBuilder& TextureBuilder::setFilter(VkFilter filter_) {
 	return *this;
 }
 
+TextureBuilder& TextureBuilder::setMipLevels(uint32_t m) {
+	mipLevels = m;
+	return *this;
+}
+
 
 Texture TextureBuilder::build() {
 	TextureProperties props;

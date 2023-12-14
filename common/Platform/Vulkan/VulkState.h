@@ -15,6 +15,19 @@ namespace Vulkan {
 
 	};
 
+	constexpr int DEF_UNIFORM_SIZE = 256 * 256; //256 default 256 uniform blocks 
+	struct VulkDefRes {
+		Vulkan::Buffer defUniform;	//256 byte uniform default
+		std::vector<UniformBufferInfo> defUniformInfo;
+		Vulkan::Buffer defUniformDynamic;//256 byte uniform dynamic default
+		std::vector<UniformBufferInfo> defUniformDynamicInfo;
+		Vulkan::Buffer defStorage;	//256 byte storage default
+		std::vector<UniformBufferInfo> defStorageInfo;
+		Vulkan::Buffer defStorageDynamic;	//256 byte storage dynamic default
+		std::vector<UniformBufferInfo> defStorageDynamicInfo;
+		Vulkan::Texture defTexture;	//16x16 checker texture
+	};
+
 	struct VulkStateInitFlags {
 		bool        enableGeometryShader{ false };
 
@@ -73,6 +86,7 @@ namespace Vulkan {
 		std::vector<VkFramebuffer>			framebuffers;*/
 		std::unique_ptr<DescriptorSetLayoutCache> descriptorSetLayoutCache;
 		std::unique_ptr<DescriptorSetPoolCache> descriptorSetPoolCache;
+		VulkDefRes							defResources;
 	public:
 		VulkState();
 		void operator=(VulkState const&) = delete;
@@ -104,7 +118,7 @@ namespace Vulkan {
 		VkSurfaceFormatKHR					getSwapchainFormat()const { return swapchainFormat; }
 		VkFormatProperties					getFormatProperties()const { return formatProperties; }
 		VkExtent2D							getSwapchainExtent()const { return swapchainExtent; }*/
-
+		const VulkDefRes& getDefaultResources()const { return defResources; }
 
 	};
 

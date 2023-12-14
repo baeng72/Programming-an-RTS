@@ -39,6 +39,7 @@ namespace Vulkan {
 		virtual void EnableDepthBuffer(bool depth)override;
 		virtual void* GetDeviceContext()const override;
 		virtual void* GetCurrentFrameData()const override;
+		virtual void* GetDefaultResources()const override;
 		virtual void Wait()const override;
 		virtual void  GetDimensions(int* width, int* height)const override;
 		virtual void SetClearColor(float r, float g, float b, float a) override;

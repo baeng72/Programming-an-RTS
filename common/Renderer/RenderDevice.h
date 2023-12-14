@@ -20,6 +20,7 @@ namespace Renderer {
 		virtual void EnableDepthBuffer(bool depth) = 0;
 		virtual void* GetDeviceContext()const = 0;
 		virtual void* GetCurrentFrameData()const = 0;
+		virtual void* GetDefaultResources()const = 0;
 		virtual void  GetDimensions(int* width, int* height)const = 0;
 		virtual void  Wait()const = 0;
 		virtual void SetClearColor(float r, float g, float b, float a) = 0;

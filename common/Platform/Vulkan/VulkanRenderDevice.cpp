@@ -145,6 +145,11 @@ namespace Vulkan {
 		return (void*)&_frameData;
 	}
 
+	void* VulkanRenderDevice::GetDefaultResources() const
+	{
+		return (void*)&_state->getDefaultResources();
+	}
+
 	void VulkanRenderDevice::Wait() const
 	{
 		vkDeviceWaitIdle(_context.device);
