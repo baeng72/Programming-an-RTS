@@ -105,17 +105,20 @@ void UNIT::Render(Renderer::Shader* pshader) {
 		}
 		mat4 worldxform = unitMeshes[_type]->GetWorldXForm() * GetWorldMatrix();
 		vec4 color = vec4(1.f, 0.f, 0.f, 1.f);
-		if (Core::GetAPI() == Core::API::Vulkan) {
-			struct PushConst {
-				mat4 world;
-				vec4 color;
-			}pushConst = { worldxform, color };
-			pshader->SetPushConstData(&pushConst, sizeof(pushConst));
-		}
-		else {
-			pshader->SetUniformData("model", &worldxform, sizeof(mat4));
-			pshader->SetUniformData("color", &color, sizeof(vec4));
-		}
+		pshader->SetUniform("model", &worldxform);
+		pshader->SetUniform("color", &color);
+		//if (Core::GetAPI() == Core::API::Vulkan) {
+		//	struct PushConst {
+		//		mat4 world;
+		//		vec4 color;
+		//	}pushConst = { worldxform, color };
+		//	//pshader->SetPushConstData(&pushConst, sizeof(pushConst));
+		//	pshader->SetUniformData("PushConst", &pushConst, sizeof(pushConst));
+		//}
+		//else {
+		//	pshader->SetUniformData("model", &worldxform, sizeof(mat4));
+		//	pshader->SetUniformData("color", &color, sizeof(vec4));
+		//}
 		unitMeshes[_type]->Render(pshader);
 
 	}

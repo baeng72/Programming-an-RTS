@@ -35,9 +35,9 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer
 		_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/Vulkan/skinnedmesh.glsl", true, true, true,
 			shaderTypes, 3)));
 
-		Renderer::Texture* ptexture = _meshTexture.get();
+		/*Renderer::Texture* ptexture = _meshTexture.get();
 		int texid = 0;
-		_meshShader->SetTexture(texid, &ptexture, 1);
+		_meshShader->SetTexture(texid, &ptexture, 1);*/
 	}
 	else {
 		_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/GL/skinnedmesh.glsl", true, true, true,
@@ -98,6 +98,8 @@ void SKINNEDMESH::Render(Renderer::Shader* pshader) {
 		pshader->Bind(dynoffsets, 1);
 	}*/
 	{
+		Renderer::Texture* ptexture = _meshTexture.get();
+		_meshShader->SetTexture("texmap", &ptexture, 1);
 		_animatedMesh->Bind();
 		_animatedMesh->Render(_animationController.get());
 	}

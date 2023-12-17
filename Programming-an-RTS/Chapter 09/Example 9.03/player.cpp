@@ -79,11 +79,11 @@ void PLAYER::RenderMapObjects(CAMERA& camera, Renderer::DirectionalLight& light)
 	mat4 matVP = matProj * matView;
 
 	//Render units
-	struct UBO {
+	/*struct UBO {
 		mat4 matVP;
 		Renderer::DirectionalLight light;
 
-	}ubo = { matVP,light };
+	}ubo = { matVP,light };*/
 
 	for (int i = 0; i < _mapObjects.size(); i++) {
 		if (_mapObjects[i]) {
@@ -104,7 +104,7 @@ void PLAYER::RenderMapObjects(CAMERA& camera, Renderer::DirectionalLight& light)
 				}
 				//Renderer::Shader* pshader = _mapObjects[i]->_isBuilding ? shader.get() : _mapObjects[i]->GetShader();
 
-				if (Core::GetAPI() == Core::API::Vulkan) {
+				/*if (Core::GetAPI() == Core::API::Vulkan) {
 					pshader->SetUniformData("UBO", &ubo, sizeof(ubo));
 				}
 				else {
@@ -113,7 +113,12 @@ void PLAYER::RenderMapObjects(CAMERA& camera, Renderer::DirectionalLight& light)
 					pshader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
 					pshader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
 					pshader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-				}
+				}*/
+				pshader->SetUniform("viewProj", &matVP);
+				pshader->SetUniform("light.ambient", &light.ambient);
+				pshader->SetUniform("light.diffuse", &light.diffuse);
+				pshader->SetUniform("light.specular", &light.specular);
+				pshader->SetUniform("light.direction", &light.direction);
 				
 				_mapObjects[i]->Render(pshader);
 			}

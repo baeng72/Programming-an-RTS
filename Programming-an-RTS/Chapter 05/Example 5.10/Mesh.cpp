@@ -18,29 +18,38 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 {
 	mat4 worldxform = matWorld * _xform;
 	_shader->Bind();
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
-		int uboid = 0;
+	//if (Core::GetAPI() == Core::API::Vulkan) {
+	//	Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
+	//	int uboid = 0;
 
 
-		Renderer::FlatShaderPushConst pushConst{ worldxform };
+	//	Renderer::FlatShaderPushConst pushConst{ worldxform };
 
-		_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-		_shader->SetTexture("lightmap", &plightmap, 1);
-	}
-	else {
-		_shader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
-		_shader->SetUniformData("model", &worldxform, sizeof(mat4));
-		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-		auto texture = _texture.get();
-		_shader->SetTexture("texmap", &texture, 1);
-		_shader->SetTexture("lightmap", &plightmap,1);
-	}
-	
+	//	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
+	//	//_shader->SetPushConstData(&pushConst, sizeof(pushConst));
+	//	_shader->SetUniformData("PushConst", &pushConst, sizeof(pushConst));
+	//	_shader->SetTexture("lightmap", &plightmap, 1);
+	//}
+	//else {
+	//	_shader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
+	//	_shader->SetUniformData("model", &worldxform, sizeof(mat4));
+	//	_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+	//	_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+	//	_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+	//	_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+	//	auto texture = _texture.get();
+	//	_shader->SetTexture("texmap", &texture, 1);
+	//	_shader->SetTexture("lightmap", &plightmap,1);
+	//}
+	_shader->SetUniform("viewProj", &matViewProj);
+	_shader->SetUniform("model", &worldxform);
+	_shader->SetUniform("light.ambient", &light.ambient);
+	_shader->SetUniform("light.diffuse", &light.diffuse);
+	_shader->SetUniform("light.specular", &light.specular);
+	_shader->SetUniform("light.direction", &light.direction);
+	auto texture = _texture.get();
+	_shader->SetTexture("texmap", &texture, 1);
+	_shader->SetTexture("lightmap", &plightmap, 1);
 	_mesh->Bind();
 	_mesh->Render();
 }
@@ -85,9 +94,7 @@ void MESH::LoadShader()
 {
 	if (Core::GetAPI() == Core::API::Vulkan) {
 		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.10/shaders/Vulkan/mesh.glsl")));
-		int texid = 0;
-		std::vector<Renderer::Texture*> textures = { _texture.get() };
-		_shader->SetTexture(texid, textures.data(), 1);
+		
 	}
 	else {
 		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.10/shaders/GL/mesh.glsl")));
@@ -111,16 +118,7 @@ void MESHINSTANCE::Render(glm::mat4& viewProj, Renderer::DirectionalLight& light
 {
 	if (_mesh) {
 
-		/*glm::mat4 p, rx,ry,rz,r, s;
-		glm::mat4 identity = glm::mat4(1.f);
-		p = glm::translate(identity, _pos);
-		rx = glm::rotate(identity, _rot.x, glm::vec3(1.f, 0.f, 0.f));
-		ry = glm::rotate(identity, _rot.y, glm::vec3(0.f, 1.f, 0.f));
-		rz = glm::rotate(identity, _rot.z, glm::vec3(0.f, 0.f, 1.f));
-
-		r = rz * ry * rx;
-		s = glm::scale(identity, _sca);
-		glm::mat4 world = p * r * s;*/
+	
 		glm::mat4 world = GetWorldMatrix();
 		_mesh->Render(viewProj, world, light,plightmap);
 	}

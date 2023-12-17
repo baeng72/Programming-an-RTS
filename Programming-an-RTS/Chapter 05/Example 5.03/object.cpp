@@ -95,29 +95,15 @@ void OBJECT::RenderBoundingVolume(int type,mat4 &matViewProj,Renderer::Direction
 		mat4 trans = glm::translate(id, center);
 		mat4 world = trans * scale;
 		shapeShader->Bind();
-		if (Core::GetAPI() == Core::API::Vulkan) {
-			Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
-			int uboid = 0;
-
-
-			struct PushConst {
-				mat4 world;
-				Color color;
-			}pushConst = { world,Color(0.f,1.f,0.f,0.5f) };
-			shapeShader->SetUniformData(uboid, &ubo, sizeof(ubo));
-			shapeShader->SetPushConstData(&pushConst, sizeof(pushConst));
-		}
-		else {
-			Color clr = Color(0.f, 1.f, 0.f, 0.5f);
-			shapeShader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
-			shapeShader->SetUniformData("model", &world, sizeof(mat4));
-			shapeShader->SetUniformData("color", &clr,sizeof(vec4));
-			shapeShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-			shapeShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-			shapeShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-			shapeShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-		}
 		
+		Color clr = Color(0.f, 1.f, 0.f, 0.5f);
+		shapeShader->SetUniform("viewProj", &matViewProj);
+		shapeShader->SetUniform("model", &world);
+		shapeShader->SetUniform("color", &clr);
+		shapeShader->SetUniform("light.ambient", &light.ambient);
+		shapeShader->SetUniform("light.diffuse", &light.diffuse);
+		shapeShader->SetUniform("light.specular", &light.specular);
+		shapeShader->SetUniform("light.direction", &light.direction);
 		shapeMeshes[type - 1]->Bind();
 		shapeMeshes[type - 1]->Render();
 	}
@@ -130,29 +116,15 @@ void OBJECT::RenderBoundingVolume(int type,mat4 &matViewProj,Renderer::Direction
 		mat4 trans = glm::translate(id, center);
 		mat4 world = trans * scale;
 		shapeShader->Bind();
-		if (Core::GetAPI() == Core::API::Vulkan) {
-			Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
-			int uboid = 0;
-
-
-			struct PushConst {
-				mat4 world;
-				Color color;
-			}pushConst = { world,Color(0.f,1.f,0.f,0.5f) };
-			shapeShader->SetUniformData(uboid, &ubo, sizeof(ubo));
-			shapeShader->SetPushConstData(&pushConst, sizeof(pushConst));
-		}
-		else {
-			Color clr = Color(0.f, 1.f, 0.f, 0.5f);
-			shapeShader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
-			shapeShader->SetUniformData("model", &world, sizeof(mat4));
-			shapeShader->SetUniformData("color", &clr, sizeof(vec4));
-			shapeShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-			shapeShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-			shapeShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-			shapeShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-		}
 		
+		Color clr = Color(0.f, 1.f, 0.f, 0.5f);
+		shapeShader->SetUniform("viewProj", &matViewProj);
+		shapeShader->SetUniform("model", &world);
+		shapeShader->SetUniform("color", &clr);
+		shapeShader->SetUniform("light.ambient", &light.ambient);
+		shapeShader->SetUniform("light.diffuse", &light.diffuse);
+		shapeShader->SetUniform("light.specular", &light.specular);
+		shapeShader->SetUniform("light.direction", &light.direction);
 		shapeMeshes[type - 1]->Bind();
 		shapeMeshes[type-1]->Render();
 	}

@@ -376,11 +376,11 @@ void TERRAIN::CalculateLightMap(Core::Window* pwindow)
 	_lightMap.reset(Renderer::Texture::Create(_pdevice, LMAP_DIM,LMAP_DIM, 1, (uint8_t*)map));
 	delete[] map;
 	if (Core::GetAPI() == Core::API::Vulkan) {
-		std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get(),_lightMap.get() };
-		_shader->SetTextures(textures.data(), 5);
-		Renderer::Texture* plightmap = _lightMap.get();
-		int texid = 1;//set lightmap
-		_objectShader->SetTexture(texid, &plightmap, 1);
+		//std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get(),_lightMap.get() };
+		//_shader->SetTextures(textures.data(), 5);
+		//Renderer::Texture* plightmap = _lightMap.get();
+		//int texid = 1;//set lightmap
+		//_objectShader->SetTexture(texid, &plightmap, 1);
 	}
 	/*else {
 		Renderer::Texture* plightmap = _lightMap.get();
@@ -416,70 +416,31 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	light.direction = _dirToSun;
 	_shader->Bind();
 	vec2 mapSize = vec2(_size.x, _size.y);
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		struct UBO {
-			mat4 matVP;
-			Renderer::DirectionalLight light;
-			
-		}ubo = { viewProj,light};
-		//Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
-		int uboid = 0;
-
-
-		Renderer::FlatShaderPushConst pushConst{ model };
-
-		_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-		
-		
-	}
-	else {
-		_shader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
-		_shader->SetUniformData("model", &model, sizeof(mat4));
-		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-		auto texmap = _diffuseMaps[0].get();
-		_shader->SetTexture("texmap1", &texmap, 1);
-		texmap = _diffuseMaps[1].get();
-		_shader->SetTexture("texmap2", &texmap, 1);
-		texmap = _diffuseMaps[2].get();
-		_shader->SetTexture("texmap3", &texmap, 1);
-		texmap = _alphaMap.get();
-		_shader->SetTexture("alphamap", &texmap, 1);
-		texmap = _lightMap.get();
-		_shader->SetTexture("lightmap", &texmap, 1);
-
-		
-	}
-
+	
+	_shader->SetUniform("viewProj", &viewProj);
+	_shader->SetUniform("model", &model);
+	_shader->SetUniform("light.ambient", &light.ambient);
+	_shader->SetUniform("light.diffuse", &light.diffuse);
+	_shader->SetUniform("light.specular", &light.specular);
+	_shader->SetUniform("light.direction", &light.direction);
+	std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get(),_lightMap.get() };
+	_shader->SetTextures(textures.data(), 5);
+	_shader->Rebind();//update descriptors if required
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render();
 
 	_objectShader->Bind();
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		struct {
-			mat4 matVP;
-			Renderer::DirectionalLight light;
-			vec2 mapSize;
-		}ubo = { viewProj,light,mapSize };
-		_objectShader->SetUniformData("UBO", &ubo, sizeof(ubo));
-	}
-	else {
-		_objectShader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
-		_objectShader->SetUniformData("model", &model, sizeof(mat4));
-		_objectShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_objectShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_objectShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_objectShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-		Renderer::Texture* plightmap = _lightMap.get();
-		_objectShader->SetTexture("lightmap", &plightmap, 1);
-		_objectShader->SetUniformData("mapSize", &mapSize, sizeof(vec2));
-	}
 	
-	//_objectShader->SetPushConstData(&pushConst, sizeof(pushConst));
-	//_objectShader->Bind();
+	_objectShader->SetUniform("viewProj", &viewProj);
+	_objectShader->SetUniform("model", &model);
+	_objectShader->SetUniform("light.ambient", &light.ambient);
+	_objectShader->SetUniform("light.diffuse", &light.diffuse);
+	_objectShader->SetUniform("light.specular", &light.specular);
+	_objectShader->SetUniform("light.direction", &light.direction);
+	Renderer::Texture* plightmap = _lightMap.get();
+	_objectShader->SetTexture("lightmap", &plightmap, 1);
+	_objectShader->SetUniform("mapSize", &mapSize);
+	_shader->Rebind();//update descriptors if required
 	//render object
 	for (int i = 0; i < _objects.size(); i++) {
 		if (!camera.Cull(_objects[i]._BBox)) {

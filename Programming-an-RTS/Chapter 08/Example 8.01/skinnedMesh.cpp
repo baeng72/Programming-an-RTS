@@ -38,16 +38,13 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 	if (Core::GetAPI() == Core::API::Vulkan) {
 		_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 08/Example 8.01/shaders/Vulkan/skinnedmesh.glsl", true, true, true,
 			shaderTypes, 3)));
-		//_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 08/Example 8.01/shaders/skinnedmesh.glsl")));
-		Renderer::Texture* ptexture = _meshTexture.get();
-		int texid = 0;
-		_meshShader->SetTexture(texid, &ptexture, 1);
+		
 	}
 	else {
 		_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 08/Example 8.01/shaders/GL/skinnedmesh.glsl", true, true, true,
 			shaderTypes, 3)));
 	}
-	//_animatedMesh->UpdateShader(_meshShader.get());
+	
 	_meshShader->SetStorageBuffer("skeleton", _animatedMesh->GetBoneBuffer(), true);
 }
 
@@ -85,61 +82,22 @@ std::vector<std::string> SKINNEDMESH::GetAnimations()
 	return animationNames;
 }
 void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&light,vec4&color) {
-	//glm::mat4 r = glm::rotate(glm::mat4(1.f), -glm::pi<float>() * 0.5f, glm::vec3(0.f, 1.f, 0.f));
-	//struct UBO {
-	//	mat4 matVP;
-	//	Renderer::DirectionalLight light;
-	//}ubo = { matVP,light };
-	//struct PushConst {
-	//	mat4 world;		
-	//	vec4 color;
-	//}pushConst = { _xform*matWorld,color };
-	//
-	//
-	//_meshShader->SetUniformData("UBO", &ubo, sizeof(ubo));
-
-	//_meshShader->SetPushConstData(&pushConst, sizeof(pushConst));
-	//uint32_t dynoffsets[1] = { _animationController->GetControllerOffset() * sizeof(mat4) };
-	//_meshShader->Bind(dynoffsets, 1);
-	//_animatedMesh->Bind();
-	//_animatedMesh->Render(/*_meshShader.get(),*/_animationController.get());
-
-
+	
 	glm::mat4 r = glm::rotate(glm::mat4(1.f), -glm::pi<float>() * 0.5f, glm::vec3(0.f, 1.f, 0.f));
 	mat4 worldxform = _xform * matWorld;
 	uint32_t dynoffsets[1] = { _animationController->GetControllerOffset() * sizeof(mat4) };
 	_meshShader->Bind(dynoffsets, 1);
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		struct UBO {
-			mat4 matVP;
-			Renderer::DirectionalLight light;
-		}ubo = { matVP,light };
-		struct PushConst {
-			mat4 world;
-			vec4 color;
-		}pushConst = { worldxform,color };
+	
+	_meshShader->SetUniform("viewProj", &matVP);
+	_meshShader->SetUniform("model", &worldxform);
+	_meshShader->SetUniform("color", &color);
+	_meshShader->SetUniform("light.ambient", &light.ambient);
+	_meshShader->SetUniform("light.diffuse", &light.diffuse);
+	_meshShader->SetUniform("light.specular", &light.specular);
+	_meshShader->SetUniform("light.direction", &light.direction);
 
-
-		_meshShader->SetUniformData("UBO", &ubo, sizeof(ubo));
-
-
-		_meshShader->SetPushConstData(&pushConst, sizeof(pushConst));
-	}
-	else {
-
-		_meshShader->SetUniformData("viewProj", &matVP, sizeof(mat4));
-		_meshShader->SetUniformData("model", &worldxform, sizeof(mat4));
-		_meshShader->SetUniformData("color", &color, sizeof(vec4));
-		_meshShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_meshShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_meshShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_meshShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-
-		auto texture = _meshTexture.get();
-		_meshShader->SetTexture("texmap", &texture, 1);
-
-	}
-
+	auto texture = _meshTexture.get();
+	_meshShader->SetTexture("texmap", &texture, 1);
 	_animatedMesh->Bind();
 	_animatedMesh->Render(/*_meshShader.get(),*/ _animationController.get());
 

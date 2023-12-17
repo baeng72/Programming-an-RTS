@@ -105,37 +105,22 @@ void APPLICATION::Render() {
 	glm::mat4 model = glm::mat4(1.f);
 	_shader->Bind();
 	_multiMesh->Bind();
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		uint32_t uid = 0;
-		Uniform u{ _matVP,_light };
-		_shader->SetUniformData(uid, &u, sizeof(u));
-	}
-	else {
-		_shader->SetUniformData("viewProj", &_matVP, sizeof(mat4));
-		_shader->SetUniformData("light.ambient", &_light.ambient, sizeof(vec4));
-		_shader->SetUniformData("light.diffuse", &_light.diffuse, sizeof(vec4));
-		_shader->SetUniformData("light.specular", &_light.specular, sizeof(vec4));
-		_shader->SetUniformData("light.direction", &_light.direction, sizeof(vec3));
-	}
+	
+	_shader->SetUniform("viewProj", &_matVP);
+	_shader->SetUniform("light.ambient", &_light.ambient);
+	_shader->SetUniform("light.diffuse", &_light.diffuse);
+	_shader->SetUniform("light.specular", &_light.specular);
+	_shader->SetUniform("light.direction", &_light.direction);
 	for (uint32_t i = 0; i < _multiMesh->GetPartCount(); i++) {
-		if (Core::GetAPI() == Core::API::Vulkan) {
-			PushConst pushConst = { _xform,_meshColors[i] };
-			_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-		}
-		else {
-			_shader->SetUniformData("model", &_xform, sizeof(mat4));
-			_shader->SetUniformData("color", &_meshColors[i], sizeof(vec4));
-		}
+		
+
+		_shader->SetUniform("model", &_xform);
+		_shader->SetUniform("color", &_meshColors[i]);
 		_multiMesh->Render(i);
 		
 		
 	}
-	/*for (size_t i = 0; i < _meshes.size(); i++) {
-		PushConst pushConst = { _xforms[i],_meshColors[i] };
-		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-		_meshes[i]->Bind();
-		_meshes[i]->Render();
-	}*/
+	
 
 	_device->EndRender();
 }

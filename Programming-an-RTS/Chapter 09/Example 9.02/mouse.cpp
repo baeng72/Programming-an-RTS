@@ -92,42 +92,20 @@ void MOUSE::Update(TERRAIN&terrain) {
 }
 
 void MOUSE::Paint(mat4&matVP, Renderer::DirectionalLight& light) {
-	/*mat4 world = glm::translate(mat4(1.f), _ballPos);
-
-	struct PC {
-		mat4 world;
-		Color color;
-	}pc = { world,Color(0.8f,0.8f,0.8f,1.0f) };
-	_sphereShader->SetPushConstData(&pc, sizeof(pc));
-	struct UBO {
-		mat4 vp;
-		Renderer::DirectionalLight light;
-	}ubo = { matVP,light };
-	_sphereShader->SetUniformData("UBO",&ubo, sizeof(UBO));
-	_sphereShader->Bind();*/
+	
 	_sphereShader->Bind();
 	mat4 world = glm::translate(mat4(1.f), _ballPos);
 	_sphereShader->Bind();
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		struct PC {
-			mat4 world;
-			Color color;
-		}pc = { world,Color(0.8f,0.8f,0.8f,1.0f) };
-		_sphereShader->SetPushConstData(&pc, sizeof(pc));
-		struct UBO {
-			mat4 vp;
-			Renderer::DirectionalLight light;
-		}ubo = { matVP,light };
-		_sphereShader->SetUniformData("UBO", &ubo, sizeof(UBO));
-	}
-	else {
-		_sphereShader->SetUniformData("viewProj", &matVP, sizeof(mat4));
-		_sphereShader->SetUniformData("model", &world, sizeof(mat4));
-		_sphereShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_sphereShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_sphereShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_sphereShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-	}
+	
+	_sphereShader->SetUniform("viewProj", &matVP);
+	_sphereShader->SetUniform("model", &world);
+	_sphereShader->SetUniform("light.ambient", &light.ambient);
+	_sphereShader->SetUniform("light.diffuse", &light.diffuse);
+	_sphereShader->SetUniform("light.specular", &light.specular);
+	_sphereShader->SetUniform("light.direction", &light.direction);
+	auto clr = Color(0.8f, 0.8f, 0.8f, 1.0f);
+	_sphereShader->SetUniform("color", &clr);
+
 	_sphereMesh->Bind();
 	_sphereMesh->Render();
 	_sprite->Draw(_textures[_type].get(), vec3(x, y, 0.f));
@@ -177,37 +155,40 @@ void MOUSE::CalculateMappos(mat4&matProj,mat4&matView,TERRAIN& terrain)
 
 	float minDistance = 10000.f;
 	for (int i = 0; i < terrain._patches.size(); i++) {
+		auto& patch = terrain._patches[i];
 		uint32_t face=0;
 		vec2 hitUV;
-		float dist = ray.Intersect(terrain._patches[i]->_vertices,terrain._patches[i]->_indices,face,hitUV);
-		if (dist > 0.f && dist < minDistance) {
-			minDistance = dist;
-			int tiles = face / 2;//two faces to each map tile
-			int tilesPerRow = terrain._patches[i]->_mapRect.Width();
-			int y = tiles / tilesPerRow;
-			int x = tiles - y * tilesPerRow;
+		if (ray.Intersect(patch->_BBox) > 0.f) {
+			float dist = ray.Intersect(patch->_vertices, patch->_indices, face, hitUV);
+			if (dist > 0.f && dist < minDistance) {
+				minDistance = dist;
+				int tiles = face / 2;//two faces to each map tile
+				int tilesPerRow = terrain._patches[i]->_mapRect.Width();
+				int y = tiles / tilesPerRow;
+				int x = tiles - y * tilesPerRow;
 
-			if(face %2==0){//Hit upper left face
-				if (hitUV.x > 0.5f)
-					x++;
-				else if (hitUV.y > 0.5f)
-					y++;
-			}
-			else {	//Hit lower right face
-				if (hitUV.x + hitUV.y < 0.5f)
-					y++;
-				else if (hitUV.x > 0.5f)
-					x++;
-				else {
-					x++;
-					y++;
+				if (face % 2 == 0) {//Hit upper left face
+					if (hitUV.x > 0.5f)
+						x++;
+					else if (hitUV.y > 0.5f)
+						y++;
 				}
+				else {	//Hit lower right face
+					if (hitUV.x + hitUV.y < 0.5f)
+						y++;
+					else if (hitUV.x > 0.5f)
+						x++;
+					else {
+						x++;
+						y++;
+					}
+				}
+				//Set mouse map position
+				_mappos = INTPOINT(terrain._patches[i]->_mapRect.left + x, terrain._patches[i]->_mapRect.top + y);
+
+				_ballPos = terrain.GetWorldPos(_mappos);
+				_uv = hitUV;
 			}
-			//Set mouse map position
-			_mappos = INTPOINT(terrain._patches[i]->_mapRect.left + x, terrain._patches[i]->_mapRect.top + y);
-			
-			_ballPos = terrain.GetWorldPos(_mappos);
-			_uv = hitUV;
 		}
 	}
 }

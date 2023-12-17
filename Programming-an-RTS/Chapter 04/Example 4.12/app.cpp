@@ -107,7 +107,7 @@ void APPLICATION::Update(float deltaTime) {
 		//very slow, recompile shader each time!		
 		_particles->ResetVertices(vertices.data(), (uint32_t)vertices.size());
 		
-		//Sleep(100);
+		Sleep(100);
 	}
 	else if (IsKeyPressed(KEY_KP_ADD) && _radius < 200.f) {
 		//zoom out

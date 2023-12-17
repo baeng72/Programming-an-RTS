@@ -239,6 +239,7 @@ void TERRAIN::CalculateAlphaMaps() {
 			_shaders[i]->SetTextures(textures.data(), 2);
 		}
 	}
+	delete[] pdata;
 	
 
 }
@@ -256,28 +257,19 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	for (size_t m = 0; m < _diffuseMaps.size(); m++) {
 		Renderer::Shader* pshader = _shaders[m].get();
 		pshader->Bind();
-		if (Core::GetAPI() == Core::API::Vulkan) {
-			pshader->SetUniformData("UBO", &ubo, sizeof(ubo));
-			pshader->SetPushConstData(&pushConst, sizeof(pushConst));
-			//draw for each diffuse map, could do it in one draw call per patch passing a buffer or something?
-		}
-		else {
-			
-			
-			pshader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
-			pshader->SetUniformData("model", &model, sizeof(mat4));
-			pshader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-			pshader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-			pshader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-			pshader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-			Renderer::Texture* pdiffuse = _diffuseMaps[m].get();
+		
+		pshader->SetUniform("viewProj", &viewProj);
+		pshader->SetUniform("model", &model);
+		pshader->SetUniform("light.ambient", &light.ambient);
+		pshader->SetUniform("light.diffuse", &light.diffuse);
+		pshader->SetUniform("light.specular", &light.specular);
+		pshader->SetUniform("light.direction", &light.direction);
+		Renderer::Texture* pdiffuse = _diffuseMaps[m].get();
 
-			Renderer::Texture* palpha = _alphaMaps[m].get();			
-			pshader->SetTexture("texmap", &pdiffuse, 1);
-			pshader->SetTexture("alphamap", &palpha, 1);
-		}
-		
-		
+		Renderer::Texture* palpha = _alphaMaps[m].get();
+		pshader->SetTexture("texmap", &pdiffuse, 1);
+		pshader->SetTexture("alphamap", &palpha, 1);
+		pshader->Rebind();
 		for (size_t i = 0; i < _patches.size(); i++)
 			_patches[i]->Render();
 	}

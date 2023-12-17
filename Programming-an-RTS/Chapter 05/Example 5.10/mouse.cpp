@@ -90,28 +90,16 @@ void MOUSE::Update(TERRAIN&terrain) {
 
 void MOUSE::Paint(mat4&matVP, Renderer::DirectionalLight& light) {
 	mat4 world = glm::translate(mat4(1.f), _ballPos);
+	auto color = Color(0.8f, 0.8f, 0.8f, 1.0f);
 	_sphereShader->Bind();
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		struct PC {
-			mat4 world;
-			Color color;
-		}pc = { world,Color(0.8f,0.8f,0.8f,1.0f) };
-		_sphereShader->SetPushConstData(&pc, sizeof(pc));
-		struct UBO {
-			mat4 vp;
-			Renderer::DirectionalLight light;
-		}ubo = { matVP,light };
-		_sphereShader->SetUniformData("UBO", &ubo, sizeof(UBO));
-	}
-	else {
-		_sphereShader->SetUniformData("viewProj", &matVP, sizeof(mat4));
-		_sphereShader->SetUniformData("model", &world, sizeof(mat4));
-		_sphereShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_sphereShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_sphereShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_sphereShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-	}
 	
+	_sphereShader->SetUniform("viewProj", &matVP);
+	_sphereShader->SetUniform("model", &world);
+	_sphereShader->SetUniform("color", &color);
+	_sphereShader->SetUniform("light.ambient", &light.ambient);
+	_sphereShader->SetUniform("light.diffuse", &light.diffuse);
+	_sphereShader->SetUniform("light.specular", &light.specular);
+	_sphereShader->SetUniform("light.direction", &light.direction);
 	_sphereMesh->Bind();
 	_sphereMesh->Render();
 	_sprite->Draw(_textures[_type].get(), vec3(x, y, 0.f));

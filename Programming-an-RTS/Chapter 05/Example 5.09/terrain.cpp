@@ -312,10 +312,7 @@ void TERRAIN::CalculateAlphaMaps() {
 	}
 	//create a new texture
 	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
-		_shader->SetTextures(textures.data(), 4);
-	}
+	
 	delete[] pdata;
 }
 
@@ -326,34 +323,16 @@ void TERRAIN::Render(CAMERA&camera,Renderer::DirectionalLight&light)
 	mat4 model = glm::mat4(1.f);
 	mat4 matVP = matProj * matView;
 	_shader->Bind();
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		Renderer::FlatShaderDirectionalUBO ubo = { matVP,light };
-		int uboid = 0;
-
-
-		Renderer::FlatShaderPushConst pushConst{ model };
-
-		_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	}
-	else {
-		_shader->SetUniformData("viewProj", &matVP, sizeof(mat4));
-		_shader->SetUniformData("model", &model, sizeof(mat4));
-		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-		auto texmap = _diffuseMaps[0].get();
-		_shader->SetTexture("texmap1", &texmap, 1);
-		texmap = _diffuseMaps[1].get();
-		_shader->SetTexture("texmap2", &texmap, 1);
-		texmap = _diffuseMaps[2].get();
-		_shader->SetTexture("texmap3", &texmap, 1);
-		texmap = _alphaMap.get();
-		_shader->SetTexture("alphamap", &texmap, 1);
-
-	}
 	
+	_shader->SetUniform("viewProj", &matVP);
+	_shader->SetUniform("model", &model);
+	_shader->SetUniform("light.ambient", &light.ambient);
+	_shader->SetUniform("light.diffuse", &light.diffuse);
+	_shader->SetUniform("light.specular", &light.specular);
+	_shader->SetUniform("light.direction", &light.direction);
+	std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
+	_shader->SetTextures(textures.data(), 4);
+	_shader->Rebind();//update descriptors if required
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render();
 	

@@ -104,20 +104,20 @@ bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevi
 	Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float2},sizeof(TERRAINVertex) };
 	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount*sizeof(uint32_t),attributes));
 	_shader.reset(Renderer::Shader::Create(pdevice, shaderData));
-	int colorid = 0;
-	_shader->SetStorageBuffer(colorid, _attrBuffer.get());
+	//int colorid = 0;
+	//_shader->SetStorageBuffer(colorid, _attrBuffer.get());
 	_tex.clear();
 	for (auto& t : textures)
 	{
 		_tex.push_back(t.get());
 	}
-	if (Core::GetAPI() == Core::API::GL) {
-		//_shader->SetTexture("texmaps[0]", _tex.data(), (uint32_t)_tex.size());
-	}
-	else
-	{
-		_shader->SetTexture(colorid,_tex.data(), (uint32_t)_tex.size());
-	}
+	//if (Core::GetAPI() == Core::API::GL) {
+	//	//_shader->SetTexture("texmaps[0]", _tex.data(), (uint32_t)_tex.size());
+	//}
+	//else
+	//{
+	//	_shader->SetTexture(colorid,_tex.data(), (uint32_t)_tex.size());
+	//}
 	
 	return false;
 }
@@ -131,28 +131,18 @@ void PATCH::Release() {
 void PATCH::Render(glm::mat4&viewProj,glm::mat4&model, Renderer::DirectionalLight& light)
 {
 	_shader->Bind();
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
-		int uboid = 0;
-		_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
+	
+	_shader->SetTexture("texmaps", _tex.data(), (uint32_t)_tex.size());
 
-		Renderer::FlatShaderPushConst pushConst{ model };
-		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	}
-	else {
-		
-		_shader->SetTexture("texmaps[0]", _tex.data(), (uint32_t)_tex.size());
-	
-		int attrid = 0;
-		_shader->SetStorageBuffer(attrid, _attrBuffer.get());
-		_shader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
-		_shader->SetUniformData("model", &model, sizeof(mat4));
-		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-	}
-	
+	int attrid = 0;
+	_shader->SetStorageBuffer(attrid, _attrBuffer.get());
+	_shader->SetUniform("viewProj", &viewProj);
+	_shader->SetUniform("model", &model);
+	_shader->SetUniform("light.ambient", &light.ambient);
+	_shader->SetUniform("light.diffuse", &light.diffuse);
+	_shader->SetUniform("light.specular", &light.specular);
+	_shader->SetUniform("light.direction", &light.direction);
+	_shader->Rebind();
 	_mesh->Bind();
 	_mesh->Render();
 }

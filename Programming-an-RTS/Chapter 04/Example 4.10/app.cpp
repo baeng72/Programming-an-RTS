@@ -70,6 +70,7 @@ void APPLICATION::Update(float deltaTime) {
 		Quit();
 	if (IsKeyPressed(KEY_W)) {
 		_wireframe = !_wireframe;		
+		
 		_mesh1.SetWireframe(_wireframe);
 		_mesh2.SetWireframe(_wireframe);
 		Sleep(100);

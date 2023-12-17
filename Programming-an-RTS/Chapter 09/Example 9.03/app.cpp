@@ -1,5 +1,5 @@
 #pragma once
-
+#define __USE__PROFILER__
 #include <common.h>
 #include "intpoint.h"
 #include "mouse.h"
@@ -127,37 +127,66 @@ void APPLICATION::Update(float deltaTime) {
 
 
 void APPLICATION::Render() {
-	
+	EASY_FUNCTION();
 	//using DirectX LHS coordinate system.
 	vec4 viewport{ 0,0,(float)_width,(float)_height };
 	glm::mat4 matWorld = glm::mat4(1.f);
-	glm::mat4 matView = _camera.GetViewMatrix();
-	
-	
-	glm::mat4 matProj = _camera.GetProjectionMatrix();
-	_camera.CalculateFrustum(matProj, matView);
-	_mouse.CalculateMappos(matProj, matView, _terrain);
+	glm::mat4 matView = glm::mat4(1.f);
+	glm::mat4 matProj = glm::mat4(1.f);
+	{
+		EASY_BLOCK("Get Camera");
+		matView = _camera.GetViewMatrix();
+		matProj = _camera.GetProjectionMatrix();
+	}
+	{
+		EASY_BLOCK("Frustum");
+		_camera.CalculateFrustum(matProj, matView);
+	}
+	{
+		EASY_BLOCK("Mouse Mappos")
+		_mouse.CalculateMappos(matProj, matView, _terrain);
+
+	}
 	glm::mat4 viewProj = matProj * matView;
-	_device->StartRender();
-
-	_terrain.Render(viewProj, matWorld, _light, _camera);
-
-	for (auto& player : _players) {
-		if (player)
-			player->RenderMapObjects(_camera, _light);
+	{
+		EASY_BLOCK("Start Render");
+		_device->StartRender();
 	}
-	if (_players.size() && _players[0]) {
-		_players[0]->PaintSelectedMapObjects(_camera);
-		_players[0]->Select(matProj,matView,_mouse);
+	{
+		EASY_BLOCK("Render Terrain");
+		_terrain.Render(viewProj, matWorld, _light, _camera);
 	}
-	
+	{
+		EASY_BLOCK("Render Players");
+		for (auto& player : _players) {
+			if (player) {
 
-	_font->Draw("SPACE: Randomize Terrain", 10, 10, glm::vec4(0.f, 0.f, 0.f, 1.f));
-	
-	_font->Render();
-	_mouse.Paint(viewProj,_light);
+				player->RenderMapObjects(_camera, _light);
+			}
 
-	_device->EndRender();
+		}
+	}
+	{
+		EASY_BLOCK("Paint Selected");
+		if (_players.size() && _players[0]) {
+			_players[0]->PaintSelectedMapObjects(_camera);
+			_players[0]->Select(matProj, matView, _mouse);
+		}
+	}
+	{
+		EASY_BLOCK("Font");
+		_font->Draw("SPACE: Randomize Terrain", 10, 10, glm::vec4(0.f, 0.f, 0.f, 1.f));
+
+		_font->Render();
+	}
+	{
+		EASY_BLOCK("Paint Mouse");
+		_mouse.Paint(viewProj, _light);
+	}
+	{
+		EASY_BLOCK("EndRender");
+		_device->EndRender();
+	}
 }
 
 void APPLICATION::Quit() {
@@ -206,10 +235,17 @@ void AppMain() {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	//_CrtSetBreakAlloc(715330);
 #endif
+#if defined __USE__PROFILER__
+	EASY_PROFILER_ENABLE;
+#endif
 	APPLICATION app;
 	if (app.Init(800, 600, "Example 9.3: Player Example")) {
-		app.Run(); 
+		app.Run();
 	}
-	
+#if defined __USE__PROFILER__
+	char buffer[256];
+	sprintf_s(buffer, "Example 9.03 %s.prof", Core::GetAPI() == Core::API::GL ? "GL" : "Vulkan");
+	profiler::dumpBlocksToFile(buffer);
+#endif
 	
 }

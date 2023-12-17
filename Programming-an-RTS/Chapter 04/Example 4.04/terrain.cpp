@@ -196,24 +196,14 @@ void TERRAIN::CreatePatches(int numPatches)
 void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLight&light)
 {
 	_shader->Bind();
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
-		int uboid = 0;
-		_shader->SetUniformData(uboid, &ubo, sizeof(ubo));
 
-		Renderer::FlatShaderPushConst pushConst{ model };
 
-		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	}
-	else {
-		_shader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
-		_shader->SetUniformData("model", &model, sizeof(mat4));
-		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-	}
-	
+	_shader->SetUniform("viewProj", &viewProj);
+	_shader->SetUniform("model", &model);
+	_shader->SetUniform("light.diffuse", &light.diffuse);
+	_shader->SetUniform("light.ambient", &light.ambient);
+	_shader->SetUniform("light.specular", &light.specular);
+	_shader->SetUniform("light.direction", &light.direction);
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render();
 }

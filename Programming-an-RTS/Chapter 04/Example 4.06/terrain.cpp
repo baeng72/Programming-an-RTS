@@ -198,27 +198,15 @@ void TERRAIN::CreatePatches(int numPatches)
 void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLight&light)
 {
 	_shader->Bind();
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
-		int uboid = 0;
-		_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-
-		Renderer::FlatShaderPushConst pushConst{ model };
-
-		_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	}
-	else {
-		Renderer::Texture* ptexture = _texture.get();
-		_shader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
-		_shader->SetUniformData("model", &model, sizeof(mat4));
-		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-		_shader->SetTexture("texmap", &ptexture, 1);
-
-	}
 	
+	Renderer::Texture* ptexture = _texture.get();
+	_shader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
+	_shader->SetUniformData("model", &model, sizeof(mat4));
+	_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
+	_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
+	_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
+	_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+	_shader->SetTexture("texmap", &ptexture, 1);
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render();
 }

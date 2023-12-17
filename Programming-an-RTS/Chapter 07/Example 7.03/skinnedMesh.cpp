@@ -39,10 +39,7 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 	if (Core::GetAPI() == Core::API::Vulkan) {
 		_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 07/Example 7.03/shaders/Vulkan/skinnedmesh.glsl", true, true, true,
 			shaderTypes, 3)));
-		Renderer::Texture* ptexture = _meshTexture.get();
-		int texid = 0;
-		_meshShader->SetTexture(texid, &ptexture, 1);
-		//_animatedMesh->UpdateShader(_meshShader.get());
+		
 	}
 	else {
 		_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 07/Example 7.03/shaders/GL/skinnedmesh.glsl", true, true, true,
@@ -90,35 +87,16 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 
 	uint32_t dynoffsets[1] = { _animationController->GetControllerOffset() * sizeof(mat4) };
 	_meshShader->Bind(dynoffsets, 1);
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		struct UBO {
-			mat4 matVP;
-			Renderer::DirectionalLight light;
-		}ubo = { matVP,light };
-		struct PushConst {
-			mat4 world;
-		}pushConst = { _xform * matWorld };
+	
+	_meshShader->SetUniform("viewProj", &matVP);
+	_meshShader->SetUniform("model", &matWorld);
+	_meshShader->SetUniform("light.ambient", &light.ambient);
+	_meshShader->SetUniform("light.diffuse", &light.diffuse);
+	_meshShader->SetUniform("light.specular", &light.specular);
+	_meshShader->SetUniform("light.direction", &light.direction);
 
-
-		_meshShader->SetUniformData("UBO", &ubo, sizeof(ubo));
-
-
-		_meshShader->SetPushConstData(&pushConst, sizeof(pushConst));
-	}
-	else {
-
-		_meshShader->SetUniformData("viewProj", &matVP, sizeof(mat4));
-		_meshShader->SetUniformData("model", &matWorld, sizeof(mat4));
-		_meshShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_meshShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_meshShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_meshShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-
-		auto texture = _meshTexture.get();
-		_meshShader->SetTexture("texmap", &texture, 1);
-
-	}
-
+	auto texture = _meshTexture.get();
+	_meshShader->SetTexture("texmap", &texture, 1);
 	_animatedMesh->Bind();
 	_animatedMesh->Render(/*_meshShader.get(),*/ _animationController.get());
 	

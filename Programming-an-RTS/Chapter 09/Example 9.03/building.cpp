@@ -134,20 +134,24 @@ void BUILDING::Render(Renderer::Shader* pshader)
 	mat4 worldxform = matWorld * xform;
 	vec4 teamColor = vec4(1.f, 0.f, 0.f, 1.f);
 	vec4 color = vec4(1.f);
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		struct PushConst {
-			mat4 world;
-			vec4 teamColor;
-			vec4 color;
+	pshader->SetUniform("model", &worldxform);
+	pshader->SetUniform("teamColor", &teamColor);
+	pshader->SetUniform("color", &color);
+	//if (Core::GetAPI() == Core::API::Vulkan) {
+	//	struct PushConst {
+	//		mat4 world;
+	//		vec4 teamColor;
+	//		vec4 color;
 
-		}pushConst = { worldxform,teamColor,color };
-		pshader->SetPushConstData(&pushConst, sizeof(pushConst));
-	}
-	else {
-		pshader->SetUniformData("model", &worldxform, sizeof(mat4));
-		pshader->SetUniformData("teamColor", &teamColor, sizeof(vec4));
-		pshader->SetUniformData("color", &color, sizeof(vec4));
-	}
+	//	}pushConst = { worldxform,teamColor,color };
+	//	//pshader->SetPushConstData(&pushConst, sizeof(pushConst));
+	//	pshader->SetUniformData("PushConst", &pushConst, sizeof(pushConst));
+	//}
+	//else {
+	//	pshader->SetUniformData("model", &worldxform, sizeof(mat4));
+	//	pshader->SetUniformData("teamColor", &teamColor, sizeof(vec4));
+	//	pshader->SetUniformData("color", &color, sizeof(vec4));
+	//}
 
 	_meshInstance.Render(pshader);
 }

@@ -52,7 +52,7 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 	_sphereShader->Bind();
 	Color color = Color(0.1f, 1.f, 0.1f, 0.5f);
 	vec4 vp = vec4(0, 0, 800, 600);
-	if (Core::GetAPI() == Core::API::Vulkan) {
+	/*if (Core::GetAPI() == Core::API::Vulkan) {
 		struct UBO {
 			mat4 matVP;
 			Renderer::DirectionalLight light;
@@ -70,28 +70,38 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 		
 		_sphereShader->SetUniformData("color", &color, sizeof(color));
 		
-	}
-	
+	}*/
+	_sphereShader->SetUniform("viewProj", &matVP);
+
+	_sphereShader->SetUniform("light.ambient", &light.ambient);
+	_sphereShader->SetUniform("light.diffuse", &light.diffuse);
+	_sphereShader->SetUniform("light.specular", &light.specular);
+	_sphereShader->SetUniform("light.direction", &light.direction);
+
+	//_sphereShader->SetUniform("color", &color);
 	
 	for (int i = 0; i < _boneCount; i++) {
 		_sphereShader->Bind();
 		int parentID = _boneHierarchy[i];
 		mat4 xform = _boneXForms[i];
 		mat4 worldxform = matWorld * xform * r;
-		if (Core::GetAPI() == Core::API::Vulkan) {
-			struct PushConst {
-				mat4 world;
-				Color color;
-			}pushConst;
-			
-			pushConst.world = matWorld * xform * r;
-			pushConst.color = color;
-			_sphereShader->SetPushConstData(&pushConst, sizeof(pushConst));
-		}
-		else {
-			_sphereShader->SetUniformData("model", &worldxform, sizeof(mat4));
-			
-		}
+		//if (Core::GetAPI() == Core::API::Vulkan) {
+		//	struct PushConst {
+		//		mat4 world;
+		//		Color color;
+		//	}pushConst;
+		//	
+		//	pushConst.world = matWorld * xform * r;
+		//	pushConst.color = color;
+		//	//_sphereShader->SetPushConstData(&pushConst, sizeof(pushConst));
+		//	_sphereShader->SetUniformData("PushConst", &pushConst, sizeof(pushConst));
+		//}
+		//else {
+		//	_sphereShader->SetUniformData("model", &worldxform, sizeof(mat4));
+		//	
+		//}
+		_sphereShader->SetUniformData("model", &worldxform, sizeof(mat4));
+		_sphereShader->SetUniform("color", &color);
 		_sphere->Bind();
 		_sphere->Render();
 		if (parentID >= 0) {

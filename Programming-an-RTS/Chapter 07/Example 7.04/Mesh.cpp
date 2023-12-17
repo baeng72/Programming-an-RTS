@@ -19,40 +19,16 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 	
 	mat4 worldxform = matWorld * _xform;
 	_shader->Bind();
-	struct PushConst {
-		mat4 world;
-		vec4 color;
-	}pushConst{ worldxform,vec4(1.f) };
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
-		int uboid = 0;
-
-
-		
-
-		_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-		
-		
-	}
-	else {
-		_shader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
-		_shader->SetUniformData("model", &worldxform, sizeof(mat4));
-		_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-		
-	}
+	
+	_shader->SetUniform("viewProj", &matViewProj);
+	_shader->SetUniform("model", &worldxform);
+	_shader->SetUniform("light.ambient", &light.ambient);
+	_shader->SetUniform("light.diffuse", &light.diffuse);
+	_shader->SetUniform("light.specular", &light.specular);
+	_shader->SetUniform("light.direction", &light.direction);
 	for (int i = 0; i < _meshes.size(); i++) {
-		if (Core::GetAPI() == Core::API::Vulkan) {
-			pushConst.color = _meshColors[i];
-			_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-			
-		}
-		else {
-			_shader->SetUniformData("color", &_meshColors[i], sizeof(vec4));
-			
-		}
+		
+		_shader->SetUniform("color", &_meshColors[i]);
 		_meshes[i]->Bind();
 		_meshes[i]->Render();
 	}

@@ -167,54 +167,29 @@ void APPLICATION::Render() {
 	_mouse.CalculateMappos(matProj, matView, _terrain);
 	glm::mat4 viewProj = matProj * matView;
 	_device->StartRender();
-	struct PushConst {
-		mat4 matWorld;
-		vec4 teamColor;
-		vec4 color;
-	} pushConst;
-	pushConst.teamColor = vec4(1.f);
+	vec4 teamColor = vec4(1.f);
+	
 	vec4 color = vec4(1.f);
-	pushConst.color = color;
+	
 	_terrain.Render(viewProj, matWorld, _light, _camera);
 	_buildingShader->Bind();
 	vec2 mapSize(100.f);
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		int uboid = 0;
-		struct UBO {
-			mat4 matVP;
-			Renderer::DirectionalLight light;
-			vec2 mapSize;
-		}ubo = { viewProj,_light,mapSize };
-		_buildingShader->SetUniformData(uboid, &ubo, sizeof(ubo));
-		int texid = 1;//set lightmap
-		Renderer::Texture* plight = _terrain.GetLightMap();
-		_buildingShader->SetTexture(texid, &plight, 1);
+	
+	_buildingShader->SetUniform("viewProj", &viewProj);
+	_buildingShader->SetUniform("light.ambient", &_light.ambient);
+	_buildingShader->SetUniform("light.diffuse", &_light.diffuse);
+	_buildingShader->SetUniform("light.specular", &_light.specular);
+	_buildingShader->SetUniform("light.direction", &_light.direction);
+	_buildingShader->SetUniform("mapSize", &mapSize);
+	_buildingShader->SetUniform("color", &color);
+	Renderer::Texture* plight = _terrain.GetLightMap();
+	_buildingShader->SetTexture("lightmap", &plight, 1);
 		
-	}
-	else {
-		_buildingShader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
-		
-		_buildingShader->SetUniformData("light.ambient", &_light.ambient, sizeof(vec4));
-		_buildingShader->SetUniformData("light.diffuse", &_light.diffuse, sizeof(vec4));
-		_buildingShader->SetUniformData("light.specular", &_light.specular, sizeof(vec4));
-		_buildingShader->SetUniformData("light.direction", &_light.direction, sizeof(vec3));
-		Renderer::Texture* plight = _terrain.GetLightMap();
-		_buildingShader->SetTexture("lightmap", &plight, 1);
-		_buildingShader->SetUniformData("mapSize", &mapSize, sizeof(vec2));
-		_buildingShader->SetUniformData("color", &color, sizeof(vec4));
-	}
+	
 
 	for (auto building : _buildings) {
-		if (building && !_camera.Cull(building->GetBoundingBox())) {
-			mat4 world = building->GetWorldMatrix();
-			if (Core::GetAPI() == Core::API::Vulkan) {
-				pushConst.matWorld = world;
-				_buildingShader->SetPushConstData(&pushConst, sizeof(pushConst));
-			}
-			else {
-				_buildingShader->SetUniformData("model", &world, sizeof(mat4));
-				
-			}
+		if (building && !_camera.Cull(building->GetBoundingBox())) {			
+			_buildingShader->SetUniform("teamColor", &teamColor);			
 			building->Render(_buildingShader.get());
 		}
 	}
@@ -222,32 +197,16 @@ void APPLICATION::Render() {
 	//Render building to place
 	if (_placeBuilding) {
 	
-		pushConst.matWorld = _pBuildToPlace->GetWorldMatrix();
 		
+		teamColor = (vec4(1.f, 0.f, 0.f, 1.f));
 		if (PlaceOk(_placeType, _mouse._mappos, &_terrain)) {
-			vec4 teamColor = vec4(0.f, 1.f, 0.f, 1.f);
-			if (Core::GetAPI() == Core::API::Vulkan) {
-				pushConst.teamColor = teamColor;
-				_buildingShader->SetPushConstData(&pushConst, sizeof(pushConst));
-			}
-			else {
-				_buildingShader->SetUniformData("model", &pushConst.matWorld,sizeof(mat4));
-				_buildingShader->SetUniformData("teamColor", &teamColor, sizeof(vec4));
-			}
-			_pBuildToPlace->Render(_buildingShader.get());
 
+			teamColor = vec4(0.f, 1.f, 0.f, 1.f);
 		}
-		else {
-			vec4 teamColor = (vec4(1.f, 0.f, 0.f, 1.f));
-			if (Core::GetAPI() == Core::API::Vulkan) {
-				pushConst.teamColor = teamColor;
-				_buildingShader->SetPushConstData(&pushConst, sizeof(pushConst));
-			}
-			else {
-				_buildingShader->SetUniformData("teamColor", &teamColor, sizeof(vec4));
-			}
-			_pBuildToPlace->Render(_buildingShader.get());
-		}
+		_buildingShader->SetUniform("teamColor", &teamColor);			
+		_pBuildToPlace->Render(_buildingShader.get());
+
+		
 	}
 	for (auto building : _buildings) {
 		if (building && !_camera.Cull(building->GetBoundingBox())) {

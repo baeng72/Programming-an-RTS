@@ -43,15 +43,19 @@ void OBJECT::Render(Renderer::Shader* pshader) {
 	mat4 matWorld = _meshInstance.GetWorldMatrix();
 	mat4 xform = _meshInstance.GetMeshXForm();
 	mat4 worldxform = matWorld * xform;
-	if (Core::GetAPI() == Core::API::Vulkan) {
+	pshader->SetUniform("model", &worldxform);
+	//if (Core::GetAPI() == Core::API::Vulkan) {
 
-		struct PushConst {
-			mat4 world;
-		}pushConst = { worldxform };
-		pshader->SetPushConstData(&pushConst, sizeof(pushConst));
-	}
-	else {
-		pshader->SetUniformData("model", &worldxform, sizeof(mat4));
-	}
+	//	/*struct PushConst {
+	//		mat4 world;
+	//	}pushConst = { worldxform };*/
+	//	//pshader->SetPushConstData(&pushConst, sizeof(pushConst));
+	//	//pshader->SetUniformData("PushConst", &pushConst, sizeof(pushConst));
+	//	pshader->SetUniform("model", &worldxform);
+	//}
+	//else {
+	//	pshader->SetUniformData("model", &worldxform, sizeof(mat4));
+	//}
+	
 	_meshInstance.Render(pshader);
 }

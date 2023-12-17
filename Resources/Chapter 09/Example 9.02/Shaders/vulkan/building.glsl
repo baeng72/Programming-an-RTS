@@ -57,6 +57,7 @@ struct DirectionalLight{
 layout(set=0,binding=0) uniform UBO{
 	mat4 viewProj;	//same whole scene
 	DirectionalLight light;
+	vec2	mapSize;
 };
 
 layout (set=1,binding=0) uniform sampler2D texmap;

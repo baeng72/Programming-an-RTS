@@ -89,25 +89,16 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 	_sphereShader->Bind();
 	Color color = Color(0.1f, 1.f, 0.1f, 0.5f);
 	vec4 vp = vec4(0, 0, 800, 600);
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		struct UBO {
-			mat4 matVP;
-			Renderer::DirectionalLight light;
-		}ubo = { matVP,light };
+	
 
-		_sphereShader->SetUniformData("UBO", &ubo, sizeof(ubo));
-	}
-	else {
-		_sphereShader->SetUniformData("viewProj", &matVP, sizeof(mat4));
+	_sphereShader->SetUniform("viewProj", &matVP);
 
-		_sphereShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_sphereShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_sphereShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_sphereShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
+	_sphereShader->SetUniform("light.ambient", &light.ambient);
+	_sphereShader->SetUniform("light.diffuse", &light.diffuse);
+	_sphereShader->SetUniform("light.specular", &light.specular);
+	_sphereShader->SetUniform("light.direction", &light.direction);
 
-		_sphereShader->SetUniformData("color", &color, sizeof(color));
-
-	}
+	
 
 	std::vector<mat4> poseXForms;
 	_animationController->GetPoseXForms(poseXForms);
@@ -118,20 +109,10 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 		mat4 pxform = poseXForms[i];
 		
 		mat4 worldxform = _xform * matWorld * pxform;// *r;
-		if (Core::GetAPI() == Core::API::Vulkan) {
-			struct PushConst {
-				mat4 world;
-				Color color;
-			}pushConst;
+		
+		_sphereShader->SetUniform("model", &worldxform);
+		_sphereShader->SetUniform("color", &color);
 
-			pushConst.world = worldxform;
-			pushConst.color = color;
-			_sphereShader->SetPushConstData(&pushConst, sizeof(pushConst));
-		}
-		else {
-			_sphereShader->SetUniformData("model", &worldxform, sizeof(mat4));
-
-		}
 		_sphere->Bind();
 		_sphere->Render();
 		if (parentID >= 0) {

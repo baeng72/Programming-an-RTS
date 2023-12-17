@@ -25,6 +25,7 @@ layout(set=0,binding=0) uniform UBO{
 	vec2 mapSize;
 };
 
+
 layout (push_constant) uniform PushConst{	
 	mat4 model;		//varies per object		
 };

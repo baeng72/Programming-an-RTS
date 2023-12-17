@@ -121,17 +121,9 @@ void APPLICATION::Render() {
 	_device->StartRender();	
 
 	mat4 matView = glm::lookAtLH(vec3(0.f, 10.f, -50.f), vec3(0.f, 3.f, 0.f), vec3(0.f, 1.f, 0.f));
-	//mat4 matProj = glm::ortho(0.f, 10.f, 0.f, 9.f, 0.1f, 1000.f);
-	//matProj[1][1] *= -1;
+	
 	mat4 matProj = Core::orthoWH(10.f, 9.f, 0.1f, 1000.f);
-	/*mat4 matProj;
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		matProj = vulkOrthoLH(10.f, 9.f, 0.1f, 1000.f);
-	}
-	else {
-		matProj = glOrthoLH(10.f, 9.f, 0.1f, 1000.f);
-	}
-	*///mat4 matProj = D3DXOrthoLH(10.f, 9.f, 0.1f, 1000.f);
+	
 	
 	mat4 matVP = matProj * matView;
 	_farmer1.Render(matVP, _light);

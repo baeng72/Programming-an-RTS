@@ -43,25 +43,25 @@ struct DirectionalLight{
 uniform	DirectionalLight light;
 
 
-uniform sampler2D texmap1;
-uniform sampler2D texmap2;
-uniform sampler2D texmap3;
-uniform sampler2D alphamap;
-uniform sampler2D lightmap;
+uniform sampler2D a_texmap1;
+uniform sampler2D b_texmap2;
+uniform sampler2D c_texmap3;
+uniform sampler2D d_alphamap;
+uniform sampler2D e_lightmap;
 
 void main(){
 	
 	
-	vec4 inColor1 = texture(texmap1,UV);
-	vec4 inColor2 = texture(texmap2,UV);
-	vec4 inColor3 = texture(texmap3,UV);
+	vec4 inColor1 = texture(a_texmap1,UV);
+	vec4 inColor2 = texture(b_texmap2,UV);
+	vec4 inColor3 = texture(c_texmap3,UV);
 	
 	
 	//alphamap determines how much is shown
-	vec4 alphaColor = texture(alphamap,AlphaUV);
+	vec4 alphaColor = texture(d_alphamap,AlphaUV);
 	
 	//lightmap 
-	float lm  = texture(lightmap, AlphaUV).r;
+	float lm  = texture(e_lightmap, AlphaUV).r;
 	//Calculate the inverse
 	float inverse = 1.0f / (alphaColor.r + alphaColor.g + alphaColor.b);
 	inColor1 *= alphaColor.b * inverse *lm ;
