@@ -1082,7 +1082,17 @@ namespace Vulkan {
 					dstbinding.set = srcbinding.set;
 					dstbinding.count = srcbinding.count;
 					dstbinding.descriptorType = srcbinding.descriptorType;
-					dstbinding.block = srcbinding.block;
+					if (dstbinding.block.members.size() < srcbinding.block.members.size()) {
+						dstbinding.block.members.resize(srcbinding.block.members.size());
+					}
+					for (size_t i = 0; i < srcbinding.block.members.size(); i++) {
+						dstbinding.block.members[i] = srcbinding.block.members[i];
+					}
+					dstbinding.block.name = srcbinding.block.name;
+					dstbinding.block.offset = srcbinding.block.offset;
+					dstbinding.block.paddedSize = srcbinding.block.paddedSize;
+					dstbinding.block.size = srcbinding.block.size;
+					//dstbinding.block = srcbinding.block;
 					dstbinding.restype = srcbinding.restype;
 					dstbinding.name = srcbinding.name;
 					dstbinding.image = srcbinding.image;

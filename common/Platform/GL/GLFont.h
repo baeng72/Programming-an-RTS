@@ -33,6 +33,7 @@ namespace GL {
 			uint32_t numIndices;
 			size_t hash;
 		};
+		size_t currhash;
 		FrameData frames[MAX_FRAMES];//double-buffering
 		uint32_t currFrame;
 		GLuint _texture;

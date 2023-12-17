@@ -58,6 +58,7 @@ namespace GL {
 	}
 	void GLRenderDevice::EnableWireframe(bool wireframe)
 	{
+		glPolygonMode(GL_FRONT_AND_BACK, wireframe? GL_LINE : GL_FILL);
 	}
 	void GLRenderDevice::EnableLines(bool lines)
 	{

@@ -64,11 +64,24 @@ namespace GL {
 				glGetActiveUniform(_programID, (GLuint)i, bufSize, &length, &size, &type, name);
 				
 				int location = glGetUniformLocation(_programID, name);
+				
 				size_t hash = Core::HashFNV1A(name, strlen(name));
 				_uniformMap[hash] = location;
 				if (type == GL_SAMPLER_2D) {
 					int textureoffset = (int)_textureMap.size();
 					_textureMap[hash] = textureoffset;
+					_textureslots.push_back(location);
+					std::string sname = name;
+					size_t pos = sname.find('[');
+					if (pos != std::string::npos) {
+						name[pos] = 0;
+						hash = Core::HashFNV1A(name, strlen(name));
+						_uniformMap[hash] = location;
+						_textureMap[hash] = textureoffset;
+						
+						
+					}
+					
 				}
 			}
 		}
@@ -170,12 +183,18 @@ namespace GL {
 	}
 	void ShaderUtil::SetTextures(int* ptexids, uint32_t count) {
 		//glUseProgram(_programID);
+		
 		for (uint32_t i = 0; i < count; i++) {
-			glActiveTexture(i + GL_TEXTURE0);
 			int texid = ptexids[i];
+			glActiveTexture(GL_TEXTURE0+i);
 			glBindTexture(GL_TEXTURE_2D, texid);
+			int loc = _textureslots[i];
+			
+			glUniform1i(loc, i);
+			
+			GLERR();
 		}
-		glUniform1iv(0, count, (const GLint*)ptexids);
+		//glUniform1iv(0, count, (const GLint*)locs.data());
 		GLERR();
 	}
 	void ShaderUtil::SetTextures(const char* pname, int* texids, uint32_t count) {
@@ -222,7 +241,10 @@ namespace GL {
 		//glCullFace(GL_BACK);
 		//glFrontFace(GL_CW);
 		//GLERR();
-		glUseProgram(_programID);
+		GLint id;
+		glGetIntegerv(GL_CURRENT_PROGRAM, &id);
+		if(id!=_programID)
+			glUseProgram(_programID);
 		GLERR();
 	}
 

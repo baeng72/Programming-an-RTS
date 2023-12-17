@@ -26,6 +26,7 @@ namespace Vulkan {
 
 
 	VulkanFont::VulkanFont() :_renderdevice(nullptr),_width(0),_height(0),invBmpWidth(0.f) {
+		currhash = 0;
 		bmpHeight = 0;
 		currFrame = UINT32_MAX;
 		for (int i = 0; i < MAX_FRAMES; i++) {
@@ -292,6 +293,14 @@ void main(){
 		GetTextSize(ptext, width, height);
 		float scale = 1.f;
 
+		size_t texthash = Core::HashFNV1A(ptext, len);
+		if (currhash == 0)
+			currhash = texthash;
+		else {
+			currhash *= Core::fnvprime;
+			currhash *= texthash;
+		}
+
 
 		for (size_t i = 0; i < len; i++) {
 			char c = ptext[i];
@@ -337,13 +346,13 @@ void main(){
 		VkCommandBuffer cmd = frameData.cmd;
 		VkDeviceSize vertSize = sizeof(FontVertex) * _vertices.size();
 		VkDeviceSize indSize = sizeof(uint32_t) * _indices.size();
-		size_t hash = Core::HashFNV1A(_vertices.data(), vertSize);
+		//size_t hash = Core::HashFNV1A(_vertices.data(), vertSize);
 		currFrame++;
 		uint32_t frameIdx = currFrame % MAX_FRAMES;
 		VkDeviceSize maxSize = std::max(vertSize, indSize);
 		
 		FrameData& frame = frames[frameIdx];
-		if (frame.hash != hash) {
+		if (frame.hash != currhash) {
 		
 			bool needStaging = !(frame.vertSize == 0 || frame.vertSize < vertSize || frame.indSize == 0 || frame.indSize < indSize);
 			//Vulkan::Buffer stagingBuffer;
@@ -404,11 +413,12 @@ void main(){
 				Vulkan::unmapBuffer(context.device, _stagingBuffer);
 				//Vulkan::cleanupBuffer(context.device, stagingBuffer);
 			}
-			frame.hash = hash;
+			frame.hash = currhash;
 		}
 		currFrame = frameIdx;
 		_vertices.clear();
 		_indices.clear();
+		currhash = 0;
 	}
 
 	void VulkanFont::Render() {

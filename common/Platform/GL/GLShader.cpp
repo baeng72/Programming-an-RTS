@@ -28,6 +28,7 @@ namespace GL {
 	}
 	void GLShader::SetWireframe(bool wireframe)
 	{
+		glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
 	}
 	/*void GLShader::SetPushConstData(void*, uint32_t len)
 	{

@@ -18,6 +18,8 @@ namespace Vulkan {
 		std::unordered_map<size_t, int> texturehashmap;
 		std::vector<std::tuple<std::string, int, int, int, uint32_t, uint32_t, uint32_t, void*>> storagemembers;
 		std::unordered_map<size_t, int> storagehashmap;
+		std::unordered_map<int32_t,size_t> storagehashes;
+		bool needsRebind;
 	public:
 		VulkanShader(Renderer::RenderDevice* pdevice,void*shaderData);		
 		virtual ~VulkanShader();
@@ -60,6 +62,8 @@ namespace Vulkan {
 		virtual bool SetStorageData(const char* pname, void* ptr, uint32_t len, bool dynamic = false) override;
 		
 		virtual uint32_t GetStorageId(const char* pname, bool dynamic = false) override;
+
+		virtual void Rebind(uint32_t* pdynoffsets = nullptr, uint32_t dynoffcount = 0)override;
 		
 	};
 }

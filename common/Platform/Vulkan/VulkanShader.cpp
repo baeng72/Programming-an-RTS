@@ -13,7 +13,7 @@ namespace Vulkan {
 	VulkanShader::VulkanShader(Renderer::RenderDevice* pdevice, void* shaderData) {
 		_pShaderData = (VulkanShaderData*)shaderData;
 		_pdevice = pdevice;
-
+		needsRebind = false;
 		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
 		Vulkan::VulkContext& context = *contextptr;
 		Vulkan::VulkFrameData* framedataptr = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
@@ -693,8 +693,9 @@ namespace Vulkan {
 			updater.update();
 
 		}
-		if (descriptor != VK_NULL_HANDLE) {
+		if (descriptor != VK_NULL_HANDLE && _descriptorSets[set]!=descriptor) {
 			_descriptorSets[set] = descriptor;//use descriptor on next bind
+			needsRebind = true;
 			return true;
 		}
 		return false;
@@ -789,8 +790,9 @@ namespace Vulkan {
 					}
 					setupdater.update();
 				}
-				if (descriptor != VK_NULL_HANDLE) {
+				if (descriptor != VK_NULL_HANDLE&& _descriptorSets[s]!=descriptor) {
 					_descriptorSets[s] = descriptor;
+					needsRebind = true;
 					return true;
 				}
 			}
@@ -872,50 +874,57 @@ namespace Vulkan {
 		Vulkan::VulkContext& context = *contextptr;
 		VulkanBufferData* pdata = (VulkanBufferData*)pbuffer->GetNativeHandle();
 		ASSERT(i>=0 && i < storagemembers.size(), "Unknown storage slot!");
+
+		size_t hash = HASH(pdata);
 		auto& member = storagemembers[i];
 		int s = std::get<2>(member);
 		int b = std::get<3>(member);
-		uint32_t index = 0;
-		for (size_t m = 0; m < storagemembers.size(); m++) {
-			auto& member = storagemembers[m];
-			int parent = std::get<1>(member);
-			int set = std::get<2>(member);
-			int bindx = std::get<3>(member);
-			int offset = std::get<4>(member);
-			if (s == set && b == bindx) {
-				std::get<7>(member) = (void*)((uint8_t*)pdata->ptr + offset);
-				if (parent == -1) {
-					if (index == i) {
-						auto& buffers = bufferInfos[set];
-						auto& bufferInfo = buffers[bindx];
-						bufferInfo.buffer = pdata->buffer.buffer;
-						bufferInfo.offset = 0;	//may not be true ?
-						bufferInfo.range = pdata->size;
-						auto& bindingset = _pShaderData->reflection.bindings[set];
-						DescriptorSetUpdater updater = DescriptorSetUpdater::begin(context.pLayoutCache, _pShaderData->descriptorSetLayouts[set], _descriptorSets[set]);
-						for (size_t b = 0; b < bindingset.size(); b++) {
-							auto& binding = bindingset[b];
-							switch (binding.descriptorType) {
-							case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-							case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-							case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-							case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-								updater.AddBinding(binding.binding, binding.descriptorType, &buffers[bindx]);
-								break;
-							case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-								updater.AddBinding(binding.binding, binding.descriptorType, &imageInfos[set][bindx]);
+		
+		int32_t bindmask = s << 16 | b;//this specific slot
+		if(storagehashes[bindmask]!=hash){//only update when need to change buffer
+			uint32_t index = 0;
+			for (size_t m = 0; m < storagemembers.size(); m++) {
+				auto& member = storagemembers[m];
+				int parent = std::get<1>(member);
+				int set = std::get<2>(member);
+				int bindx = std::get<3>(member);
+				int offset = std::get<4>(member);
+				if (s == set && b == bindx) {
+					std::get<7>(member) = (void*)((uint8_t*)pdata->ptr + offset);
+					if (parent == -1) {
+						if (index == i) {
+							auto& buffers = bufferInfos[set];
+							auto& bufferInfo = buffers[bindx];
+							bufferInfo.buffer = pdata->buffer.buffer;
+							bufferInfo.offset = 0;	//may not be true ?
+							bufferInfo.range = pdata->size;
+							auto& bindingset = _pShaderData->reflection.bindings[set];
+							DescriptorSetUpdater updater = DescriptorSetUpdater::begin(context.pLayoutCache, _pShaderData->descriptorSetLayouts[set], _descriptorSets[set]);
+							for (size_t b = 0; b < bindingset.size(); b++) {
+								auto& binding = bindingset[b];
+								switch (binding.descriptorType) {
+								case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+								case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+								case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+								case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+									updater.AddBinding(binding.binding, binding.descriptorType, &buffers[bindx]);
+									break;
+								case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+									updater.AddBinding(binding.binding, binding.descriptorType, &imageInfos[set][bindx]);
+								}
+
 							}
+							updater.update();
+
 
 						}
-						updater.update();
 
-						
+						index++;
 					}
-
-					index++;
 				}
+
 			}
-			
+			storagehashes[bindmask] = hash;
 		}
 		return true;
 		
@@ -1025,6 +1034,14 @@ namespace Vulkan {
 			id = (uint32_t)std::distance(names.begin(), std::find(names.begin(), names.end(), pname));
 		}
 		return id;*/
+	}
+
+	void VulkanShader::Rebind(uint32_t* pdynoffsets, uint32_t dynoffcount)
+	{
+		if (needsRebind) {
+			Bind(pdynoffsets, dynoffcount);
+			needsRebind = false;
+		}
 	}
 	
 }

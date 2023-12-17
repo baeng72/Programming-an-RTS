@@ -15,6 +15,7 @@ namespace GL {
 		int ShaderTypeFromString(const std::string& type);
 		std::unordered_map<size_t, int> _uniformMap;
 		std::unordered_map<size_t, int> _textureMap;//bad name
+		std::vector<GLint> _textureslots;
 		GLenum _frontFace;
 		GLenum _cullFace;
 		bool _enableBlend;

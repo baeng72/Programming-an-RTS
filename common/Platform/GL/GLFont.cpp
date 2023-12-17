@@ -8,6 +8,7 @@ namespace GL {
 	GLFont::GLFont()
 		:_width(0),_height(0),invBmpWidth(0.f)
 	{
+		currhash = 0;
 		bmpHeight = 0;
 		currFrame = UINT32_MAX;
 		for (int i = 0; i < MAX_FRAMES; i++) {
@@ -193,14 +194,14 @@ void main() {
 		FrameData& frame = frames[frameIdx];
 		currFrame = frameIdx;
 		glBindVertexArray(_vao);
-		if (frame.hash == hash) {
+		if (frame.hash == currhash) {
 			glBindBuffer(GL_ARRAY_BUFFER, frame.vertexBuffer);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, frame.indexBuffer);
 		
 		}
 		else {
 
-			frame.hash = hash;
+			frame.hash = currhash;
 
 			if (frame.vertSize == 0 || frame.vertSize < vertSize) {
 				if (frame.vertexBuffer != -1) {
@@ -242,16 +243,26 @@ void main() {
 		
 		_vertices.clear();
 		_indices.clear();
+		currhash = 0;
 		
 	}
 	void GLFont::Draw(const char* ptext, int xpos, int ypos, glm::vec4 color)
 	{
-
+		
 
 		std::vector<FontVertex> vertices;
 		std::vector<uint32_t> indices;
 		uint32_t indexoffset = (uint32_t)_vertices.size();
 		size_t len = strlen(ptext);
+
+		size_t texthash = Core::HashFNV1A(ptext, len);
+		if (currhash == 0)
+			currhash = texthash;
+		else {
+			currhash *= Core::fnvprime;
+			currhash *= texthash;
+		}
+
 		float x = (float)xpos;
 		float y = (float)ypos;
 		float fbmpHeight = (float)bmpHeight;

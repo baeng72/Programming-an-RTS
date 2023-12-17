@@ -31,6 +31,7 @@ namespace Vulkan {
 			uint32_t numIndices;
 			size_t hash;
 		};
+		size_t currhash;
 		Vulkan::Buffer _stagingBuffer;
 
 		FrameData frames[MAX_FRAMES];//double-buffering
