@@ -23,7 +23,7 @@ public:
 APPLICATION::APPLICATION() {
 	m_angle = 0.f;
 	_image = 0;
-	
+	Core::ResourcePath::SetProjectPath("Chapter 04/Example 4.01");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -38,7 +38,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->Init();
 
 	_heightMap = std::make_unique<HEIGHTMAP>(_device.get(), INTPOINT(100, 100));
-	_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/textures/abe.jpg");
+	_heightMap->LoadFromFile(Core::ResourcePath::GetTexturePath("abe.jpg"));
 	
 	
 	return true;
@@ -53,13 +53,13 @@ void APPLICATION::Update(float deltaTime) {
 		_image %= 3;
 		switch (_image) {
 		case 0:
-			_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/textures/abe.jpg");
+			_heightMap->LoadFromFile(Core::ResourcePath::GetTexturePath("abe.jpg"));
 			break;
 		case 1:
-			_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/textures/smiley.bmp");
+			_heightMap->LoadFromFile(Core::ResourcePath::GetTexturePath("smiley.bmp"));
 			break;
 		case 2:
-			_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.01/textures/heightmap.jpg");
+			_heightMap->LoadFromFile(Core::ResourcePath::GetTexturePath("heightmap.jpg"));
 			break;
 			
 		}

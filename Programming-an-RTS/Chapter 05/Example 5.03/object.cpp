@@ -7,11 +7,11 @@ std::vector<std::unique_ptr<Mesh::Mesh>> shapeMeshes;
 std::unique_ptr<Renderer::Shader> shapeShader;
 
 bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager> shaderManager) {
-	MESH* dragon = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.03/objects/dragon.x");
+	MESH* dragon = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("Objects/dragon.x"));
 	objectMeshes.push_back(dragon);
-	MESH* f1 = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.03/objects/footman01.x");
+	MESH* f1 = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("Objects/footman01.x"));
 	objectMeshes.push_back(f1);
-	MESH* ring = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.03/objects/ring.x");
+	MESH* ring = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("Objects/ring.x"));
 	objectMeshes.push_back(ring);
 
 	std::unique_ptr<Mesh::Shape> shape;
@@ -19,12 +19,9 @@ bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Rendere
 	shapeMeshes.push_back(std::unique_ptr<Mesh::Mesh>(shape->CreateCube(1.f)));
 	shapeMeshes.push_back(std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(1.f, 12, 12)));
 	
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.03/shaders/Vulkan/shape.glsl", false)));
-	}
-	else {
-		shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.03/shaders/GL/shape.glsl", false)));
-	}
+	
+	shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("shape.glsl"), false)));
+	
 
 	return true;
 }

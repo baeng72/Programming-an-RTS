@@ -141,21 +141,13 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.07/textures/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.07/textures/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.07/textures/snow.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("grass.jpg"))));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("mountain.jpg"))));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("snow.jpg"))));
 	_size = size_;
 	_shaders.resize(_diffuseMaps.size());//hacktastic, need to a better way  to do this
-	for (size_t i = 0; i < _diffuseMaps.size(); i++) {
-		if (Core::GetAPI() == Core::API::Vulkan) {
-			_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.07/Shaders/Vulkan/terrain.glsl", false)));
-		}
-		else {
-			_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.07/Shaders/GL/terrain.glsl", false,false)));
-			
-		}
-		
-		
+	for (size_t i = 0; i < _diffuseMaps.size(); i++) {		
+		_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), false)));		
 	}
 	
 	//std::vector<Renderer::Texture*> textures{ _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get() };

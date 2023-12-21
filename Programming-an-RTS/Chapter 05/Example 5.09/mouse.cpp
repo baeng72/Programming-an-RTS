@@ -20,7 +20,7 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice,  std::shared_ptr<Renderer::Sha
 	x = width / 2;
 	y = height / 2;
 	pwindow->ShowCursor(false);
-	std::unique_ptr<Renderer::Image> image = std::unique_ptr<Renderer::Image>(Renderer::Image::Create("../../../../Resources/Chapter 05/Example 5.09/cursor/cursor.png"));
+	std::unique_ptr<Renderer::Image> image = std::unique_ptr<Renderer::Image>(Renderer::Image::Create(Core::ResourcePath::GetCursorPath("cursor.png")));
 	uint32_t* pixels = (uint32_t*)image->GetPixels();
 	int channels;
 	image->GetSize(width, height, channels);
@@ -57,12 +57,9 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice,  std::shared_ptr<Renderer::Sha
 	std::unique_ptr<Mesh::Shape> shape;
 	shape.reset(Mesh::Shape::Create(pdevice));
 	_sphereMesh = std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(0.2f, 5, 5));
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.09/shaders/Vulkan/shape.glsl", false)));
-	}
-	else {
-		_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.09/shaders/GL/shape.glsl", false)));
-	}
+	
+	_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("shape.glsl"), false)));
+	
 }
 
 void MOUSE::Update(TERRAIN&terrain) {

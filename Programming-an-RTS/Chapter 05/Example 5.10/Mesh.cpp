@@ -18,29 +18,7 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 {
 	mat4 worldxform = matWorld * _xform;
 	_shader->Bind();
-	//if (Core::GetAPI() == Core::API::Vulkan) {
-	//	Renderer::FlatShaderDirectionalUBO ubo = { matViewProj,light };
-	//	int uboid = 0;
-
-
-	//	Renderer::FlatShaderPushConst pushConst{ worldxform };
-
-	//	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-	//	//_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	//	_shader->SetUniformData("PushConst", &pushConst, sizeof(pushConst));
-	//	_shader->SetTexture("lightmap", &plightmap, 1);
-	//}
-	//else {
-	//	_shader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
-	//	_shader->SetUniformData("model", &worldxform, sizeof(mat4));
-	//	_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-	//	_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-	//	_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-	//	_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-	//	auto texture = _texture.get();
-	//	_shader->SetTexture("texmap", &texture, 1);
-	//	_shader->SetTexture("lightmap", &plightmap,1);
-	//}
+	
 	_shader->SetUniform("viewProj", &matViewProj);
 	_shader->SetUniform("model", &worldxform);
 	_shader->SetUniform("light.ambient", &light.ambient);
@@ -92,13 +70,9 @@ bool MESH::Load(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::Shade
 
 void MESH::LoadShader()
 {
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.10/shaders/Vulkan/mesh.glsl")));
-		
-	}
-	else {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.10/shaders/GL/mesh.glsl")));
-	}
+	
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("mesh.glsl"))));
+	
 }
 
 MESHINSTANCE::MESHINSTANCE()

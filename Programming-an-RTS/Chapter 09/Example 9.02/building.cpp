@@ -4,13 +4,13 @@ std::vector< std::unique_ptr<MESH>> buildingMeshes;
 
 void LoadBuildingResources(Renderer::RenderDevice* pdevice) {
 	std::vector<std::string> fnames = {
-		"meshes/townhall.x",
-		"meshes/barracks.x",
-		"meshes/tower.x"
+		"townhall.x",
+		"barracks.x",
+		"tower.x"
 	};
 	for (int i = 0; i < fnames.size(); i++) {
 		auto& fname = fnames[i];
-		std::string path = "../../../../Resources/Chapter 09/Example 9.02/" + fname;
+		std::string path = Core::ResourcePath::GetMeshPath(fname.c_str());
 		buildingMeshes.push_back(std::make_unique<MESH>(pdevice, path.c_str()));
 	}
 }

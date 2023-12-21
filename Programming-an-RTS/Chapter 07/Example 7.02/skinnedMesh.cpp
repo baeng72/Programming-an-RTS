@@ -35,13 +35,8 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 	_line->Update(800, 600);
 	std::unique_ptr<Mesh::Shape> shape = std::unique_ptr<Mesh::Shape>(Mesh::Shape::Create(pdevice));
 	_sphere = std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(0.07f, 12, 12));
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_sphereShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 07/Example 7.02/shaders/Vulkan/shape.glsl", false)));
-	}
-	else {
-		_sphereShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 07/Example 7.02/shaders/GL/shape.glsl", false)));
-	}
 	
+	_sphereShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("shape.glsl"), false)));
 	
 }
 

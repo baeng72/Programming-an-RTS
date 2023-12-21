@@ -50,6 +50,7 @@ APPLICATION::APPLICATION() {
 	_currentRects[0] = _destRects[1] = _srcRects[1];
 	
 	srand(123456);
+	Core::ResourcePath::SetProjectPath("Chapter 05/Example 5.05");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -66,7 +67,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 
 
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 
 
 	
@@ -82,7 +83,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	
 	_cars.push_back(OBJECT(GetWindowPtr(),0, vec3(0.f, 0.f, 0.5f), vec3(0.f), 1.6f));
 	_cars.push_back(OBJECT(GetWindowPtr(),1, vec3(0.f, 0.f, -1.5f), vec3(0.f), -1.6f));
-	_track = std::make_unique<MESH>(_device.get(), _shadermanager, "../../../../Resources/Chapter 05/Example 5.05/objects/track.x");
+	_track = std::make_unique<MESH>(_device.get(), _shadermanager, Core::ResourcePath::GetProjectResourcePath("objects/track.x"));
 
 
 	return true;

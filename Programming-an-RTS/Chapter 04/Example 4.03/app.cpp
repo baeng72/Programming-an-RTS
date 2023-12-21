@@ -23,6 +23,7 @@ public:
 APPLICATION::APPLICATION() {
 	_angle = 0.f;
 	_angle_b = 0.5f;
+	Core::ResourcePath::SetProjectPath("Chapter 04/Example 4.03");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -36,7 +37,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->Init();
 
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 
 	_heightMap = std::make_unique<HEIGHTMAP>(_device.get(), INTPOINT(50,50));
 	
@@ -50,6 +51,7 @@ void APPLICATION::Update(float deltaTime) {
 	if (IsKeyPressed(KEY_ESCAPE))
 		Quit();
 	if (IsKeyPressed(KEY_SPACE)) {
+		_device->Wait();
 		_heightMap->SmoothTerrain();
 	}
 	//Move selection rectangle
@@ -62,10 +64,14 @@ void APPLICATION::Update(float deltaTime) {
 	if (IsKeyPressed(KEY_S) && _heightMap->_selRect.top < _heightMap->_size.y)
 		_heightMap->MoveRect(DOWN);
 	//Raise/Lower heightmap
-	if (IsKeyPressed(KEY_KP_ADD))
-		_heightMap->RaiseTerrain(_heightMap->_selRect, deltaTime * 3.f);
-	if (IsKeyPressed(KEY_KP_SUBTRACT))
-		_heightMap->RaiseTerrain(_heightMap->_selRect, -deltaTime * 3.f);
+	if (IsKeyPressed(KEY_KP_ADD)) {
+		_device->Wait();
+		_heightMap->RaiseTerrain(_heightMap->_selRect, deltaTime * 10.f);
+	}
+	if (IsKeyPressed(KEY_KP_SUBTRACT)) {
+		_device->Wait();
+			_heightMap->RaiseTerrain(_heightMap->_selRect, -deltaTime * 10.f);
+	}
 	if (IsKeyPressed(KEY_UP) && _angle_b < glm::pi<float>() * 0.4f)
 		_angle_b += deltaTime * 0.5f;
 	if (IsKeyPressed(KEY_DOWN) && _angle_b > 0.1f)
@@ -89,13 +95,7 @@ void APPLICATION::Render() {
 	mat4 matView = glm::lookAtLH(eye, lookat, up);
 	constexpr float fov = glm::radians(45.f);
 	mat4 matProj = Core::perspective(quaterpi, (float)_width, (float)_height, 1.f, 1000.f);
-	/*if (Core::GetAPI() == Core::API::Vulkan) {
-		matProj = glm::perspectiveFovLH_ZO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
-		matProj[1][1] *= -1;
-	}
-	else {
-		matProj = glm::perspectiveFovLH_NO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
-	}*/
+	
 	mat4 viewProj = matProj * matView;
 
 	_font->Draw("Arrows: Move Camera", 10, 10);

@@ -140,12 +140,9 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
 	_size = size_;	
-	if (Core::GetAPI()==Core::API::GL) {
-		_shader.reset(Renderer::Shader::Create(pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.04/Shaders/GL/terrain.glsl", false)));
-	}
-	else {
-		_shader.reset(Renderer::Shader::Create(pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.04/Shaders/Vulkan/terrain.glsl", false)));
-	}
+	
+	_shader.reset(Renderer::Shader::Create(pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), false)));
+	
 	GenerateRandomTerrain(3);
 }
 

@@ -104,20 +104,12 @@ bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevi
 	Renderer::VertexAttributes attributes = { {Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float3,Renderer::ShaderDataType::Float2},sizeof(TERRAINVertex) };
 	_mesh.reset(Mesh::Mesh::Create(pdevice, (float*)vertices.data(), sizeof(TERRAINVertex) * nrVert, indices.data(), indexCount*sizeof(uint32_t),attributes));
 	_shader.reset(Renderer::Shader::Create(pdevice, shaderData));
-	//int colorid = 0;
-	//_shader->SetStorageBuffer(colorid, _attrBuffer.get());
+	
 	_tex.clear();
 	for (auto& t : textures)
 	{
 		_tex.push_back(t.get());
 	}
-	//if (Core::GetAPI() == Core::API::GL) {
-	//	//_shader->SetTexture("texmaps[0]", _tex.data(), (uint32_t)_tex.size());
-	//}
-	//else
-	//{
-	//	_shader->SetTexture(colorid,_tex.data(), (uint32_t)_tex.size());
-	//}
 	
 	return false;
 }
@@ -181,9 +173,9 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
-	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/textures/water.jpg")));
-	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/textures/grass.jpg")));
-	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.05/textures/stone.jpg")));
+	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("water.jpg"))));
+	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("grass.jpg"))));
+	_textures.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("stone.jpg"))));
 	_size = size_;	
 	
 	GenerateRandomTerrain(3);
@@ -212,12 +204,9 @@ void TERRAIN::CreatePatches(int numPatches)
 {
 	_pdevice->Wait();//who needs synchronisation when you can block GPU?
 	void* shaderData = nullptr;
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		shaderData = _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.05/Shaders/Vulkan/terrain.glsl", false);
-	}
-	else {
-		shaderData = _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.05/Shaders/GL/terrain.glsl", false);
-	}
+	
+	shaderData = _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), false);
+	
 	for (int i = 0; i < _patches.size(); i++) {
 		if (_patches[i])
 			delete _patches[i];

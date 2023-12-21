@@ -26,7 +26,7 @@ public:
 
 APPLICATION::APPLICATION() {
 	_intersectType = 0;
-
+	Core::ResourcePath::SetProjectPath("Chapter 05/Example 5.03");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -43,11 +43,11 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 
 
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 
 
 	_fontMouse.reset(Renderer::Font::Create());
-	_fontMouse->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 24);
+	_fontMouse->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 24);
 
 	_light.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
 	_light.diffuse = glm::vec4(0.9f, 0.9f, 0.9f, 1.f);

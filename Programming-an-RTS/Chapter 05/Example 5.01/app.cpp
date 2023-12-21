@@ -37,7 +37,7 @@ public:
 };
 
 APPLICATION::APPLICATION() {
-	
+	Core::ResourcePath::SetProjectPath("Chapter 05/Example 5.01");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -50,7 +50,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->EnableDepthBuffer(true);
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
-	const char* path = "../../../../Resources/Chapter 05/Example 5.01/meshes/terrain.x";
+	const char* path = Core::ResourcePath::GetMeshPath("terrain.x");
 	
 	std::unique_ptr<Mesh::Model> model = std::unique_ptr<Mesh::Model>(Mesh::Model::Create(_device.get(), path));
 	std::unique_ptr<Mesh::MultiMesh> multiMesh = std::unique_ptr<Mesh::MultiMesh>(model->GetMultiMesh(Mesh::MeshType::position_normal));
@@ -67,12 +67,9 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_multiMesh = std::move(multiMesh);
 	
 	_shadermanager.reset(Renderer::ShaderManager::Create(_device.get()));
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_shader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.01/shaders/Vulkan/mesh.glsl")));
-	}
-	else {
-		_shader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.01/shaders/GL/mesh.glsl")));
-	}
+	
+	_shader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData(Core::ResourcePath::GetShaderPath("mesh.glsl"))));
+	
 
 	_light.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
 	_light.diffuse = glm::vec4(0.9f, 0.9f, 0.9f, 1.f);

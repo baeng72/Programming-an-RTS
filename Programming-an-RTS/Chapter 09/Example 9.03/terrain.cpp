@@ -180,21 +180,16 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,Core::Window*pwindow, std::sh
 	memset(_pMaptiles, 0, sizeof(MAPTILE) * _size.x * _size.y);
 
 	//Load Textures
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.03/textures/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.03/textures/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.03/textures/snow.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("grass.jpg"))));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("mountain.jpg"))));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("snow.jpg"))));
 	
 	//_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/terrain.glsl",false)));
 
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/Vulkan/terrain.glsl", false)));
-		_objectShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/Vulkan/mesh.glsl")));
+	
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), false)));
+	_objectShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("mesh.glsl"))));
 		
-	}
-	else {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/GL/terrain.glsl", false)));
-		_objectShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/GL/mesh.glsl")));
-	}
 	
 
 	_font.reset(Renderer::Font::Create());
@@ -434,31 +429,7 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	_objectShader->SetUniform("mapSize", &mapSize);
 	Renderer::Texture* plightmap = _lightMap.get();
 	_objectShader->SetTexture("lightmap", &plightmap, 1);
-	//if (Core::GetAPI() == Core::API::Vulkan) {
-	//	//Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
-	//	//_objectShader->SetUniformData("UBO", &ubo, sizeof(ubo));
-	//	_objectShader->SetUniform("viewProj", &viewProj);
-	//	//_objectShader->SetUniform("model", &model);
-	//	_objectShader->SetUniform("light.ambient", &light.ambient);
-	//	_objectShader->SetUniform("light.diffuse", &light.diffuse);
-	//	_objectShader->SetUniform("light.specular", &light.specular);
-	//	_objectShader->SetUniform("light.direction", &light.direction);
-	//	_objectShader->SetUniform("mapSize", &mapSize);
-	//	Renderer::Texture* plightmap = _lightMap.get();
-	//	_objectShader->SetTexture("lightmap", &plightmap, 1);
-
-	//}
-	//else {
-	//	_objectShader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
-	//	//_objectShader->SetUniformData("model", &model, sizeof(mat4));
-	//	_objectShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-	//	_objectShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-	//	_objectShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-	//	_objectShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-	//	Renderer::Texture* plightmap = _lightMap.get();
-	//	_objectShader->SetTexture("lightmap", &plightmap, 1);
-	//	_objectShader->SetUniformData("mapSize", &mapSize, sizeof(vec2));
-	//}
+	
 	//render object
 	for (int i = 0; i < _objects.size(); i++) {
 		if (!camera.Cull(_objects[i]._BBox)) {

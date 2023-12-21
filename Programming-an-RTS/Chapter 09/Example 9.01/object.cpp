@@ -3,9 +3,9 @@
 std::vector<MESH*> objectMeshes;
 
 bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager> shaderManager) {
-	MESH* tree = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 09/Example 9.01/meshes/tree.x");
+	MESH* tree = new MESH(pdevice, shaderManager, Core::ResourcePath::GetMeshPath("tree.x"));
 	objectMeshes.push_back(tree);
-	MESH* stone = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 09/Example 9.01/meshes/stone.x");
+	MESH* stone = new MESH(pdevice, shaderManager, Core::ResourcePath::GetMeshPath("stone.x"));
 	objectMeshes.push_back(stone);
 	return true;
 }

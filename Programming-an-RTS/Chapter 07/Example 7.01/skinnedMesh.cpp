@@ -26,12 +26,9 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 	_line->Update(800, 600);
 	std::unique_ptr<Mesh::Shape> shape = std::unique_ptr<Mesh::Shape>(Mesh::Shape::Create(pdevice));
 	_sphere = std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(0.07f, 12, 12));
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_sphereShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 07/Example 7.01/shaders/Vulkan/shape.glsl", false)));
-	}
-	else {
-		_sphereShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 07/Example 7.01/shaders/GL/shape.glsl", false)));
-	}
+	
+	_sphereShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("shape.glsl"), false)));
+	
 	//premultiply transforms
 	mat4 xform = _boneXForms[0];
 	for (int i = 1; i < _boneCount; i++) {
@@ -52,25 +49,7 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 	_sphereShader->Bind();
 	Color color = Color(0.1f, 1.f, 0.1f, 0.5f);
 	vec4 vp = vec4(0, 0, 800, 600);
-	/*if (Core::GetAPI() == Core::API::Vulkan) {
-		struct UBO {
-			mat4 matVP;
-			Renderer::DirectionalLight light;
-		}ubo = { matVP,light };
-		
-		_sphereShader->SetUniformData("UBO", &ubo, sizeof(ubo));
-	}
-	else {
-		_sphereShader->SetUniformData("viewProj", &matVP, sizeof(mat4));
-		
-		_sphereShader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-		_sphereShader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-		_sphereShader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-		_sphereShader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-		
-		_sphereShader->SetUniformData("color", &color, sizeof(color));
-		
-	}*/
+	
 	_sphereShader->SetUniform("viewProj", &matVP);
 
 	_sphereShader->SetUniform("light.ambient", &light.ambient);
@@ -85,21 +64,7 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 		int parentID = _boneHierarchy[i];
 		mat4 xform = _boneXForms[i];
 		mat4 worldxform = matWorld * xform * r;
-		//if (Core::GetAPI() == Core::API::Vulkan) {
-		//	struct PushConst {
-		//		mat4 world;
-		//		Color color;
-		//	}pushConst;
-		//	
-		//	pushConst.world = matWorld * xform * r;
-		//	pushConst.color = color;
-		//	//_sphereShader->SetPushConstData(&pushConst, sizeof(pushConst));
-		//	_sphereShader->SetUniformData("PushConst", &pushConst, sizeof(pushConst));
-		//}
-		//else {
-		//	_sphereShader->SetUniformData("model", &worldxform, sizeof(mat4));
-		//	
-		//}
+		
 		_sphereShader->SetUniformData("model", &worldxform, sizeof(mat4));
 		_sphereShader->SetUniform("color", &color);
 		_sphere->Bind();

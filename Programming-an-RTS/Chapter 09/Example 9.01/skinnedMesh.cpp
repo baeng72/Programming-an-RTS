@@ -33,18 +33,10 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 
 	
 	Renderer::ShaderStorageType shaderTypes[] = { Renderer::ShaderStorageType::Uniform,Renderer::ShaderStorageType::StorageDynamic,Renderer::ShaderStorageType::Texture };
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.01/shaders/Vulkan/skinnedmesh.glsl", true, true, true,
+	
+		_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("skinnedmesh.glsl"), true, true, true,
 			shaderTypes, 3)));
-		//_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.01/shaders/skinnedmesh.glsl")));
-		/*Renderer::Texture* ptexture = _meshTexture.get();
-		int texid = 0;
-		_meshShader->SetTexture(texid, &ptexture, 1);*/
-	}
-	else {
-		_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.01/shaders/GL/skinnedmesh.glsl", true, true, true,
-			shaderTypes, 3)));
-	}
+		
 	_meshShader->SetStorageBuffer("skeleton", _animatedMesh->GetBoneBuffer(), true);
 }
 

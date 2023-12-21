@@ -37,6 +37,7 @@ public:
 APPLICATION::APPLICATION() {
 	_wireframe = false;
 	srand(12345);
+	Core::ResourcePath::SetProjectPath("Chapter 05/Example 5.08");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -53,14 +54,14 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 
 	
 	_farmerMesh = std::make_unique<MESH>();
-	_farmerMesh->Load(_device.get(), _shadermanager, "../../../../Resources/Chapter 05/Example 5.08/objects/farmer.x");
+	_farmerMesh->Load(_device.get(), _shadermanager, Core::ResourcePath::GetProjectResourcePath("objects/farmer.x"));
 	_farmer1.SetMesh(_farmerMesh.get());
 	_farmer2.SetMesh(_farmerMesh.get());
 	_farmer1.SetPosition(vec3(-2.5f, 0.f, 0.f));
 	_farmer2.SetPosition(vec3(2.5f, 0.f, 0.f));
 	
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 
 	
 
@@ -101,17 +102,6 @@ void APPLICATION::Update(float deltaTime) {
 
 	
 }
-
-////glm is different for whatever reason
-//inline glm::mat4 D3DXOrthoLH(float width, float height, float zn, float zf) {
-//	glm::mat4 mat = glm::mat4(1.f);
-//	mat[0][0] = 2.f / width;
-//	mat[1][1] = 2.f / height;
-//	mat[2][2] = 1.f / (zf - zn);
-//	mat[3][2] = -zn / (zf - zn);
-//	mat[1][1] *= -1;//flip y for Vulkan
-//	return mat;
-//}
 
 
 void APPLICATION::Render() {	

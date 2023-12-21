@@ -33,6 +33,7 @@ APPLICATION::APPLICATION() {
 	_currentCol = _lastCol = _activeCol = vec4(1.f, 0.f, 0.f, 1.f);
 	_time = _pressTime = 0.f;
 	_col = 0;
+	Core::ResourcePath::SetProjectPath("Chapter 08/Example 8.01");
 }
 
 
@@ -52,13 +53,13 @@ bool APPLICATION::Init(int width, int height, const char* title){
 	_shadermanager.reset(Renderer::ShaderManager::Create(_device.get()));
 
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf",18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 
 	_light.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
 	_light.diffuse = glm::vec4(0.9f, 0.9f, 0.9f, 1.f);
 	_light.specular = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
 	_light.direction = glm::normalize(glm::vec3(0.0f, -1.f, 0.f));	
-	_skinnedMesh.Load(_device.get(), _shadermanager,"../../../../Resources/Chapter 08/Example 8.01/units/magician.x");
+	_skinnedMesh.Load(_device.get(), _shadermanager, Core::ResourcePath::GetProjectResourcePath("units/magician.x"));
 	
 	
 	_skinnedMesh.SetAnimation("Run");

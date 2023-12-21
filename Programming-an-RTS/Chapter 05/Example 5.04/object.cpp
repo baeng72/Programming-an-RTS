@@ -11,7 +11,7 @@ std::unique_ptr<Renderer::Line2D> line;
 
 
 bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager> shaderManager) {
-	MESH* gnome = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.04/units/warrior_gnome.x");
+	MESH* gnome = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("units/warrior_gnome.x"));
 	objectMeshes.push_back(gnome);
 	
 	std::unique_ptr<Mesh::Shape> shape;
@@ -19,12 +19,9 @@ bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Rendere
 	shapeMeshes.push_back(std::unique_ptr<Mesh::Mesh>(shape->CreateCube(1.f)));
 	shapeMeshes.push_back(std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(1.f, 12, 12)));
 	
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.04/shaders/Vulkan/shape.glsl", false)));
-	}
-	else{
-		shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.04/shaders/GL/shape.glsl", false)));
-	}
+	
+	shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("shape.glsl"), false)));
+	
 
 	line.reset(Renderer::Line2D::Create(pdevice));
 	int width, height;

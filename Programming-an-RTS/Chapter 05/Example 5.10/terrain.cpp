@@ -177,18 +177,12 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,Core::Window*pwindow, std::sh
 	memset(_pMaptiles, 0, sizeof(MAPTILE) * _size.x * _size.y);
 
 	//Load Textures
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 05/Example 5.10/textures/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 05/Example 5.10/textures/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 05/Example 5.10/textures/snow.jpg")));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("grass.jpg"))));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("mountain.jpg"))));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("snow.jpg"))));
 	
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.10/Shaders/Vulkan/terrain.glsl", false)));
-	}
-	else {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.10/Shaders/GL/terrain.glsl", false)));
-	}
-
-
+	
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), false)));
 	
 
 	_font.reset(Renderer::Font::Create());
@@ -296,8 +290,7 @@ void TERRAIN::CalculateAlphaMaps() {
 	}
 	//create a new texture
 	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
-	/*std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
-	_shader->SetTextures(textures.data(), 4);*/
+	
 	delete[]pdata;
 
 }
@@ -399,35 +392,7 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 {
 	light.direction = _dirToSun;
 	_shader->Bind();
-	//if (Core::GetAPI() == Core::API::Vulkan) {
-	//	Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
-	//	int uboid = 0;
-
-
-	//	Renderer::FlatShaderPushConst pushConst{ model };
-
-	//	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-	//	//_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	//	_shader->SetUniformData("PushConst", &pushConst, sizeof(pushConst));
-	//}
-	//else {
-	//	_shader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
-	//	_shader->SetUniformData("model", &model, sizeof(mat4));
-	//	_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-	//	_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-	//	_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-	//	_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-	//	auto texmap = _diffuseMaps[0].get();
-	//	_shader->SetTexture("texmap1", &texmap, 1);
-	//	texmap = _diffuseMaps[1].get();
-	//	_shader->SetTexture("texmap2", &texmap, 1);
-	//	texmap = _diffuseMaps[2].get();
-	//	_shader->SetTexture("texmap3", &texmap, 1);
-	//	texmap = _alphaMap.get();
-	//	_shader->SetTexture("alphamap", &texmap, 1);
-	//	texmap = _lightMap.get();
-	//	_shader->SetTexture("lightmap", &texmap, 1);
-	//}
+	
 	_shader->SetUniform("viewProj", &viewProj);
 	_shader->SetUniform("model", &model);
 	_shader->SetUniform("light.ambient", &light.ambient);

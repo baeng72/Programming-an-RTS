@@ -3,12 +3,9 @@ std::unique_ptr<Renderer::Shader> shader;
 
 std::unique_ptr<Renderer::Line2D> selLine;
 void LoadPlayerResources(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager>& shaderManager) {
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		shader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/Vulkan/building.glsl")));
-	}
-	else {
-		shader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/GL/building.glsl")));
-	}
+	
+	shader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("building.glsl"))));
+	
 	selLine = std::unique_ptr<Renderer::Line2D>(Renderer::Line2D::Create(pdevice));
 
 
@@ -102,18 +99,7 @@ void PLAYER::RenderMapObjects(CAMERA& camera, Renderer::DirectionalLight& light)
 
 					pshader->Bind(dynoffsets, 1);
 				}
-				//Renderer::Shader* pshader = _mapObjects[i]->_isBuilding ? shader.get() : _mapObjects[i]->GetShader();
-
-				/*if (Core::GetAPI() == Core::API::Vulkan) {
-					pshader->SetUniformData("UBO", &ubo, sizeof(ubo));
-				}
-				else {
-					pshader->SetUniformData("viewProj", &matVP, sizeof(mat4));
-					pshader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-					pshader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-					pshader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-					pshader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-				}*/
+				
 				pshader->SetUniform("viewProj", &matVP);
 				pshader->SetUniform("light.ambient", &light.ambient);
 				pshader->SetUniform("light.diffuse", &light.diffuse);

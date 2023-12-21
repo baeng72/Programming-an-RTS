@@ -12,7 +12,7 @@ MOUSE::~MOUSE() {
 	_textures.clear();
 }
 
-void MOUSE::Init(Renderer::RenderDevice* pdevice,  std::shared_ptr<Renderer::ShaderManager>& shaderManager,Core::Window* pwindow) {
+void MOUSE::Init(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager>& shaderManager, Core::Window* pwindow) {
 	_pdevice = pdevice;
 	_pwindow = pwindow;
 	int width, height;
@@ -37,12 +37,12 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice,  std::shared_ptr<Renderer::Sha
 	for (int i = 0; i < 5; i++) {
 		assert(rects[i].right - rects[i].left == 20);
 		assert(rects[i].bottom - rects[i].top == 20);
-		for (int y = rects[i].top,y0=0; y < rects[i].bottom; y++,y0++) {
-			for (int x = rects[i].left,x0=0; x < rects[i].right; x++,x0++) {
+		for (int y = rects[i].top, y0 = 0; y < rects[i].bottom; y++, y0++) {
+			for (int x = rects[i].left, x0 = 0; x < rects[i].right; x++, x0++) {
 				newpixels[x0 + y0 * 20] = pixels[x + y * width];
 			}
 		}
-		_textures[i] = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, 20, 20, 4,(uint8_t*) newpixels));
+		_textures[i] = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, 20, 20, 4, (uint8_t*)newpixels));
 	}
 	delete[] newpixels;
 
@@ -57,12 +57,8 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice,  std::shared_ptr<Renderer::Sha
 	std::unique_ptr<Mesh::Shape> shape;
 	shape.reset(Mesh::Shape::Create(pdevice));
 	_sphereMesh = std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(0.2f, 5, 5));
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/Vulkan/shape.glsl", false)));
-	}
-	else {
-		_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/GL/shape.glsl", false)));
-	}
+
+	_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("shape.glsl"), false)));
 }
 
 void MOUSE::Update(TERRAIN&terrain) {

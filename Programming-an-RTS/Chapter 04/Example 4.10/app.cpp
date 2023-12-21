@@ -31,6 +31,7 @@ APPLICATION::APPLICATION() {
 	_wireframe = false;
 	
 	srand(411678390);
+	Core::ResourcePath::SetProjectPath("Chapter 04/Example 4.10");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -44,7 +45,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 	_shadermanager.reset(Renderer::ShaderManager::Create(_device.get()));
 	
 	
@@ -53,10 +54,10 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_light.specular = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
 	_light.direction = glm::normalize(glm::vec3(0.7f, -0.3f, 0.f));
 
-	if (!_mesh1.Load(_device.get(),_shadermanager, "../../../../Resources/Chapter 04/Example 4.09/meshes/tree.x")) {
+	if (!_mesh1.Load(_device.get(),_shadermanager, Core::ResourcePath::GetMeshPath("tree.x"))) {
 		LOG_ERROR("Unable to load tree.x!");
 	}
-	if (!_mesh2.Load(_device.get(),_shadermanager, "../../../../Resources/Chapter 04/Example 4.09/meshes/stone.x")) {
+	if (!_mesh2.Load(_device.get(),_shadermanager, Core::ResourcePath::GetMeshPath("stone.x"))) {
 		LOG_ERROR("Unable to load stong.x!");
 	}
 	

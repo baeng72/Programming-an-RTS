@@ -68,16 +68,8 @@ bool MESH::Load( Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::Shad
 
 
 void MESH::LoadShader()
-{
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.04/shaders/Vulkan/mesh.glsl")));
-		int texid = 0;
-		std::vector<Renderer::Texture*> textures = { _texture.get() };
-		_shader->SetTexture(texid, textures.data(), 1);
-	}
-	else {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.04/shaders/GL/mesh.glsl")));
-	}
+{	
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("mesh.glsl"))));
 }
 
 MESHINSTANCE::MESHINSTANCE()

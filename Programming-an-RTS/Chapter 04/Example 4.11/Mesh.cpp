@@ -54,13 +54,7 @@ bool MESH::Load( Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::Shad
 
 void MESH::LoadShader()
 {
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.11/shaders/Vulkan/mesh.glsl")));
-
-	}
-	else {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.11/shaders/GL/mesh.glsl")));
-	}
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("mesh.glsl"))));
 }
 
 MESHINSTANCE::MESHINSTANCE()

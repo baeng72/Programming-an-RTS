@@ -8,6 +8,7 @@
 #include "Core/Profiler.h"
 #include "Core/Api.h"
 #include "Core/ThreadPool.h"
+#include "Core/ResourcePaths.h"
 
 //Mesh/model loading stuff
 #include "mesh/Model.h"

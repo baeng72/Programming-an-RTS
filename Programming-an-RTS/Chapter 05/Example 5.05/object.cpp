@@ -6,10 +6,10 @@ std::unique_ptr<Renderer::Line2D> line;
 
 
 bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager> shaderManager) {
-	MESH* f1a = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.05/objects/f1a.x");
+	MESH* f1a = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("objects/f1a.x"));
 	objectMeshes.push_back(f1a);
 
-	MESH* f1b = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.05/objects/f1b.x");
+	MESH* f1b = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("objects/f1b.x"));
 	objectMeshes.push_back(f1b);
 	
 	

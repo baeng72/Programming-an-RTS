@@ -7,13 +7,13 @@ std::vector<MESH*> objectMeshes;
 
 
 bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager> shaderManager) {
-	MESH* mech1 = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.07/Objects/mech1.x");
+	MESH* mech1 = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("Objects/mech1.x"));
 	objectMeshes.push_back(mech1);
 
-	MESH* mech2 = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.07/Objects/mech2.x");
+	MESH* mech2 = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("Objects/mech2.x"));
 	objectMeshes.push_back(mech2);
 
-	MESH* mech3 = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.07/Objects/mech3.x");
+	MESH* mech3 = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("Objects/mech3.x"));
 	objectMeshes.push_back(mech3);
 
 	

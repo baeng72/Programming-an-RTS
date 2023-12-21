@@ -18,35 +18,7 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 {
 	_shader->Bind();
 	mat4 worldxform = matWorld * _xform;
-	//if (Core::GetAPI() == Core::API::Vulkan) {
-	//	struct UBO {
-	//		mat4 matViewProj;
-	//		Renderer::DirectionalLight light;
-	//	}ubo = { matViewProj, light };
-
-	//	int uboid = 0;
-
-
-	//	struct PushConst {
-
-	//		mat4 matWorld;
-	//	}pushConst = { worldxform };
-
-
-	//	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-	//	//_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	//	_shader->SetUniformData("PushConst", &pushConst, sizeof(pushConst));
-	//}
-	//else {
-	//	_shader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
-	//	_shader->SetUniformData("model", &worldxform, sizeof(mat4));
-	//	_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-	//	_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-	//	_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-	//	_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-	//	auto texture = _texture.get();
-	//	_shader->SetTexture("texmap", &texture, 1);
-	//}
+	
 	_shader->SetUniform("viewProj", &matViewProj);
 	_shader->SetUniform("model", &worldxform);
 	_shader->SetUniform("light.ambient", &light.ambient);
@@ -103,16 +75,7 @@ void MESH::Release()
 
 void MESH::SetNumProgressiveFaces(int numFaces)
 {
-	/*float resultError = 0;
-	int numIndices = numFaces * 3;
-	float targetError = 1e-2f;
-	uint32_t vertexCount = _progressiveVertices.size() / _vertexStride;
-	
-	std::vector<uint32_t> lodIndices(_progressiveIndices.size());
-	
-	lodIndices.resize(meshopt_simplify(lodIndices.data(), _progressiveIndices.data(), _progressiveIndices.size(),&_progressiveVertices[0], vertexCount, _vertexStride, numIndices, 0.1f, 0, &resultError));
-	_numFaces = lodIndices.size()/3;
-	_progressiveMesh.reset(Mesh::Mesh::Create(_pdevice, _progressiveVertices.data(), (uint32_t)vertexCount*_vertexStride, lodIndices.data(), (uint32_t)lodIndices.size()*sizeof(uint32_t)));*/
+
 	_progressiveMesh->SetIndexCount(numFaces * 3);
 }
 
@@ -123,21 +86,7 @@ bool MESH::Load( Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::Shad
 	_mesh = std::unique_ptr<Mesh::Mesh>(model->GetMesh(Mesh::MeshType::position_normal_uv, 0));
 	_texture = std::unique_ptr<Renderer::Texture>(model->GetTexture(model->GetMeshMaterialIndex(0),Mesh::TextureType::diffuse, 0));
 	_xform = model->GetMeshXForm(0);
-	//uint32_t vertStride = 0, vertCount = 0;
-	//float *pvertices = model->GetMeshRawVertices(0, vertStride, vertCount);
-	//uint32_t indCount = 0;
-	//uint32_t*pindices=model->GetMeshRawIndices(0, indCount);
-	//std::vector<uint32_t> indices(pindices, pindices + indCount);
-	//
-	//std::vector<unsigned int> remap(indCount); // allocate temporary memory for the remap table
-	//size_t vertex_count = meshopt_generateVertexRemap(remap.data(), pindices, indCount, pvertices, vertCount, vertStride);
-	//_progressiveIndices.resize(indCount);
-	//meshopt_remapIndexBuffer(_progressiveIndices.data(), pindices, indCount, remap.data());
-	//_progressiveVertices.resize(vertStride * vertCount);
-	//meshopt_remapVertexBuffer(_progressiveVertices.data(), pvertices, vertCount, vertStride, remap.data());
-	//_progressiveMesh = std::unique_ptr<Mesh::Mesh>(Mesh::Mesh::Create(pdevice, _progressiveVertices.data(), vertCount*vertStride, _progressiveIndices.data(), indCount*sizeof(uint32_t)));
-	//_numFaces = indCount/3;
-	//_vertexStride = vertStride;
+	
 	_progressiveMesh = std::unique_ptr<Mesh::ProgressiveMesh>(model->GetProgressiveMesh(Mesh::MeshType::position_normal_uv, 0));
 	LoadShader();
 	return true;
@@ -149,15 +98,9 @@ bool MESH::Load( Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::Shad
 
 void MESH::LoadShader()
 {
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.08/shaders/Vulkan/mesh.glsl")));
-		int texid = 0;
-		std::vector<Renderer::Texture*> textures = { _texture.get() };
-		_shader->SetTexture(texid, textures.data(), 1);
-	}
-	else {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.08/shaders/GL/mesh.glsl")));
-	}
+	
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("mesh.glsl"))));
+	
 }
 
 MESHINSTANCE::MESHINSTANCE()

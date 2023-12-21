@@ -135,20 +135,14 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 {
 	_pdevice = pdevice;
 	_shaderManager = shaderManager;
-	_texture = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 04/Example 4.06/textures/diffusemap.jpg"));
+	_texture = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("diffusemap.jpg")));
 	_size = size_;
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.06/Shaders/Vulkan/terrain.glsl", false)));
-		Renderer::Texture* ptexture = _texture.get();
-		int texid = 0;
-		_shader->SetTexture(texid, &ptexture, 1);
-	}
-	else {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 04/Example 4.06/Shaders/GL/terrain.glsl", false)));
-	}
+	
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), false)));		
+	
 	
 	_heightMap = std::make_unique<HEIGHTMAP>(_size, 20.f);
-	_heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.06/textures/heightmap.jpg");
+	_heightMap->LoadFromFile(Core::ResourcePath::GetTexturePath("heightmap.jpg"));
 	CreatePatches(3);
 }
 

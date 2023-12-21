@@ -32,6 +32,7 @@ APPLICATION::APPLICATION() {
 	_wireframe = false;
 	
 	srand(411678390);
+	Core::ResourcePath::SetProjectPath("Chapter 04/Example 4.05");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -47,7 +48,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 	_shaderManager.reset(Renderer::ShaderManager::Create(_device.get()));
 	_terrain.Init(_device.get(),_shaderManager, INTPOINT(100, 100));
 	
@@ -94,15 +95,7 @@ void APPLICATION::Render() {
 	glm::mat4 matModel = glm::mat4(1.f);
 	glm::mat4 matView = glm::lookAtLH(eye, lookat, up);
 	glm::mat4 matProj = Core::perspective(quaterpi, (float)_width, (float)_height, 1.f, 1000.f);
-	/*constexpr float fov = glm::radians(45.f);
-	mat4 matProj;
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		matProj = glm::perspectiveFovLH_ZO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
-		matProj[1][1] *= -1;
-	}
-	else {
-		matProj = glm::perspectiveFovLH_NO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
-	}*/
+	
 	glm::mat4 viewProj = matProj * matView;
 
 	_font->Draw("W: Toggle Wireframe", 10, 10,glm::vec4(0.f,0.f,0.f,1.f));

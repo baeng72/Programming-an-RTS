@@ -32,6 +32,7 @@ APPLICATION::APPLICATION() {
 	_wireframe = false;
 	
 	srand(411678390);
+	Core::ResourcePath::SetProjectPath("Chapter 04/Example 4.08");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -46,7 +47,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 	_shaderManager.reset(Renderer::ShaderManager::Create(_device.get()));
 	_terrain.Init(_device.get(),_shaderManager, INTPOINT(100, 100));
 	

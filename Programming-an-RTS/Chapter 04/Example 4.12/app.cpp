@@ -33,6 +33,7 @@ APPLICATION::APPLICATION() {
 	_radius = 100.f;
 	_wireframe = false;	
 	srand(411678390);
+	Core::ResourcePath::SetProjectPath("Chapter 04/Example 4.12");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -47,7 +48,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 	_shadermanager.reset(Renderer::ShaderManager::Create(_device.get()));
 	
 	

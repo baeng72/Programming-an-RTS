@@ -29,6 +29,7 @@ public:
 APPLICATION::APPLICATION() {
 	_angle = 0.f;
 	_activeWeapon = 0;
+	Core::ResourcePath::SetProjectPath("Chapter 07/Example 7.04");
 }
 
 
@@ -49,23 +50,23 @@ bool APPLICATION::Init(int width, int height, const char* title){
 	_shadermanager.reset(Renderer::ShaderManager::Create(_device.get()));
 
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf",18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 
 	_light.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
 	_light.diffuse = glm::vec4(0.9f, 0.9f, 0.9f, 1.f);
 	_light.specular = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
 	_light.direction = glm::normalize(glm::vec3(0.0f, -1.f, 0.f));	
-	_skinnedMesh.Load(_device.get(), _shadermanager,"../../../../Resources/Chapter 07/Example 7.04/mesh/drone.x");
+	_skinnedMesh.Load(_device.get(), _shadermanager, Core::ResourcePath::GetMeshPath("drone.x"));
 	_animations = _skinnedMesh.GetAnimations();
 	_activeAnimation = (int)_animations.size() - 3;
 	_skinnedMesh.SetAnimation(_animations[_activeAnimation].c_str());
 	_hand = _skinnedMesh.GetBoneIndex("Bone19");
 	_handOffset = vec3(.5f, 0.f, -0.07f);
 	//Load active weapons
-	_weapons[0].Load(_device.get(),_shadermanager, "../../../../Resources/Chapter 07/Example 7.04/mesh/club.x");
-	_weapons[1].Load(_device.get(), _shadermanager, "../../../../Resources/Chapter 07/Example 7.04/mesh/sword.x");
-	_weapons[2].Load(_device.get(), _shadermanager, "../../../../Resources/Chapter 07/Example 7.04/mesh/axe.x");
-	_weapons[3].Load(_device.get(), _shadermanager, "../../../../Resources/Chapter 07/Example 7.04/mesh/flowers.x");
+	_weapons[0].Load(_device.get(),_shadermanager, Core::ResourcePath::GetMeshPath("club.x"));
+	_weapons[1].Load(_device.get(), _shadermanager, Core::ResourcePath::GetMeshPath("sword.x"));
+	_weapons[2].Load(_device.get(), _shadermanager, Core::ResourcePath::GetMeshPath("axe.x"));
+	_weapons[3].Load(_device.get(), _shadermanager, Core::ResourcePath::GetMeshPath("flowers.x"));
 
 	return true;
 }
@@ -88,16 +89,7 @@ void APPLICATION::Update(float deltaTime) {
 
 
 }
-//glm is different for whatever reason
-//inline glm::mat4 D3DXOrthoLH(float width, float height, float zn, float zf) {
-//	glm::mat4 mat = glm::mat4(1.f);
-//	mat[0][0] = 2.f / width;
-//	mat[1][1] = 2.f / height;
-//	mat[2][2] = 1.f / (zf - zn);
-//	mat[3][2] = -zn / (zf - zn);
-//	mat[1][1] *= -1;//flip y for Vulkan
-//	return mat;
-//}
+
 
 void APPLICATION::Render() {
 	_device->StartRender();

@@ -7,16 +7,16 @@ std::vector<MESH*> objectMeshes;
 
 
 bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager> shaderManager) {
-	MESH* tile = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.06/Objects/tile.x");
+	MESH* tile = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("Objects/tile.x"));
 	objectMeshes.push_back(tile);
 
-	MESH* house = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.06/Objects/house.x");
+	MESH* house = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("Objects/house.x"));
 	objectMeshes.push_back(house);
 
-	MESH* house2 = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.06/Objects/house2.x");
+	MESH* house2 = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("Objects/house2.x"));
 	objectMeshes.push_back(house2);
 
-	MESH* park = new MESH(pdevice, shaderManager, "../../../../Resources/Chapter 05/Example 5.06/Objects/park.x");
+	MESH* park = new MESH(pdevice, shaderManager, Core::ResourcePath::GetProjectResourcePath("Objects/park.x"));
 	objectMeshes.push_back(park);
 	
 

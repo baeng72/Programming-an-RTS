@@ -18,33 +18,7 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 {
 	_shader->Bind();
 	mat4 worldxform = matWorld * _xform;
-	//if (Core::GetAPI() == Core::API::Vulkan) {
-	//	struct UBO {
-	//		Renderer::DirectionalLight light;
-	//	}ubo = { light };
-
-	//	int uboid = 0;
-
-
-	//	struct PushConst {
-	//		mat4 matViewProj;
-	//		mat4 matWorld;
-	//	}pushConst = { matViewProj, worldxform};
-
-	//	_shader->SetUniformData("UBO", &ubo, sizeof(ubo));
-	//	//_shader->SetPushConstData(&pushConst, sizeof(pushConst));
-	//	_shader->SetUniformData("PushConst", &pushConst, sizeof(pushConst));
-	//}
-	//else {
-	//	_shader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
-	//	_shader->SetUniformData("model", &worldxform, sizeof(mat4));
-	//	_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
-	//	_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
-	//	_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
-	//	_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-	//	auto texture = _texture.get();
-	//	_shader->SetTexture("texmap", &texture, 1);
-	//}
+	
 	_shader->SetUniform("viewProj", &matViewProj);
 	_shader->SetUniform("model", &worldxform);
 	_shader->SetUniform("light.ambient", &light.ambient);
@@ -94,16 +68,8 @@ bool MESH::Load( Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::Shad
 
 
 void MESH::LoadShader()
-{
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.06/shaders/Vulkan/mesh.glsl")));
-		int texid = 0;
-		std::vector<Renderer::Texture*> textures = { _texture.get() };
-		_shader->SetTexture(texid, textures.data(), 1);
-	}
-	else {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 05/Example 5.06/shaders/GL/mesh.glsl")));
-	}
+{	
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("mesh.glsl"))));
 }
 
 MESHINSTANCE::MESHINSTANCE()
@@ -122,17 +88,7 @@ MESHINSTANCE::MESHINSTANCE(MESH* meshPtr)
 void MESHINSTANCE::Render(glm::mat4&viewProj,Renderer::DirectionalLight&light)
 {
 	if (_mesh) {
-		
-		/*glm::mat4 p, rx,ry,rz,r, s;
-		glm::mat4 identity = glm::mat4(1.f);
-		p = glm::translate(identity, _pos);
-		rx = glm::rotate(identity, _rot.x, glm::vec3(1.f, 0.f, 0.f));
-		ry = glm::rotate(identity, _rot.y, glm::vec3(0.f, 1.f, 0.f));
-		rz = glm::rotate(identity, _rot.z, glm::vec3(0.f, 0.f, 1.f));
-
-		r = rz * ry * rx;
-		s = glm::scale(identity, _sca);
-		glm::mat4 world = p * r * s;*/
+	
 		glm::mat4 world = GetWorldMatrix();
 		_mesh->Render(viewProj, world, light);
 	}

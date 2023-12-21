@@ -37,6 +37,7 @@ public:
 APPLICATION::APPLICATION() {
 	_wireframe = false;	
 	srand(223322);
+	Core::ResourcePath::SetProjectPath("Chapter 09/Example 9.03");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -53,14 +54,11 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 	_shadermanager.reset(Renderer::ShaderManager::Create(_device.get()));
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_buildingShader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/Vulkan/building.glsl")));
-	}
-	else {
-		_buildingShader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/shaders/GL/building.glsl")));
-	}
+	
+	_buildingShader.reset(Renderer::Shader::Create(_device.get(), _shadermanager->CreateShaderData(Core::ResourcePath::GetShaderPath("building.glsl"))));
+	
 	_line.reset(Renderer::Line2D::Create(_device.get()));
 	_line->Update(_width, _height);
 	

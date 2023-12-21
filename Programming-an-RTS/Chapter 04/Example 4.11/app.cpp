@@ -38,7 +38,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	LOG_INFO("Application::Init()");
 	if (!Application::Init(width, height, title))
 		return false;
-
+	Core::ResourcePath::SetProjectPath("Chapter 04/Example 4.11");
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
 	_device->EnableDepthBuffer(true);
 	_device->EnableLines(true);
@@ -46,7 +46,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);// "../../../../Resources/Fonts/arialn.ttf", 18);
 	_shadermanager.reset(Renderer::ShaderManager::Create(_device.get()));
 	
 	

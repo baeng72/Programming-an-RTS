@@ -35,6 +35,7 @@ APPLICATION::APPLICATION() {
 	_numPatches = 4;
 	
 	srand(411678390);
+	Core::ResourcePath::SetProjectPath("Chapter 04/Example 4.04");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -50,7 +51,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	//_device->SetVSync(false);
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 	_shaderManager.reset(Renderer::ShaderManager::Create(_device.get()));
 	_terrain.Init(_device.get(),_shaderManager, INTPOINT(100, 100));
 	
@@ -79,12 +80,12 @@ void APPLICATION::Update(float deltaTime) {
 			_terrain._heightMap->_maxHeight = 10.f;
 			if (_image == 0) {
 				
-				_terrain._heightMap->LoadFromFile( "../../../../Resources/Chapter 04/Example 4.04/textures/abe.jpg");
+				_terrain._heightMap->LoadFromFile(Core::ResourcePath::GetTexturePath("abe.jpg"));
 				_terrain.CreatePatches(_numPatches);
 				
 			}
 			else if (_image == 1) {
-				_terrain._heightMap->LoadFromFile("../../../../Resources/Chapter 04/Example 4.04/textures/smiley.bmp");
+				_terrain._heightMap->LoadFromFile(Core::ResourcePath::GetTexturePath("smiley.bmp"));
 				_terrain.CreatePatches(_numPatches);
 
 			}

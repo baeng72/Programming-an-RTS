@@ -179,21 +179,15 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,Core::Window*pwindow, std::sh
 	memset(_pMaptiles, 0, sizeof(MAPTILE) * _size.x * _size.y);
 
 	//Load Textures
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.01/textures/grass.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.01/textures/mountain.jpg")));
-	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, "../../../../Resources/Chapter 09/Example 9.01/textures/snow.jpg")));
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.01/Shaders/Vulkan/terrain.glsl", false)));
-	}
-	else {
-		_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.01/Shaders/GL/terrain.glsl", false)));
-	}
-
-
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("grass.jpg"))));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("mountain.jpg"))));
+	_diffuseMaps.push_back(std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, Core::ResourcePath::GetTexturePath("snow.jpg"))));
+	
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), false)));
 	
 
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_pdevice, "../../../../Resources/Fonts/arialn.ttf", 40);
+	_font->Init(_pdevice, Core::ResourcePath::GetFontPath("arialn.ttf"), 40);
 	_dirToSun = glm::normalize(vec3(1.f, 0.6f, 0.5f));
 
 
@@ -215,7 +209,7 @@ void TERRAIN::GenerateRandomTerrain(Core::Window* pwindow, int numPatches)
 	hm2.Cap(hm2._maxHeight * 0.4f);
 
 	//load 4 player filter
-	hm3.LoadFromFile("../../../../Resources/Chapter 09/Example 9.01/heightmaps/four_players.jpg");
+	hm3.LoadFromFile(Core::ResourcePath::GetProjectResourcePath("heightmaps/four_players.jpg"));
 
 
 	*_heightMap *= hm2;

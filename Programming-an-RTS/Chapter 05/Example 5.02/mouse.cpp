@@ -17,7 +17,7 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice,Core::Window* pwindow) {
 	_pdevice = pdevice;
 	_pwindow = pwindow;
 	pwindow->ShowCursor(false);
-	std::unique_ptr<Renderer::Image> image = std::unique_ptr<Renderer::Image>(Renderer::Image::Create("../../../../Resources/Chapter 05/Example 5.02/cursors/cursor.png"));
+	std::unique_ptr<Renderer::Image> image = std::unique_ptr<Renderer::Image>(Renderer::Image::Create(Core::ResourcePath::GetCursorPath("cursor.png")));
 	uint32_t* pixels = (uint32_t*)image->GetPixels();
 	int width, height, channels;
 	image->GetSize(width, height, channels);

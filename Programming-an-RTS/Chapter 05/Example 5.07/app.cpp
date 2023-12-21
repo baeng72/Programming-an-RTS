@@ -32,6 +32,7 @@ public:
 APPLICATION::APPLICATION() {
 	_lodOn = true;
 	srand(123456);
+	Core::ResourcePath::SetProjectPath("Chapter 05/Example 5.07");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -52,7 +53,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 
 
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 
 
 	_light.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);

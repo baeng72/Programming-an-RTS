@@ -38,6 +38,7 @@ APPLICATION::APPLICATION() {
 	_radius = 100.f;
 	_wireframe = false;	
 	srand(411678390);
+	Core::ResourcePath::SetProjectPath("Chapter 04/Example 4.13");
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -52,7 +53,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_device->Init();
 	_device->SetClearColor(1.f, 1.f, 1.f, 1.f);
 	_font.reset(Renderer::Font::Create());
-	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
+	_font->Init(_device.get(), Core::ResourcePath::GetFontPath("arialn.ttf"), 18);
 	_shadermanager.reset(Renderer::ShaderManager::Create(_device.get()));
 	
 	
@@ -64,18 +65,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	
 	_terrain.Init(_device.get(), _shadermanager, INTPOINT(100, 100));
 
-	/*std::vector<Renderer::ParticleVertex> vertices(_terrain._size.x*_terrain._size.y);
-	for (int32_t y = 0; y < _terrain._size.y; ++y) {
-		for (int32_t x = 0; x < _terrain._size.x; ++x) {
-			float prc = _terrain.GetTile(x, y)->_cost;
-			float red = prc;
-			float green = (1 - prc);
-			Renderer::ParticleVertex& v=vertices[x+y*_terrain._size.x];
-			v.color = glm::vec4(red, green, 0.f, 1.f);
-			v.position = glm::vec3(x, _terrain.GetTile(x, y)->_height + 0.1f, -y);
-			
-		}
-	}*/
+	
 	_particles.reset(Renderer::ParticleSwarm::Create(_device.get(), nullptr,0, glm::vec2(0.5f)));
 	
 	_line.reset(Renderer::Line::Create(_device.get(), nullptr, 0));
