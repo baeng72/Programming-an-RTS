@@ -16,5 +16,6 @@ namespace Core {
 		const char* GetCursorPath(const char* cursorname);
 		const char* GetProjectResourcePath(const char* proj, const char* projresfile);
 		const char* GetProjectResourcePath(const char* projresfile);
+		bool ProjectResourcePathExists(const char* projresfile);
 	}
 }

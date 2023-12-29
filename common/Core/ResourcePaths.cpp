@@ -1,6 +1,7 @@
 #include "ResourcePaths.h"
 #include <cstring>
 #include <cstdio>
+#include <fstream>
 #include "Api.h"
 namespace Core {
 	namespace ResourcePath {
@@ -63,6 +64,11 @@ namespace Core {
 		}
 		const char* GetMeshPath(const char* meshname) {
 			return GetMeshPath(projPath, meshname);
+		}
+
+		bool ProjectResourcePathExists(const char* pathname) {
+			std::ifstream infile(pathname);
+			return infile.good();
 		}
 	}
 }
