@@ -18,7 +18,7 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 {
 	
 	mat4 worldxform = matWorld * _xform;
-	_shader->Bind();
+	
 	
 	_shader->SetUniform("viewProj", &matViewProj);
 	_shader->SetUniform("model", &worldxform);
@@ -26,6 +26,7 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 	_shader->SetUniform("light.diffuse", &light.diffuse);
 	_shader->SetUniform("light.specular", &light.specular);
 	_shader->SetUniform("light.direction", &light.direction);
+	_shader->Bind();
 	for (int i = 0; i < _meshes.size(); i++) {
 		
 		_shader->SetUniform("color", &_meshColors[i]);

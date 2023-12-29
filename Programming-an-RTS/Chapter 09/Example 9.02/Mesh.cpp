@@ -24,7 +24,8 @@ void MESH::Render(Renderer::Shader* pshader,mat4&matWorld)
 	_multiMesh->Bind();
 	int texid = 0;
 	for (uint32_t i = 0; i < _parts; i++) {		
-		pshader->SetTexture("texmap", &_textures[i], 1);		
+		pshader->SetTexture("texmap", &_textures[i], 1);	
+		pshader->Bind();
 		_multiMesh->Render(i);
 	}
 }

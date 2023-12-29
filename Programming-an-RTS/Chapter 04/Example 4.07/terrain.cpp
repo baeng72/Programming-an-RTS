@@ -248,7 +248,7 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	
 	for (size_t m = 0; m < _diffuseMaps.size(); m++) {
 		Renderer::Shader* pshader = _shaders[m].get();
-		pshader->Bind();
+		//pshader->Bind();
 		
 		pshader->SetUniform("viewProj", &viewProj);
 		pshader->SetUniform("model", &model);
@@ -261,7 +261,7 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 		Renderer::Texture* palpha = _alphaMaps[m].get();
 		pshader->SetTexture("texmap", &pdiffuse, 1);
 		pshader->SetTexture("alphamap", &palpha, 1);
-		pshader->Rebind();
+		pshader->Bind();
 		for (size_t i = 0; i < _patches.size(); i++)
 			_patches[i]->Render();
 	}

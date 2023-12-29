@@ -17,7 +17,7 @@ MESH::~MESH() {
 void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::DirectionalLight& light)
 {
 	mat4 worldxform = matWorld * _xform;
-	_shader->Bind();
+	
 	
 	_shader->SetUniformData("viewProj", &matViewProj, sizeof(mat4));
 	_shader->SetUniformData("model", &worldxform, sizeof(mat4));
@@ -27,6 +27,7 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 	_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
 	auto texture = _texture.get();
 	_shader->SetTexture("texmap", &texture, 1);
+	_shader->Bind();
 	_mesh->Bind();
 	_mesh->Render();
 }

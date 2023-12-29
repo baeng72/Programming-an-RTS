@@ -88,7 +88,7 @@ void MOUSE::Update(TERRAIN&terrain) {
 void MOUSE::Paint(mat4&matVP, Renderer::DirectionalLight& light) {
 	mat4 world = glm::translate(mat4(1.f), _ballPos);
 	
-	_sphereShader->Bind();
+	
 	
 	
 	_sphereShader->SetUniform("viewProj", &matVP);
@@ -99,6 +99,7 @@ void MOUSE::Paint(mat4&matVP, Renderer::DirectionalLight& light) {
 	_sphereShader->SetUniform("light.diffuse", &light.diffuse);
 	_sphereShader->SetUniform("light.specular", &light.specular);
 	_sphereShader->SetUniform("light.direction", &light.direction);
+	_sphereShader->Bind();
 	_sphereMesh->Bind();
 	_sphereMesh->Render();
 	_sprite->Draw(_textures[_type].get(), glm::vec3(x, y, 0.f));

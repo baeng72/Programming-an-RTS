@@ -319,7 +319,7 @@ void TERRAIN::Render(CAMERA&camera,Renderer::DirectionalLight&light)
 	mat4 matView = camera.GetViewMatrix();
 	mat4 model = glm::mat4(1.f);
 	mat4 matVP = matProj * matView;
-	_shader->Bind();
+	//_shader->Bind();
 	
 	_shader->SetUniform("viewProj", &matVP);
 	_shader->SetUniform("model", &model);
@@ -329,7 +329,7 @@ void TERRAIN::Render(CAMERA&camera,Renderer::DirectionalLight&light)
 	_shader->SetUniform("light.direction", &light.direction);
 	std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
 	_shader->SetTextures(textures.data(), 4);
-	_shader->Rebind();//update descriptors if required
+	_shader->Bind();//update descriptors if required
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render();
 	

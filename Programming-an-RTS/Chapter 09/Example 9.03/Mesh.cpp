@@ -20,15 +20,10 @@ void MESH::Render(Renderer::Shader* pshader)
 {
 	
 	_multiMesh->Bind();
-	int texid = 0;
+	
 	for (uint32_t i = 0; i < _parts; i++) {
 		pshader->SetTexture("texmap", &_textures[i], 1);
-		/*if (Core::GetAPI() == Core::API::Vulkan) {
-			pshader->SetTexture(texid, &_textures[i], 1);
-		}
-		else {
-			pshader->SetTexture("texmap", &_textures[i], 1);
-		}*/
+		
 		pshader->Bind();
 		_multiMesh->Render(i);
 	}

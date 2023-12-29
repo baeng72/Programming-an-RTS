@@ -131,14 +131,7 @@ void APPLICATION::Render() {
 	glm::mat4 matView = glm::lookAtLH(eye, lookat, up);
 	//constexpr float fov = glm::radians(45.f);
 	glm::mat4 matProj = Core::perspective(quaterpi, (float)_width, (float)_height, 1.f, 1000.f);
-	/*mat4 matProj;
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		matProj = glm::perspectiveFovLH_ZO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
-		matProj[1][1] *= -1;
-	}
-	else {
-		matProj = glm::perspectiveFovLH_NO(glm::pi<float>() / 4, (float)_width, (float)_height, 1.f, 1000.f);
-	}*/
+	
 	glm::mat4 viewProj = matProj * matView;
 
 	_font->Draw("W: Toggle Wireframe", 10, 10, glm::vec4(0.f, 0.f, 0.f, 1.f));

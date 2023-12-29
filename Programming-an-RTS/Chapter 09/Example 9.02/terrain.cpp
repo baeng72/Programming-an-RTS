@@ -231,15 +231,15 @@ void TERRAIN::GenerateRandomTerrain(Core::Window* pwindow, int numPatches)
 		}
 	}
 	
-		InitPathfinding();
+	InitPathfinding();
 		
 		
-		CreatePatches(numPatches);
+	CreatePatches(numPatches);
 		
 		
-		CalculateAlphaMaps();
+	CalculateAlphaMaps();
 		
-		CalculateLightMap(pwindow);
+	CalculateLightMap(pwindow);
 
 		
 }
@@ -409,7 +409,7 @@ void TERRAIN::Progress(const char*ptext, float prc)
 void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLight&light,CAMERA&camera)
 {
 	light.direction = _dirToSun;
-	_shader->Bind();
+	//_shader->Bind();
 	vec2 mapSize = vec2(_size.x, _size.y);
 	
 	_shader->SetUniform("viewProj", &viewProj);
@@ -420,11 +420,11 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	_shader->SetUniform("light.direction", &light.direction);
 	std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get(),_lightMap.get() };
 	_shader->SetTextures(textures.data(), 5);
-	_shader->Rebind();//update descriptors if required
+	_shader->Bind();//update descriptors if required
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render();
 
-	_objectShader->Bind();
+	
 	
 	_objectShader->SetUniform("viewProj", &viewProj);
 	_objectShader->SetUniform("model", &model);
@@ -435,7 +435,8 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	Renderer::Texture* plightmap = _lightMap.get();
 	_objectShader->SetTexture("lightmap", &plightmap, 1);
 	_objectShader->SetUniform("mapSize", &mapSize);
-	_shader->Rebind();//update descriptors if required
+	//_objectShader->Bind();
+	//_shader->Bind();//update descriptors if required
 	//render object
 	for (int i = 0; i < _objects.size(); i++) {
 		if (!camera.Cull(_objects[i]._BBox)) {

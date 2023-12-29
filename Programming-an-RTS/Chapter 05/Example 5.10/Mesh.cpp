@@ -17,7 +17,7 @@ MESH::~MESH() {
 void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::DirectionalLight& light,Renderer::Texture*plightmap)
 {
 	mat4 worldxform = matWorld * _xform;
-	_shader->Bind();
+	
 	
 	_shader->SetUniform("viewProj", &matViewProj);
 	_shader->SetUniform("model", &worldxform);
@@ -28,6 +28,7 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 	auto texture = _texture.get();
 	_shader->SetTexture("texmap", &texture, 1);
 	_shader->SetTexture("lightmap", &plightmap, 1);
+	_shader->Bind();
 	_mesh->Bind();
 	_mesh->Render();
 }

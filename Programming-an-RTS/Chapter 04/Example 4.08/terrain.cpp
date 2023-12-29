@@ -200,8 +200,8 @@ void TERRAIN::CalculateAlphaMaps() {
 	constexpr int texWidth = 128;
 	constexpr int texHeight = 128;
 	//create one alpha map per diffuse map
-	uint32_t* pdata = new uint32_t[texWidth*texHeight];
-	memset(pdata, 0, sizeof(uint32_t) * texWidth * texHeight);
+	std::vector<uint32_t> data(texWidth*texHeight);
+	memset(data.data(), 0, sizeof(uint32_t) * texWidth * texHeight);
 	for (size_t i = 0; i < _diffuseMaps.size(); i++) {
 		//for each pixel in the alphaMap
 		uint32_t shift = (uint32_t)((2-i) << 3);
@@ -216,27 +216,22 @@ void TERRAIN::CalculateAlphaMaps() {
 				else
 					b = 0;
 				b <<= shift;
-				pdata[x + y * texWidth] |= b;
+				data[x + y * texWidth] |= b;
 			}
 		}
 	
 	}
 	//create a new texture
-	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
-	if (Core::GetAPI() == Core::API::Vulkan) {
-		
-	}
+	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)data.data()));
+	
 
 }
 
 void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLight&light)
 {
-	Renderer::FlatShaderDirectionalUBO ubo = { viewProj,light };
-	int uboid = 0;
 	
-
-	Renderer::FlatShaderPushConst pushConst{model };
-	_shader->Bind();
+	
+	//_shader->Bind();
 	
 	_shader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
 	_shader->SetUniformData("model", &model, sizeof(mat4));
@@ -246,7 +241,7 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 	_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
 	std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
 	_shader->SetTextures(textures.data(), 4);
-	_shader->Rebind();
+	_shader->Bind();
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render();
 	

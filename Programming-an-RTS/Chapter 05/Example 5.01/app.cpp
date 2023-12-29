@@ -100,7 +100,7 @@ void APPLICATION::Render() {
 
 	_device->StartRender();		
 	glm::mat4 model = glm::mat4(1.f);
-	_shader->Bind();
+	
 	_multiMesh->Bind();
 	
 	_shader->SetUniform("viewProj", &_matVP);
@@ -108,6 +108,7 @@ void APPLICATION::Render() {
 	_shader->SetUniform("light.diffuse", &_light.diffuse);
 	_shader->SetUniform("light.specular", &_light.specular);
 	_shader->SetUniform("light.direction", &_light.direction);
+	_shader->Bind();
 	for (uint32_t i = 0; i < _multiMesh->GetPartCount(); i++) {
 		
 

@@ -122,19 +122,17 @@ void PATCH::Release() {
 
 void PATCH::Render(glm::mat4&viewProj,glm::mat4&model, Renderer::DirectionalLight& light)
 {
-	_shader->Bind();
+	//_shader->Bind();
 	
-	_shader->SetTexture("texmaps", _tex.data(), (uint32_t)_tex.size());
-
-	int attrid = 0;
-	_shader->SetStorageBuffer(attrid, _attrBuffer.get());
+	_shader->SetTexture("texmaps", _tex.data(), (uint32_t)_tex.size());	
+	_shader->SetStorageBuffer("Attr", _attrBuffer.get());
 	_shader->SetUniform("viewProj", &viewProj);
 	_shader->SetUniform("model", &model);
 	_shader->SetUniform("light.ambient", &light.ambient);
 	_shader->SetUniform("light.diffuse", &light.diffuse);
 	_shader->SetUniform("light.specular", &light.specular);
 	_shader->SetUniform("light.direction", &light.direction);
-	_shader->Rebind();
+	_shader->Bind();
 	_mesh->Bind();
 	_mesh->Render();
 }

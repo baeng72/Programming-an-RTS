@@ -91,7 +91,7 @@ void OBJECT::RenderBoundingVolume(int type,mat4 &matViewProj,Renderer::Direction
 		mat4 scale = glm::scale(id, size);
 		mat4 trans = glm::translate(id, center);
 		mat4 world = trans * scale;
-		shapeShader->Bind();
+		
 		
 		Color clr = Color(0.f, 1.f, 0.f, 0.5f);
 		shapeShader->SetUniform("viewProj", &matViewProj);
@@ -101,6 +101,7 @@ void OBJECT::RenderBoundingVolume(int type,mat4 &matViewProj,Renderer::Direction
 		shapeShader->SetUniform("light.diffuse", &light.diffuse);
 		shapeShader->SetUniform("light.specular", &light.specular);
 		shapeShader->SetUniform("light.direction", &light.direction);
+		shapeShader->Bind();
 		shapeMeshes[type - 1]->Bind();
 		shapeMeshes[type - 1]->Render();
 	}
@@ -112,7 +113,7 @@ void OBJECT::RenderBoundingVolume(int type,mat4 &matViewProj,Renderer::Direction
 		mat4 scale = glm::scale(id, vec3(_BSphere.radius));
 		mat4 trans = glm::translate(id, center);
 		mat4 world = trans * scale;
-		shapeShader->Bind();
+		
 		
 		Color clr = Color(0.f, 1.f, 0.f, 0.5f);
 		shapeShader->SetUniform("viewProj", &matViewProj);
@@ -122,6 +123,7 @@ void OBJECT::RenderBoundingVolume(int type,mat4 &matViewProj,Renderer::Direction
 		shapeShader->SetUniform("light.diffuse", &light.diffuse);
 		shapeShader->SetUniform("light.specular", &light.specular);
 		shapeShader->SetUniform("light.direction", &light.direction);
+		shapeShader->Bind();
 		shapeMeshes[type - 1]->Bind();
 		shapeMeshes[type-1]->Render();
 	}

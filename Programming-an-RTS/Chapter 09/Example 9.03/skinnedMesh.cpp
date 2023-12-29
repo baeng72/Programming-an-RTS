@@ -82,15 +82,16 @@ std::vector<std::string> SKINNEDMESH::GetAnimations()
 }
 void SKINNEDMESH::Render(Renderer::Shader* pshader) {
 
-	/*{
+	
 
-		uint32_t dynoffsets[1] = { (uint32_t)_animationController->GetControllerOffset() * sizeof(mat4) };
-
-		pshader->Bind(dynoffsets, 1);
-	}*/
+	
+	
 	{
 		Renderer::Texture* ptexture = _meshTexture.get();
 		_meshShader->SetTexture("texmap", &ptexture, 1);
+		uint32_t dynoffsets[1] = { (uint32_t)_animationController->GetControllerOffset() * sizeof(mat4) };
+
+		_meshShader->Bind(dynoffsets, 1);
 		_animatedMesh->Bind();
 		_animatedMesh->Render(_animationController.get());
 	}

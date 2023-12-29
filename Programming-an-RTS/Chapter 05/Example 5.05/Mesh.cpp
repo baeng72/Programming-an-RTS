@@ -16,7 +16,7 @@ MESH::~MESH() {
 }
 void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::DirectionalLight& light)
 {
-	_shader->Bind();
+	
 	
 	mat4 worldxform = matWorld * _xform;
 	_multiMesh->Bind();
@@ -24,6 +24,7 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 	_shader->SetUniform("light.diffuse", &light.diffuse);
 	_shader->SetUniform("light.specular", &light.specular);
 	_shader->SetUniform("light.direction", &light.direction);
+	_shader->Bind();
 	for (uint32_t i = 0; i < _multiMesh->GetPartCount(); i++) {		
 		_shader->SetUniform("viewProj", &matViewProj);
 		_shader->SetUniform("model", &worldxform);		

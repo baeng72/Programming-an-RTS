@@ -92,9 +92,7 @@ UNIT::~UNIT() {
 void UNIT::Render(mat4& matVP, Renderer::DirectionalLight& light) {
 	if (_type < unitMeshes.size() && unitMeshes[_type]) {
 		SetAnimation(_animation);
-		if (_animation == 2) {
-			int z = 0;
-		}
+	
 		unitMeshes[_type]->SetPose(_time, _animationController.get());
 		unitMeshes[_type]->Render(matVP, GetWorldMatrix(), light, vec4(1.f, 0.f, 0.f, 1.f), _animationController.get());
 		//_time = 0.f;

@@ -82,20 +82,6 @@ void APPLICATION::Update(float deltaTime) {
 	_line->Update(_width, _height);
 }
 
-//glm is different for whatever reason
-inline glm::mat4 D3DXOrthoLH(float width, float height, float zn, float zf) {
-	glm::mat4 mat = glm::mat4(1.f);
-	mat[0][0] = 2.f / width;
-	mat[1][1] = 2.f / height;
-	mat[2][2] = 1.f / (zf - zn);
-	mat[3][2] = -zn / (zf - zn);
-	mat[1][1] *= -1;//flip y for Vulkan
-	return mat;
-}
-
-
-
-
 void APPLICATION::Render() {	
 	//using DirectX LHS coordinate system.
 	

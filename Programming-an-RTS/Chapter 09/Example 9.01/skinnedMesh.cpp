@@ -95,8 +95,7 @@ std::vector<std::string> SKINNEDMESH::GetAnimations()
 }
 void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&light,vec4&color, Mesh::AnimationController* pcontroller) {
 	mat4 worldxform = _xform * matWorld;
-	uint32_t dynoffsets[1] = { pcontroller->GetControllerOffset() * sizeof(mat4) };
-	_meshShader->Bind(dynoffsets, 1);
+	
 	glm::mat4 r = glm::rotate(glm::mat4(1.f), -glm::pi<float>() * 0.5f, glm::vec3(0.f, 1.f, 0.f));
 
 	_meshShader->SetUniform("viewProj", &matVP);
@@ -109,6 +108,8 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 
 	auto texture = _meshTexture.get();
 	_meshShader->SetTexture("texmap", &texture, 1);
+	uint32_t dynoffsets[1] = { pcontroller->GetControllerOffset() * sizeof(mat4) };
+	_meshShader->Bind(dynoffsets, 1);
 	_animatedMesh->Bind();
 	_animatedMesh->Render(/*_meshShader.get(),*/pcontroller);
 	

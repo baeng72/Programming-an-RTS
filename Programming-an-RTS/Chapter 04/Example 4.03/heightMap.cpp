@@ -125,6 +125,12 @@ bool HEIGHTMAP::CreateRandomHeightMap(int seed, float noiseSize, float persisten
 
 bool HEIGHTMAP::CreateParticles()
 {
+	
+	int dim = 1;	
+	while (dim < _size.x)
+		dim <<= 1;
+	
+	std::vector<uint8_t> pixels(_size.x*_size.y);
 	std::vector<Renderer::ParticleVertex> vertices;
 	for (int32_t y = 0; y < _size.y; ++y) {
 		for (int32_t x = 0; x < _size.x; ++x) {
@@ -141,19 +147,43 @@ bool HEIGHTMAP::CreateParticles()
 			else {
 				color = glm::vec4(red, green, 0.f, 1.f);
 			}
-
+			int b = (int)(128+red*128);
+			if (b < 0)
+				b = 0;
+			if (b > 255)
+				b = 255;
+			
+			pixels[y*_size.x+x] = (uint8_t)b;
 			Renderer::ParticleVertex vert{ glm::vec3(x,fRawHeight,-y),color };
 			vertices.push_back(vert);			
 		}
 	}
+	
 	_particles.reset(Renderer::ParticleSwarm::Create(_pDevice, vertices.data(), (int)vertices.size(), glm::vec2(0.7f)));
+	//resample image
+	std::vector<uint32_t> newPixels(dim * dim);
+	float scalex = (float)_size.x/(float)dim;
+	float scaley = (float)_size.y/(float)dim;
+	for (int32_t y = 0; y < dim; y++) {
+		for (int32_t x = 0; x < dim; x++) {
+			int pixel = y * dim + x;
+			int xold = (int)(x * scalex);
+			int yold = (int)(y * scaley);
+			int nearest = yold * _size.x + xold;
+			uint8_t b = pixels[nearest];
+			uint32_t c = 255 << 24 | b << 16 | b << 8 |  b;
+			newPixels[pixel] = c;
+		}
+	}
+	_heightMapTexture.reset(Renderer::Texture::Create(_pDevice, dim, dim, 4, (uint8_t*)newPixels.data()));
+	
 	return true;
 }
 
 void HEIGHTMAP::Render(glm::mat4&viewProj,glm::vec3&eye)
 {
 	if(_heightMapTexture.get())
-		_sprite->Draw(_heightMapTexture.get(), glm::vec3(1.f, 1.f, 0.f));
+		_sprite->Draw(_heightMapTexture.get(), glm::vec3(700.f, 1.f, 0.f));
 	_particles->Draw(viewProj, eye);
 }
 
