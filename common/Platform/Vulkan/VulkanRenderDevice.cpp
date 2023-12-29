@@ -8,10 +8,10 @@ namespace Vulkan {
 
 	
 
-	VulkanRenderDevice::VulkanRenderDevice(void* nativeWindowHandle) :_enableVSync(true),_enableGeometry(false),_enableDepthBuffer(false)
+	VulkanRenderDevice::VulkanRenderDevice(void* nativeWindowHandle) :_enableVSync(true),_enableGeometry(false),_enableDepthBuffer(false),_inRender(false)
 	{
 		_window = reinterpret_cast<GLFWwindow*>(nativeWindowHandle);
-		
+
 
 
 	}
@@ -19,10 +19,10 @@ namespace Vulkan {
 	VulkanRenderDevice::~VulkanRenderDevice()
 	{
 		vkDeviceWaitIdle(_context.device);
-		cleanupRenderPass(_context.device,_shadowData.renderPass);
+		/*cleanupRenderPass(_context.device,_shadowData.renderPass);
 		std::vector<VkFramebuffer> framebuffers = { _shadowData.frameBuffer };
 		cleanupFramebuffers(_context.device,framebuffers);
-		cleanupTexture(_context.device, _shadowData.shadowMap);
+		cleanupTexture(_context.device, _shadowData.shadowMap);*/
 		_swapchain.reset();
 		_state.reset();
 	}
@@ -62,7 +62,7 @@ namespace Vulkan {
 		_swapchain->Create(_context.device, _state->getSurface(), _state->getGraphicsQueue(), _state->getPresentQueue(), _context.memoryProperties, flags);
 		_frameData.renderPass = _swapchain->getRenderPass();
 
-		_shadowData.shadowMap = TextureBuilder::begin(_context.device, _context.memoryProperties)
+		/*_shadowData.shadowMap = TextureBuilder::begin(_context.device, _context.memoryProperties)
 			.setDimensions(width, height)
 			.setFormat(VK_FORMAT_D32_SFLOAT)
 			.setImageAspectFlags(VK_IMAGE_ASPECT_DEPTH_BIT)
@@ -82,21 +82,31 @@ namespace Vulkan {
 			.setDepthImageView(_shadowData.shadowMap.imageView)
 			.setRenderPass(_shadowData.renderPass)
 			.build(framebuffers);
-		_shadowData.frameBuffer = framebuffers[0];
+		_shadowData.frameBuffer = framebuffers[0];*/
 	}
 
-	void VulkanRenderDevice::StartRender()
+	void VulkanRenderDevice::StartRender(bool mainpass)
 	{
 		//EASY_FUNCTION(profiler::colors::Cyan);
-		_swapchain->NextFrame();
-		_cmd = _swapchain->BeginRender();
-		_frameData.cmd = _cmd;
+		if (false == _inRender) {
+			_swapchain->NextFrame();
+
+			_cmd = _swapchain->BeginRender(mainpass);
+			_frameData.cmd = _cmd;
+		}
+		else {
+			if (mainpass) {
+				_swapchain->StartRenderPass(_cmd);
+			}
+		}
 		int width, height;
 		glfwGetFramebufferSize(_window, &width, &height);
 		VkViewport viewport = { 0,0,(float)width,(float)height,0.f,1.f };
 		vkCmdSetViewport(_cmd, 0, 1, &viewport);
 		VkRect2D scissor{ 0,0,(uint32_t)width,(uint32_t)height };
 		vkCmdSetScissor(_cmd, 0, 1, &scissor);
+		_inRender = true;
+		
 	}
 
 	void VulkanRenderDevice::EndRender()
@@ -106,9 +116,10 @@ namespace Vulkan {
 
 		_cmd = VK_NULL_HANDLE;
 		_frameData.cmd = _cmd;
+		_inRender = false;
 	}
 
-	void VulkanRenderDevice::StartShadowRender()
+	/*void VulkanRenderDevice::StartShadowRender()
 	{
 		int width, height;
 		glfwGetFramebufferSize(_window, &width, &height);
@@ -116,7 +127,7 @@ namespace Vulkan {
 
 	void VulkanRenderDevice::EndShadowRender()
 	{
-	}
+	}*/
 
 	void VulkanRenderDevice::SetVSync(bool vsync)
 	{

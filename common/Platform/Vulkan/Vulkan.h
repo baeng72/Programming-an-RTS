@@ -14,10 +14,10 @@
 #define __USE__VMA__
 #ifdef __USE__VMA__
 #ifdef _DEBUG
-#define VMA_DEBUG_LOG(format, ...) do { \
-        printf(format, __VA_ARGS__); \
-        printf("\n"); \
-    } while(false)
+//#define VMA_DEBUG_LOG(format, ...) do { \
+//        printf(format, __VA_ARGS__); \
+//        printf("\n"); \
+//    } while(false)
 
 #endif
 #include "vk_mem_alloc.h"
@@ -27,6 +27,9 @@
 #define PREFERRED_IMAGE_FORMAT VK_FORMAT_R8G8B8A8_UNORM
 struct GLFWwindow;
 namespace Vulkan {
+
+	void SetObjectName(size_t key,const char* pname);
+	const char* SetObjectName(size_t key);
 
 	VkInstance initInstance(std::vector<const char*>& requiredExtensions, std::vector<const char*>& requiredLayers);
 	void cleanupInstance(VkInstance instance);
@@ -69,12 +72,18 @@ namespace Vulkan {
 	VkCommandBuffer initCommandBuffer(VkDevice device, VkCommandPool commandPool);
 	void initCommandBuffers(VkDevice device, std::vector<VkCommandPool>& commandPools, std::vector<VkCommandBuffer>& commandBuffers);
 	void initCommandBuffers(VkDevice device, VkCommandPool* commandPools, VkCommandBuffer* commandBuffers, uint32_t count);
+	void initCommandBuffers(VkDevice device, VkCommandPool commandPool, std::vector<VkCommandBuffer>& commandBuffers);//size of commandBuffer must be > 0 to allocate
+	void initCommandBuffers(VkDevice device, VkCommandPool commandPool, VkCommandBuffer* commandBuffers, uint32_t count);
 	void cleanupCommandBuffers(VkDevice device, std::vector<VkCommandPool>& commandPools, std::vector<VkCommandBuffer>& commandBuffers);
 	void cleanupCommandBuffer(VkDevice device, VkCommandPool commandPool, VkCommandBuffer commandBuffer);
 	void cleanupCommandBuffers(VkDevice device, VkCommandPool* commandPool, VkCommandBuffer* commandBuffers, uint32_t count);
+	void cleanupCommandBuffers(VkDevice device, VkCommandPool commandPool, std::vector<VkCommandBuffer>& commandBuffers);
+	void cleanupCommandBuffers(VkDevice device, VkCommandPool commandPool, VkCommandBuffer* commandBuffers, uint32_t count);
 	void cleanupCommandPools(VkDevice device, std::vector<VkCommandPool>& commandPools);
 	void cleanupCommandPools(VkDevice device, VkCommandPool* commandPools,uint32_t count);
 	void cleanupCommandPool(VkDevice device, VkCommandPool commandPool);
+	void resetCommandPool(VkDevice device, VkCommandPool commandPool);
+	void resetCommandBuffer(VkCommandBuffer commandBuffer);
 
 	VkSwapchainKHR initSwapchain(VkDevice device, VkSurfaceKHR surface, uint32_t width, uint32_t height, VkSurfaceCapabilitiesKHR& surfaceCaps, VkPresentModeKHR& presentMode, VkSurfaceFormatKHR& swapchainFormat, VkExtent2D& swapchainExtent, uint32_t imageCount = UINT32_MAX, VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE);
 	void getSwapchainImages(VkDevice device, VkSwapchainKHR swapchain, std::vector<VkImage>& images);
@@ -126,6 +135,7 @@ namespace Vulkan {
 		uint32_t height{ 0 };
 		uint32_t mipLevels{ 1 };
 		uint32_t layerCount{ 1 };
+		VkFormat format{ VK_FORMAT_UNDEFINED };
 	};
 
 	struct Texture :public Image {
@@ -135,8 +145,10 @@ namespace Vulkan {
 	void initImage(VkDevice device, VkImageCreateInfo& pCreateInfo, Image& image, bool isMapped = false);
 #ifdef __USE__VMA__
 	void setImageName(Image& image, const char* pname);
+	const char* getImageName(const Image& image);
 #else
 #define setImageName(b,p)
+#define getImageName(b)
 #endif
 	struct SamplerProperties {
 		VkFilter filter{ VK_FILTER_LINEAR };

@@ -1,4 +1,6 @@
 #include "VulkSwapchain.h"
+
+#include "VulkanDebug.h"
 namespace Vulkan {
 	VulkSwapchain::VulkSwapchain() {
 		_ASSERTE(_CrtCheckMemory());

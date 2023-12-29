@@ -45,10 +45,11 @@ namespace Renderer {
 	public:
 		//enum ShaderType { Flat, FlatDirectional,DirectionalDiffuseMat, DirectionalDiffuseTex, DirectionalDiffuseArray, DirectionalDiffuseTexArray, MAX_SHADERS };
 		static ShaderManager * Create(RenderDevice* pdevice);
+		
 		virtual ~ShaderManager() = default;
 		virtual void* GetShaderDataByName(const char*name) = 0;
 		//virtual void* GetShaderData(const char* shaderPath) = 0;
-		virtual void* CreateShaderData(const char* shaderPath, bool cullBackFaces = true, bool enableBlend = true,bool enableDepth=true,  ShaderStorageType* ptypes = nullptr, uint32_t numtypes=0) = 0;
+		virtual void* CreateShaderData(const char* shaderPath, bool cullBackFaces = true, bool enableBlend = true,bool enableDepth=true,  ShaderStorageType* ptypes = nullptr, uint32_t numtypes=0,  void* platformData = nullptr) = 0;
 		//virtual void* GetShaderAttribute(ShaderAttrData&data) = 0;		
 		
 	};

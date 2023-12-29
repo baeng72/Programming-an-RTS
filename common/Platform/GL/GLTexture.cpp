@@ -68,6 +68,35 @@ namespace GL {
 		tex.width = _width;
 		tex.height = _height;
 	}
+	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height, int bytesperpixel) :_size(glm::vec2(width, height))
+	{
+		_pdevice = pdevice;
+		GLint format;
+		switch (bytesperpixel) {
+		case 1:
+			format = GL_RED;
+			break;
+		case 3:
+			format = GL_RGB;
+			break;
+		case 4:
+			format = GL_RGBA;
+			break;
+		default:
+			assert(0);//format?
+			break;
+		}
+		glGenTextures(1, &_textureID);
+		glBindTexture(GL_TEXTURE_2D, _textureID);
+		//glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		_width = width;
+		_height = height;
+		_channels = bytesperpixel;
+		tex.textureID = _textureID;
+		tex.width = _width;
+		tex.height = _height;
+	}
 	GLTexture::~GLTexture()
 	{
 		glDeleteTextures(1, &_textureID);
@@ -82,5 +111,9 @@ namespace GL {
 	{
 		vec2 scale = glm::vec2(_size.x / (float)_width, _size.y / (float)_height);
 		return scale;
+	}
+	bool GLTexture::SaveToFile(const char* ppath)
+	{
+		return false;
 	}
 }

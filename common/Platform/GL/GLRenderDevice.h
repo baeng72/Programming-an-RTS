@@ -14,10 +14,10 @@ namespace GL {
 		GLRenderDevice(void* nativeWindowHandle);
 		virtual ~GLRenderDevice();
 		virtual void Init() override;
-		virtual void StartRender() override;
+		virtual void StartRender(bool mainpass=true) override;
 		virtual void EndRender() override;
-		virtual void StartShadowRender() override;
-		virtual void EndShadowRender() override;
+		/*virtual void StartShadowRender() override;
+		virtual void EndShadowRender() override;*/
 		virtual void SetVSync(bool vsync) override;
 		virtual void EnableGeometry(bool geom) override;
 		virtual void EnableWireframe(bool wireframe) override;

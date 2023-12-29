@@ -20,7 +20,7 @@ namespace GL {
 			glDepthFunc(GL_ALWAYS);
 		}
 	}
-	void GLRenderDevice::StartRender()
+	void GLRenderDevice::StartRender(bool mainpass)
 	{
 		//EASY_FUNCTION(profiler::colors::Cyan);
 		int width, height;
@@ -43,12 +43,12 @@ namespace GL {
 		//EASY_FUNCTION(profiler::colors::Red);
 		glfwSwapBuffers(_window);
 	}
-	void GLRenderDevice::StartShadowRender()
+	/*void GLRenderDevice::StartShadowRender()
 	{
 	}
 	void GLRenderDevice::EndShadowRender()
 	{
-	}
+	}*/
 	void GLRenderDevice::SetVSync(bool vsync)
 	{
 		glfwSwapInterval(vsync ? 1 : 0);

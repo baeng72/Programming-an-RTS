@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <memory>
 #include "VulkanEx.h"
+
 namespace Vulkan {
 	struct VulkContext {
 		VkDevice device;
@@ -9,13 +10,13 @@ namespace Vulkan {
 		VkCommandBuffer commandBuffer;
 		VkPhysicalDeviceProperties deviceProperties;
 		VkPhysicalDeviceMemoryProperties memoryProperties;
-
+		VkFormatProperties formatProperties;
 		DescriptorSetPoolCache* pPoolCache;
 		DescriptorSetLayoutCache* pLayoutCache;
 
 	};
 
-	constexpr int DEF_UNIFORM_SIZE = 256 * 256; //256 default 256 uniform blocks 
+	constexpr int DEF_UNIFORM_SIZE = 256; //256 default bytes
 	struct VulkDefRes {
 		Vulkan::Buffer defUniform;	//256 byte uniform default
 		std::vector<UniformBufferInfo> defUniformInfo;
@@ -113,7 +114,7 @@ namespace Vulkan {
 		VkSurfaceCapabilitiesKHR			getSurfaceCapabilities()const { return surfaceCaps; }
 		VkSampleCountFlagBits				getSampleCount()const { return numSamples; }
 		VkDevice							getDevice()const { return device; }
-		VulkContext							getContext()const { return { device,backQueue,commandBuffer,deviceProperties,deviceMemoryProperties,descriptorSetPoolCache.get(),descriptorSetLayoutCache.get() }; }
+		VulkContext							getContext()const { return { device,backQueue,commandBuffer,deviceProperties,deviceMemoryProperties,formatProperties,descriptorSetPoolCache.get(),descriptorSetLayoutCache.get() }; }
 		/*VkPresentModeKHR					getPresentMode()const { return presentMode; }
 		VkSurfaceFormatKHR					getSwapchainFormat()const { return swapchainFormat; }
 		VkFormatProperties					getFormatProperties()const { return formatProperties; }

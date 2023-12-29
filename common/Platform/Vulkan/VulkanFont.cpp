@@ -335,7 +335,8 @@ void main(){
 		}
 		_vertices.insert(_vertices.end(), vertices.begin(), vertices.end());
 		_indices.insert(_indices.end(), indices.begin(), indices.end());
-
+		vertices.clear();
+		indices.clear();
 
 
 

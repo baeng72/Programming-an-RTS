@@ -28,17 +28,28 @@ namespace GL {
 
 		~ShaderUtil();
 		void compile(const char* vertexSrc, const char* geometrySrc, const char* fragmentSrc);
+		inline void ensureProgram()const {
+			GLint id;
+			glGetIntegerv(GL_CURRENT_PROGRAM, &id);
+			if (id != _programID) {
+				glUseProgram(_programID);
+				GLERR();
+			}
+		}
 		void setFloat(int location, float value)const {
+			ensureProgram();
 			glUniform1f(location, value);
 		}
 		void setFloat(const char* name, float value)const {
 			int location = glGetUniformLocation(_programID, name);
 			GLERR();
+			ensureProgram();
 			glUniform1f(location, value);
 			GLERR();
 		}
 		
 		void setVec2(unsigned int location, vec2& value)const {
+			ensureProgram();
 			glUniform2fv(location, 1, &value[0]);
 			GLERR();
 		}
@@ -46,23 +57,26 @@ namespace GL {
 			
 			size_t hash = Core::HashFNV1A(name, strlen(name));
 			int location = _uniformMap[hash];
-			
+			ensureProgram();
 			GLERR();
 			glUniform2fv(location, 1, &value[0]);
 			GLERR();
 		}
 		void setVec2(unsigned int location, vec2* pvalue)const {
+			ensureProgram();
 			glUniform2fv(location, 1, (const GLfloat*)pvalue);
 			GLERR();
 		}
 		void setVec2(const char* pname, vec2* pvalue) {
 			size_t hash = Core::HashFNV1A(pname, strlen(pname));
 			int location = _uniformMap[hash];
+			ensureProgram();
 			glUniform2fv(location, 1, (const GLfloat*)pvalue);
 			GLERR();
 
 		}
 		void setVec3(unsigned int location, vec3& value)const {
+			ensureProgram();
 			glUniform3fv(location, 1, &value[0]);
 			GLERR();
 		}
@@ -71,21 +85,24 @@ namespace GL {
 			size_t hash = Core::HashFNV1A(name, strlen(name));
 			int location = _uniformMap[hash];
 			
-			GLERR();
+			ensureProgram();
 			glUniform3fv(location, 1, &value[0]);
 			GLERR();
 		}
 		void setVec3(unsigned int location, vec3* pvalue)const {
+			ensureProgram();
 			glUniform3fv(location, 1, (const GLfloat*)pvalue);
 			GLERR();
 		}
 		void setVec3(const char* pname, vec3* pvalue) {
 			size_t hash = Core::HashFNV1A(pname, strlen(pname));
 			int location = _uniformMap[hash];
+			ensureProgram();
 			glUniform3fv(location, 1, (const GLfloat*)pvalue);
 			GLERR();
 		}
 		void setVec4(unsigned int location, vec4& value)const {
+			ensureProgram();
 			glUniform4fv(location, 1, &value[0]);
 			GLERR();
 		}
@@ -94,21 +111,24 @@ namespace GL {
 			size_t hash = Core::HashFNV1A(name, strlen(name));
 			int location = _uniformMap[hash];
 			
-			GLERR();
+			ensureProgram();
 			glUniform4fv(location, 1, &value[0]);
 			GLERR();
 		}
 		void setVec4(unsigned int location, vec4* pvalue)const {
+			ensureProgram();
 			glUniform4fv(location, 1, (const GLfloat*)pvalue);
 			GLERR();
 		}
 		void setVec4(const char* pname, vec4* pvalue) {
 			size_t hash = Core::HashFNV1A(pname, strlen(pname));
 			int location = _uniformMap[hash];
+			ensureProgram();
 			glUniform4fv(location, 1, (const GLfloat*)pvalue);
 			GLERR();
 		}
 		void setMat4(unsigned int location, mat4& value)const {
+			ensureProgram();
 			glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]);
 			GLERR();
 		}
@@ -117,18 +137,19 @@ namespace GL {
 			size_t hash = Core::HashFNV1A(name, strlen(name));
 			int location = _uniformMap[hash];
 			
-			GLERR();
+			ensureProgram();
 			glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]);
 			GLERR();
 		}
 		void setMat4(unsigned int location, mat4* pvalue)const {
-			GLERR();
+			ensureProgram();
 			glUniformMatrix4fv(location, 1, GL_FALSE, (const GLfloat*)pvalue);
 			GLERR();
 		}
 		void setMat4(const char* name, mat4* pvalue) {
 			size_t hash = Core::HashFNV1A(name, strlen(name));
 			int location = _uniformMap[hash];
+			ensureProgram();
 			glUniformMatrix4fv(location, 1, GL_FALSE, (const GLfloat*)pvalue);
 			GLERR();
 			

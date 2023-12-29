@@ -14,7 +14,7 @@ namespace GL {
 		ASSERT(_shaderList.find(name) != _shaderList.end(), "Unknown shader requested!");
 		return _shaderList[name].get();
 	}
-	void* GLShaderManager::CreateShaderData(const char* shaderPath, bool cullBackFaces, bool enableBlend,bool enableDepth, Renderer::ShaderStorageType* ptypes, uint32_t numtypes)
+	void* GLShaderManager::CreateShaderData(const char* shaderPath, bool cullBackFaces, bool enableBlend,bool enableDepth, Renderer::ShaderStorageType* ptypes, uint32_t numtypes, void* platformData)
 	{
 		std::string filepath = shaderPath;
 		auto lastSlash = filepath.find_last_of("/\\");

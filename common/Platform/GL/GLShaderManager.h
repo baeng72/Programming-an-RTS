@@ -14,6 +14,6 @@ namespace GL {
 		GLShaderManager(Renderer::RenderDevice* pdevice);
 		virtual ~GLShaderManager();
 		virtual void* GetShaderDataByName(const char* name)override;		
-		virtual void* CreateShaderData(const char* shaderPath, bool cullBackFaces = true, bool enableBlend = true, bool enableDepth = true, Renderer::ShaderStorageType* ptypes = nullptr, uint32_t numtypes = 0)override;
+		virtual void* CreateShaderData(const char* shaderPath, bool cullBackFaces = true, bool enableBlend = true, bool enableDepth = true, Renderer::ShaderStorageType* ptypes = nullptr, uint32_t numtypes = 0,void *platformData=nullptr)override;
 	};
 }

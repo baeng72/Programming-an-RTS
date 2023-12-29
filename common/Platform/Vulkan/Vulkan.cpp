@@ -1,11 +1,14 @@
 #include "Vulkan.h"
-
+#include "VulkanDebug.h"
 #include <iostream>
 #include <fstream>
 #include <cassert>
 #include <cmath>
 
-
+#ifdef _DEBUG
+#include <unordered_map>
+#include <string>
+#endif
 #ifdef __USE__VMA__
 #define VMA_IMPLEMENTATION
 #include "vma/vk_mem_alloc.h"
@@ -14,6 +17,17 @@
 #include <GLFW/glfw3.h>
 
 namespace Vulkan{
+#ifdef _DEBUG
+	std::unordered_map<size_t, std::string> vulknameMap;
+	void SetObjectName(size_t key, const char* pname) {
+		
+		vulknameMap[key] = pname;
+	}
+	const char* GetObjectName(size_t key) {
+		return vulknameMap[key].c_str();
+	}
+#endif
+
 #if !defined NDEBUG
 	//https://vulkan-tutorial.com/en/Drawing_a_triangle/Setup/Validation_layers
 	VkDebugUtilsMessengerEXT debugMessenger;
@@ -426,7 +440,25 @@ namespace Vulkan{
 			assert(res == VK_SUCCESS);
 		}
 	}
-
+	void initCommandBuffers(VkDevice device, VkCommandPool commandPool, VkCommandBuffer* commandBuffers, uint32_t count) {
+		assert(count > 0);
+		VkCommandBufferAllocateInfo cmdBufAI{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO	};
+		cmdBufAI.commandPool = commandPool;
+		cmdBufAI.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		cmdBufAI.commandBufferCount = count;
+		VkResult res = vkAllocateCommandBuffers(device, &cmdBufAI, commandBuffers);
+		assert(res == VK_SUCCESS);
+	}
+	void initCommandBuffers(VkDevice device, VkCommandPool commandPool, std::vector<VkCommandBuffer>& commandBuffers) {
+		uint32_t count = (uint32_t)commandBuffers.size();
+		assert(count > 0);
+		VkCommandBufferAllocateInfo cmdBufAI{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+		cmdBufAI.commandPool = commandPool;
+		cmdBufAI.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		cmdBufAI.commandBufferCount = count;
+		VkResult res = vkAllocateCommandBuffers(device, &cmdBufAI, commandBuffers.data());
+		assert(res == VK_SUCCESS);
+	}
 	void cleanupCommandBuffers(VkDevice device, std::vector<VkCommandPool>& commandPools, std::vector<VkCommandBuffer>& commandBuffers) {
 		for (size_t i = 0; i < commandBuffers.size(); i++) {
 			vkFreeCommandBuffers(device, commandPools[i], 1, &commandBuffers[i]);
@@ -443,9 +475,12 @@ namespace Vulkan{
 		for (uint32_t i = 0; i < count; i++) {
 			vkFreeCommandBuffers(device, commandPools[i],1, &commandBuffers[i]);
 		}
-	
-		
-		
+	}
+	void cleanupCommandBuffers(VkDevice device, VkCommandPool commandPool, VkCommandBuffer* commandBuffers, uint32_t count) {
+		vkFreeCommandBuffers(device, commandPool, count, commandBuffers);
+	}
+	void cleanupCommandBuffers(VkDevice device, VkCommandPool commandPool, std::vector<VkCommandBuffer>& commandBuffers) {
+		vkFreeCommandBuffers(device, commandPool, (uint32_t)commandBuffers.size(), commandBuffers.data());
 	}
 
 	void cleanupCommandPools(VkDevice device, std::vector<VkCommandPool>& commandPools) {
@@ -461,10 +496,14 @@ namespace Vulkan{
 	}
 
 	void cleanupCommandPool(VkDevice device, VkCommandPool commandPool) {
-		std::vector<VkCommandPool> commandPools{ commandPool };
-		cleanupCommandPools(device, commandPools);
+		vkDestroyCommandPool(device, commandPool, nullptr);
 	}
-
+	void resetCommandPool(VkDevice device, VkCommandPool commandPool) {
+		vkResetCommandPool(device, commandPool, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT);
+	}
+	void resetCommandBuffer(VkCommandBuffer commandBuffer) {
+		vkResetCommandBuffer(commandBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
+	}
 	VkSwapchainKHR initSwapchain(VkDevice device, VkSurfaceKHR surface, uint32_t width, uint32_t height, VkSurfaceCapabilitiesKHR& surfaceCaps, VkPresentModeKHR& presentMode, VkSurfaceFormatKHR& swapchainFormat, VkExtent2D& swapchainExtent, uint32_t imageCount, VkSwapchainKHR oldSwapchain) {
 		VkSwapchainKHR swapchain{ VK_NULL_HANDLE };
 
@@ -631,6 +670,10 @@ namespace Vulkan{
 #ifdef __USE__VMA__
 	void setTextureName(Texture& image, const char* pname) {
 		vmaSetAllocationName(allocator, image.allocation, pname);
+#ifdef _DEBUG
+		setImageName(image, pname);
+		
+#endif
 	}
 #endif
 	void initImage(VkDevice device, VkImageCreateInfo& imageCI, Image& image, bool isMapped) {
@@ -716,10 +759,20 @@ namespace Vulkan{
 		image.height = props.height;
 		image.mipLevels = mipLevels;
 		image.layerCount = props.layers;
+		image.format = props.format;
 	}
 #ifdef __USE__VMA__
 	void setImageName(Image&image,const char* pname) {
 		vmaSetAllocationName(allocator, image.allocation, pname);
+#ifdef _DEBUG
+		SetObjectName((size_t)image.image, pname);
+#endif
+#ifdef ENABLE_DEBUG_MARKER
+		NAME_IMAGE(image.image, pname);
+#endif
+	}
+	const char* getImageName(const Image& image) {
+		return GetObjectName((size_t)image.image);
 	}
 #endif
 	void initSampler(VkDevice device, SamplerProperties& props, Texture& texture) {

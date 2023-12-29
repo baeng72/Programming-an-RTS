@@ -33,4 +33,15 @@ namespace Renderer {
 		assert(0);
 		return nullptr;
 	}
+
+	Texture* Texture::Create(RenderDevice* pdevice, int width, int height, int bytesperpixel) {
+		switch (Core::GetAPI()) {
+		case Core::API::GL:
+			return new GL::GLTexture(pdevice, width, height, bytesperpixel);
+		case Core::API::Vulkan:
+			return new Vulkan::VulkanTextureImpl(pdevice, width, height, bytesperpixel);
+		}
+		assert(0);
+		return nullptr;
+	}
 }

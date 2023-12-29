@@ -200,7 +200,7 @@ namespace GL {
 	void ShaderUtil::SetTextures(const char* pname, int* texids, uint32_t count) {
 		size_t hash = Core::HashFNV1A(pname, strlen(pname));
 		int location = _uniformMap[hash];
-		//glUseProgram(_programID);
+		ensureProgram();
 		std::vector<int> locs(count);
 		int offset = _textureMap[hash];
 		

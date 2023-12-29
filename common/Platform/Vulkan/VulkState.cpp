@@ -1,6 +1,7 @@
 #include "VulkState.h"
 #include <GLFW/glfw3.h>
 
+#include "VulkanDebug.h"
 	
 
 namespace Vulkan {
@@ -129,7 +130,7 @@ namespace Vulkan {
 		for (int y = 0; y < check_height; y++) {
 			for (int x = 0; x < check_width; x++) {
 				uint32_t offset = y * check_width + x;
-				uint8_t clr = offset & 2 ? 0 : 255;
+				uint8_t clr = x % 2 == y % 2  ? 0 : 255;
 				ppixels[offset] = clr;
 			}
 		}

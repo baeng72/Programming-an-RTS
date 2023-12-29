@@ -199,6 +199,7 @@ namespace Vulkan {
 		void resetPools();
 		bool allocateDescriptorSet(VkDescriptorSet* pSet, VkDescriptorSetLayout layout);
 		bool allocateDescriptorSets(VkDescriptorSet* pSet, VkDescriptorSetLayout* pLayouts, uint32_t count);
+		bool allocateDescriptorSets(VkDescriptorSet* pSets, VkDescriptorSetLayout layout, uint32_t count);
 		operator VkDevice()const { return device; }
 	};
 
@@ -274,8 +275,31 @@ namespace Vulkan {
 		static DescriptorSetUpdater begin(DescriptorSetLayoutCache* pLayout_, VkDescriptorSetLayout descriptorSetLayout_, VkDescriptorSet descriptorSet_);
 		DescriptorSetUpdater& AddBinding(uint32_t binding, VkDescriptorType type, VkDescriptorBufferInfo* bufferInfo);
 		DescriptorSetUpdater& AddBinding(uint32_t binding, VkDescriptorType type, VkDescriptorImageInfo* imageInfo, uint32_t count = 1);
+		DescriptorSetUpdater& AddBindings(std::vector<VkWriteDescriptorSet>& wrs);
 		void update();
 	};
+	constexpr uint32_t fnvoffset32 = 2166136261;
+	constexpr uint32_t fnvprime32 = 16777619;
+	class DescriptorSetCache {
+		DescriptorSetPoolCache* _pPoolCache;
+		DescriptorSetLayoutCache* _pLayoutCache;
+		VkDescriptorSetLayout _layout;
+		
+		std::vector<VkDescriptorSetLayoutBinding> _bindings;	//may not be necessary
+		std::unordered_map<size_t, VkDescriptorSet> _cache;	//hash for each combination of buffers/textures and the matching descriptor
+		uint32_t hashval(const void* data, size_t count);
+		uint32_t concathash(uint32_t hash, const void* data, size_t count);
+		uint32_t getHash(std::vector<VkWriteDescriptorSet>& writes);
+		
+		bool bindingsMatch(std::vector<VkWriteDescriptorSet>& writes);
+	public:
+		DescriptorSetCache();
+		DescriptorSetCache(VkDescriptorSetLayout layout, DescriptorSetPoolCache* pPoolCache, DescriptorSetLayoutCache*pLayoutCache);
+		void init(VkDescriptorSetLayout layout, DescriptorSetPoolCache* pPoolCache, DescriptorSetLayoutCache* pLayoutCache);
+		VkDescriptorSet getDescriptor(std::vector<VkWriteDescriptorSet>& writes);
+
+	};
+
 
 
 	struct UniformBufferInfo {

@@ -221,6 +221,13 @@ VulkanCommandBuffer::~VulkanCommandBuffer() {
 	cleanupCommandBuffer(device, commandPool, commandBuffer);
 }
 
+VulkanCommandBuffers::VulkanCommandBuffers(VkDevice device_, VkCommandPool commandPool_, std::vector<VkCommandBuffer>& commandBuffers_):device(device_),commandPool(commandPool_),commandBuffers(commandBuffers_) {
+}
+
+VulkanCommandBuffers::~VulkanCommandBuffers() {
+	cleanupCommandBuffers(device, commandPool, commandBuffers);
+}
+
 VulkanFence::VulkanFence(VkDevice device_, VkFence fence_) :device(device_), fence(fence_) {
 
 }
@@ -287,6 +294,30 @@ bool DescriptorSetPoolCache::allocateDescriptorSets(VkDescriptorSet* pSets, VkDe
 	}
 	VkDescriptorSetAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 	allocInfo.pSetLayouts = pLayouts;
+	allocInfo.descriptorSetCount = count;
+	allocInfo.descriptorPool = currentPool;
+	VkResult res = vkAllocateDescriptorSets(device, &allocInfo, pSets);
+
+	if (res == VK_SUCCESS) {
+		return true;
+	}
+	else if (res == VK_ERROR_FRAGMENTED_POOL || res == VK_ERROR_OUT_OF_POOL_MEMORY) {
+		currentPool = getPool();
+		allocatedPools.push_back(currentPool);
+		res = vkAllocateDescriptorSets(device, &allocInfo, pSets);
+		if (res == VK_SUCCESS)
+			return true;
+	}
+	return false;
+}
+
+bool DescriptorSetPoolCache::allocateDescriptorSets(VkDescriptorSet* pSets, VkDescriptorSetLayout layout, uint32_t count) {
+	if (currentPool == VK_NULL_HANDLE) {
+		currentPool = getPool();
+		allocatedPools.push_back(currentPool);
+	}
+	VkDescriptorSetAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+	allocInfo.pSetLayouts = &layout;
 	allocInfo.descriptorSetCount = count;
 	allocInfo.descriptorPool = currentPool;
 	VkResult res = vkAllocateDescriptorSets(device, &allocInfo, pSets);
@@ -405,6 +436,94 @@ size_t DescriptorSetLayoutCache::DescriptorSetLayoutInfo::hash()const {
 	return result;
 }
 
+bool DescriptorSetCache::bindingsMatch(std::vector<VkWriteDescriptorSet>& writes) {
+	if (writes.size() != _bindings.size())
+		return false;
+	for (size_t i = 0; i < writes.size(); i++) {
+		if (writes[i].descriptorType != _bindings[i].descriptorType)
+			return false;
+		if (writes[i].descriptorCount != _bindings[i].descriptorCount)
+			return false;
+		if (writes[i].dstBinding != _bindings[i].binding)
+			return false;
+	}
+	return true;
+}
+
+uint32_t DescriptorSetCache::concathash(uint32_t hash, const void* data, size_t count) {
+	unsigned char* p = (unsigned char*)data;
+	for (size_t i = 0; i < count; i++) {
+		hash ^= p[i];
+		hash *= hash * fnvprime32;
+	}
+	return hash;
+}
+
+uint32_t DescriptorSetCache::hashval(const void* data, size_t count) {
+	unsigned char* p = (unsigned char*)data;
+	uint32_t hash = fnvoffset32;	
+	for (size_t i = 0; i < count; i++) {
+		hash ^= p[i];
+		hash *= hash * fnvprime32;
+	}
+	return hash;
+}
+
+uint32_t DescriptorSetCache::getHash(std::vector<VkWriteDescriptorSet>& writes) {
+	uint32_t size =(uint32_t)writes.size();
+	uint32_t hash = hashval(&size,sizeof(uint32_t));
+	for (auto& write : writes) {
+		switch (write.descriptorType) {
+		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+			hash = concathash(hash, &write.pBufferInfo->buffer, sizeof(VkBuffer));
+			break;
+		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+		{
+			for (uint32_t i = 0; i < write.descriptorCount; i++) {
+				hash = concathash(hash, &write.pImageInfo[i].imageView, sizeof(VkImageView));
+			}
+		}
+		break;
+		default:
+			assert(0);
+		}
+	}
+	return hash;
+}
+
+DescriptorSetCache::DescriptorSetCache(VkDescriptorSetLayout layout, DescriptorSetPoolCache* pPoolCache, DescriptorSetLayoutCache* pLayoutCache) :_layout(layout), _pPoolCache(pPoolCache),_pLayoutCache(pLayoutCache) {
+	pLayoutCache->getBindings(layout, _bindings);
+}
+
+DescriptorSetCache::DescriptorSetCache() :_layout(VK_NULL_HANDLE) {
+}
+void DescriptorSetCache::init(VkDescriptorSetLayout layout, DescriptorSetPoolCache* pPoolCache, DescriptorSetLayoutCache* pLayoutCache) {
+	_layout = layout;
+	_pPoolCache = pPoolCache;
+	_pLayoutCache = pLayoutCache;
+	pLayoutCache->getBindings(layout, _bindings);
+}
+VkDescriptorSet DescriptorSetCache::getDescriptor(std::vector<VkWriteDescriptorSet>& writes) {
+	assert(bindingsMatch(writes));//will be compiled away in release build
+
+	uint32_t hash = getHash(writes);
+	VkDescriptorSet set = _cache[hash];
+	if (set == VK_NULL_HANDLE) {
+		_pPoolCache->allocateDescriptorSet(&set, _layout);
+		_cache[hash] = set;
+		for (auto& write : writes) {
+			write.dstSet = set;
+		}
+		DescriptorSetUpdater::begin(_pLayoutCache, _layout, set)
+			.AddBindings(writes)
+			.update();
+	}
+	return set;
+}
+
 DescriptorSetLayoutBuilder::DescriptorSetLayoutBuilder( DescriptorSetLayoutCache* pLayout_) : pLayout(pLayout_)
 {
 }
@@ -511,6 +630,16 @@ DescriptorSetUpdater& DescriptorSetUpdater::AddBinding(uint32_t binding_, VkDesc
 	writes[binding_].pImageInfo = imageInfo_;
 	writes[binding_].dstBinding = binding_;
 	writes[binding_].descriptorCount = count;
+	return *this;
+}
+
+DescriptorSetUpdater& DescriptorSetUpdater::AddBindings(std::vector<VkWriteDescriptorSet>& wrs) {
+	for (size_t i = 0; i < wrs.size(); i++){
+		writes[i].pBufferInfo = wrs[i].pBufferInfo;
+		writes[i].pImageInfo = wrs[i].pImageInfo;
+		writes[i].dstBinding = wrs[i].dstBinding;
+	}
+	
 	return *this;
 }
 

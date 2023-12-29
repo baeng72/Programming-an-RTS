@@ -18,9 +18,11 @@ namespace GL {
 	public:		
 		GLTexture(Renderer::RenderDevice* pdevice, const char* pfile, glm::vec2 size);
 		GLTexture(Renderer::RenderDevice* pdevice, int width, int height, int bytesperpixel, uint8_t* pixels);
+		GLTexture(Renderer::RenderDevice* pdevice, int width, int height, int bytesperpixel);
 		virtual ~GLTexture();
 		virtual void* GetNativeHandle()const override;
 		virtual glm::vec2 GetScale()const override;
 		virtual void SetName(const char*pname)override {};
+		virtual bool SaveToFile(const char* ppath)override;
 	};
 }
