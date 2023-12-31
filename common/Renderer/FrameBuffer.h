@@ -20,6 +20,7 @@ namespace Renderer {
 		virtual void StartRender() =0;
 		virtual void EndRender() =0;
 		virtual void* GetContext() = 0;
+		virtual void* GetNativeHandle() = 0;
 		virtual Texture* GetTexture() = 0;
 		virtual void SetClearColor(ClearColor* pclrs, uint32_t count) = 0;
 		virtual void DrawVertices(uint32_t count) = 0;

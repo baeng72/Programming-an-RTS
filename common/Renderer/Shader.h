@@ -47,6 +47,7 @@ namespace Renderer {
 		virtual bool SetStorageData(const char* pname, void* ptr, uint32_t len,bool dynamic=false) = 0;		
 		virtual uint32_t GetStorageId(const char* pname,bool dynamic=false) = 0;
 		//virtual void Rebind(uint32_t* pdynoffsets = nullptr, uint32_t dynoffcount = 0) = 0;
+		virtual void* GetNativeHandle() = 0;
 		
 	};
 }

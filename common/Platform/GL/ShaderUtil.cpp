@@ -223,8 +223,10 @@ namespace GL {
 	}
 
 	void ShaderUtil::Bind() {
-		if (_enableDepth)
+		if (_enableDepth) {
 			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LEQUAL);
+		}
 		else
 			glDisable(GL_DEPTH_TEST);
 		GLERR();
@@ -235,7 +237,7 @@ namespace GL {
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 		}
-		glDepthFunc(GL_LEQUAL);
+		
 		//glEnable(GL_CULL_FACE);
 		//GLERR();
 		//glCullFace(GL_BACK);

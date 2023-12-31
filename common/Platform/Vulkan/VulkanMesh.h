@@ -18,5 +18,8 @@ namespace Vulkan {
 		void Render()override;
 		void Bind()override;
 		size_t GetHash()override;
+		virtual void* GetNativeHandle()override {
+			return nullptr;
+		}
 	};
 }

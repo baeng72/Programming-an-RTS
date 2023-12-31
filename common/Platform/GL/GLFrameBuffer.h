@@ -6,6 +6,16 @@
 namespace GL {
 	class GLFrameBuffer : public Renderer::FrameBuffer {
 		bool _clearonrender;
+		std::vector<GLuint> _fbos;
+		std::vector<Renderer::Texture*> _textures;//frame buffer texture	
+		std::vector<GLuint> _textureHandles;
+		uint32_t _currFrame;
+		uint32_t _frameCount;
+		Color _clearColors[2];
+		uint32_t _clearColorCount;
+		GLint _width;
+		GLint _height;
+		GLint _viewport[4];
 	public:
 		GLFrameBuffer(Renderer::RenderDevice* pdevice,Renderer::Texture** pptextures, uint32_t count, bool clearonrender = true);
 		GLFrameBuffer(const GLFrameBuffer& rhs) = delete;
@@ -14,6 +24,7 @@ namespace GL {
 		virtual void StartRender() override;
 		virtual void EndRender() override;
 		virtual void* GetContext()override;
+		virtual void* GetNativeHandle()override;
 		virtual Renderer::Texture* GetTexture() override;
 		virtual void SetClearColor(Renderer::ClearColor* pclrs, uint32_t count) override;
 		virtual void DrawVertices(uint32_t count)override;

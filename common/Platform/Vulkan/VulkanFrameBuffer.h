@@ -26,6 +26,7 @@ namespace Vulkan {
 		virtual void StartRender() override;
 		virtual void EndRender() override;
 		virtual void* GetContext()override;
+		virtual void* GetNativeHandle()override;
 		virtual Renderer::Texture* GetTexture() override;
 		virtual void SetClearColor(Renderer::ClearColor* pclrs, uint32_t count) override;
 		virtual void DrawVertices(uint32_t count)override;

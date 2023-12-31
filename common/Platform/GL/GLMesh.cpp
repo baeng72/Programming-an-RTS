@@ -141,4 +141,8 @@ namespace GL {
 	{
 		return _hash;
 	}
+	void* GLMesh::GetNativeHandle()
+	{
+		return (void*)&_vao;
+	}
 }

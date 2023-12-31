@@ -315,6 +315,7 @@ void main() {
 		//glBindTexture(GL_TEXTURE_2D, _texture);		
 		//glBindVertexArray(_vao);
 		//glUseProgram(_shader);
+		//glDisable(GL_DEPTH_TEST);
 		GLint polygonMode;
 		glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
 		if(polygonMode!=GL_FILL)

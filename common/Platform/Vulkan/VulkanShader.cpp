@@ -806,6 +806,11 @@ namespace Vulkan {
 		
 	}
 
+	void* VulkanShader::GetNativeHandle()
+	{
+		return &_pShaderData->pipeline;
+	}
+
 	/*void VulkanShader::Rebind(uint32_t* pdynoffsets, uint32_t dynoffcount)
 	{
 		if (needsRebind) {

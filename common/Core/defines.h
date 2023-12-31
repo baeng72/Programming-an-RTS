@@ -71,7 +71,7 @@ inline mat4 glOrthoLH(float width, float height, float zn, float zf) {
 	mat[0][0] = 2.f / width;
 	mat[1][1] = 2.f / height;
 	mat[2][2] = -2.f / (zf - zn);
-	mat[3][2] = -2.f*zn / (zf - zn);	
+	mat[3][2] = 2.f*zn / (zf - zn);	
 	return mat;
 }
 inline mat4 glOrthoRH(float width, float height, float zn, float zf) {

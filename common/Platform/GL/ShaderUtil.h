@@ -172,6 +172,7 @@ namespace GL {
 		void EnableBlend(bool blend) { _enableBlend = blend; }
 		void EnableDepth(bool depth) { _enableDepth = depth; }
 		operator GLuint() { return _programID; }
+		void* getProgramID()const { return (void*)&_programID; }
 		void Bind();
 	};
 }

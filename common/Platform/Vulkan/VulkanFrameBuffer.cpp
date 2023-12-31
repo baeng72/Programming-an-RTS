@@ -105,6 +105,10 @@ namespace Vulkan {
 		ind %= _frameCount;
 		return _textures[ind];
 	}
+	void* VulkanFrameBuffer::GetNativeHandle()
+	{
+		return &_framebuffers[_currFrame];
+	}
 	void VulkanFrameBuffer::SetClearColor(Renderer::ClearColor* pclrs, uint32_t count)
 	{
 		for (uint32_t i = 0; i < std::min(2u, count); i++) {

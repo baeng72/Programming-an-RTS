@@ -267,4 +267,8 @@ namespace GL {
 	{
 		return uint32_t();
 	}
+	void* GLShader::GetNativeHandle()
+	{
+		return _pshader->getProgramID();
+	}
 }
