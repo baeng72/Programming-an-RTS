@@ -237,7 +237,7 @@ void TERRAIN::InitFogOfWar() {
 				}
 			}
 
-			_sightTexture.reset(Renderer::Texture::Create(_pdevice, dim, dim, 1, pixels.data()));
+			_sightTexture.reset(Renderer::Texture::Create(_pdevice, dim, dim, Renderer::TextureFormat::R8, pixels.data()));
 			_sightTexture->SetName("sightTexture");
 		}
 		{
@@ -261,20 +261,20 @@ void TERRAIN::InitFogOfWar() {
 			_sightMesh.reset(Mesh::Mesh::Create(_pdevice, (float*)vertices.data(), (uint32_t)(sizeof(SIGHTVertex) * vertices.size()), indices.data(), (uint32_t)(sizeof(uint32_t) * indices.size()), attrs));
 		}
 
-		_visibleTexture.reset(Renderer::Texture::Create(_pdevice, 256, 256, 4));
+		_visibleTexture.reset(Renderer::Texture::Create(_pdevice, 256, 256, Renderer::TextureFormat::R8G8B8A8));
 		_visibleTexture->SetName("visibleTexture");
 		auto visibleTexture = _visibleTexture.get();
 		_visibleFramebuffer.reset(Renderer::FrameBuffer::Create(_pdevice, &visibleTexture, 1));
 		_visibleShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("visible.glsl"), false, true, false, nullptr, 0, _visibleFramebuffer->GetContext())));
 		_visitedTextures.resize(2);
-		_visitedTextures[0].reset(Renderer::Texture::Create(_pdevice, 256, 256, 4));
+		_visitedTextures[0].reset(Renderer::Texture::Create(_pdevice, 256, 256, Renderer::TextureFormat::R8G8B8A8));
 		_visitedTextures[0]->SetName("visitedTexture0");
-		_visitedTextures[1].reset(Renderer::Texture::Create(_pdevice, 256, 256, 4));
+		_visitedTextures[1].reset(Renderer::Texture::Create(_pdevice, 256, 256, Renderer::TextureFormat::R8G8B8A8));
 		_visitedTextures[1]->SetName("visitedTexture1");
 		std::vector < Renderer::Texture*> visitedTextures = { _visitedTextures[0].get(), _visitedTextures[1].get() };
-		_visitedFramebuffer.reset(Renderer::FrameBuffer::Create(_pdevice, visitedTextures.data(), 2, false));
+		_visitedFramebuffer.reset(Renderer::FrameBuffer::Create(_pdevice, visitedTextures.data(), 2,nullptr, false));
 		_visitedShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("visited.glsl"), false, true, false, nullptr, 0, _visitedFramebuffer->GetContext())));
-		_fowTexture.reset(Renderer::Texture::Create(_pdevice, 256, 256, 4));
+		_fowTexture.reset(Renderer::Texture::Create(_pdevice, 256, 256, Renderer::TextureFormat::R8G8B8A8));
 		_fowTexture->SetName("FogOfWarTexture");
 		auto fowTexture = _fowTexture.get();
 		_fowFramebuffer.reset(Renderer::FrameBuffer::Create(_pdevice, &fowTexture, 1));
@@ -387,7 +387,7 @@ void TERRAIN::CalculateAlphaMaps() {
 		
 	}
 	//create a new texture
-	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
+	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, Renderer::TextureFormat::R8G8B8A8, (uint8_t*)pdata));
 	/*std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
 	_shader->SetTextures(textures.data(), 4);*/
 	delete[] pdata;
@@ -462,7 +462,7 @@ void TERRAIN::CalculateLightMap(Core::Window* pwindow)
 			memcpy(map, tmpBytes, LMAP_DIM * LMAP_DIM);
 			delete[] tmpBytes;
 		}
-		_lightMap.reset(Renderer::Texture::Create(_pdevice, LMAP_DIM, LMAP_DIM, 1, (uint8_t*)map));
+		_lightMap.reset(Renderer::Texture::Create(_pdevice, LMAP_DIM, LMAP_DIM, Renderer::TextureFormat::R8, (uint8_t*)map));
 		_lightMap->SaveToFile(Core::ResourcePath::GetProjectResourcePath("textures/lightmap.jpg"));
 		delete[] map;
 	}
@@ -981,8 +981,10 @@ void TERRAIN::UpdateSightMatrixes(std::vector<MAPOBJECT*>& mapObjects)
 }
 
 void TERRAIN::RenderFogOfWar(PLAYER* player) {
+	_pdevice->StartOffscreenRender();
+	EASY_FUNCTION("RenderFogOfWar");
 	{
-		EASY_FUNCTION("RenderFogOfWar");
+		EASY_BLOCK("Visible Pass");
 		auto& size = _size;
 		vec2 centre = vec2((size.x - 1) / 2.f, -(size.y - 1) / 2.f);
 		vec3 eye = vec3(centre.x, 1000.f, centre.y);
@@ -1052,6 +1054,7 @@ void TERRAIN::RenderFogOfWar(PLAYER* player) {
 		_fowFramebuffer->EndRender();
 
 	}
+	_pdevice->EndOffscreenRender();
 }
 
 

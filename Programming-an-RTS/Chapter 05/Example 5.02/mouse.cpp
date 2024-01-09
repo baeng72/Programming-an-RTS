@@ -39,7 +39,7 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice,Core::Window* pwindow) {
 				newpixels[x0 + y0 * 20] = pixels[x + y * width];
 			}
 		}
-		_textures[i] = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, 20, 20, 4,(uint8_t*) newpixels));
+		_textures[i] = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, 20, 20, Renderer::TextureFormat::R8G8B8A8,(uint8_t*) newpixels));
 	}
 	delete[] newpixels;
 

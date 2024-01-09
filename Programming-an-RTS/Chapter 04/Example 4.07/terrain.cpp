@@ -221,7 +221,7 @@ void TERRAIN::CalculateAlphaMaps() {
 			}
 		}
 		//create a new texture
-		_alphaMaps[i].reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
+		_alphaMaps[i].reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, Renderer::TextureFormat::R8G8B8A8, (uint8_t*)pdata));
 		if (Core::GetAPI() == Core::API::Vulkan) {
 			//what a hack
 			Renderer::Texture* pdiffuse = _diffuseMaps[i].get();

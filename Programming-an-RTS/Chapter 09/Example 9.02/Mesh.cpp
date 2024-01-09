@@ -106,6 +106,9 @@ BBOX MESHINSTANCE::GetBoundingBox()
 	mat4 world = GetWorldMatrix() * _mesh->_xform;
 	bBox.max = world * vec4(bBox.max, 1.f);
 	bBox.min = world * vec4(bBox.min, 1.f);
+	if (bBox.min.z > bBox.max.z) {
+		std::swap(bBox.min.z, bBox.max.z);
+	}
 	return bBox;
 }
 

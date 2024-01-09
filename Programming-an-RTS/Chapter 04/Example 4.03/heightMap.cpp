@@ -118,7 +118,7 @@ bool HEIGHTMAP::CreateRandomHeightMap(int seed, float noiseSize, float persisten
 			_pHeightMap[x + y * _size.x] = ((float)b / 255.f) * _maxHeight;
 		}
 	}
-	_heightMapTexture.reset(Renderer::Texture::Create(_pDevice, _size.x, _size.y, 1, pixels));
+	_heightMapTexture.reset(Renderer::Texture::Create(_pDevice, _size.x, _size.y, Renderer::TextureFormat::R8, pixels));
 	delete[] pixels;
 	return true;
 }
@@ -175,7 +175,7 @@ bool HEIGHTMAP::CreateParticles()
 			newPixels[pixel] = c;
 		}
 	}
-	_heightMapTexture.reset(Renderer::Texture::Create(_pDevice, dim, dim, 4, (uint8_t*)newPixels.data()));
+	_heightMapTexture.reset(Renderer::Texture::Create(_pDevice, dim, dim, Renderer::TextureFormat::R8G8B8A8, (uint8_t*)newPixels.data()));
 	
 	return true;
 }

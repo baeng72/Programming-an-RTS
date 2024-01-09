@@ -296,7 +296,7 @@ void TERRAIN::CalculateAlphaMaps() {
 		
 	}
 	//create a new texture
-	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
+	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, Renderer::TextureFormat::R8G8B8A8, (uint8_t*)pdata));
 	/*std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get() };
 	_shader->SetTextures(textures.data(), 4);*/
 	delete[] pdata;
@@ -365,7 +365,7 @@ void TERRAIN::CalculateLightMap(Core::Window* pwindow)
 		memcpy(map, tmpBytes, LMAP_DIM * LMAP_DIM);
 		delete[] tmpBytes;
 	}
-	_lightMap.reset(Renderer::Texture::Create(_pdevice, LMAP_DIM,LMAP_DIM, 1, (uint8_t*)map));
+	_lightMap.reset(Renderer::Texture::Create(_pdevice, LMAP_DIM,LMAP_DIM, Renderer::TextureFormat::R8, (uint8_t*)map));
 	if (Core::GetAPI() == Core::API::Vulkan) {
 		std::vector<Renderer::Texture*> textures = { _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get(),_alphaMap.get(),_lightMap.get() };
 		_shader->SetTextures(textures.data(), 5);

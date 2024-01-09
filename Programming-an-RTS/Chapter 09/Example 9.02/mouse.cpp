@@ -4,7 +4,7 @@ MOUSE::MOUSE() {
 	_type = 0;
 	_speed = 1.5f;
 	_disableTime = 0.f;
-
+	yscroll = 0.f;
 }
 
 MOUSE::~MOUSE() {
@@ -42,7 +42,7 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice,  std::shared_ptr<Renderer::Sha
 				newpixels[x0 + y0 * 20] = pixels[x + y * width];
 			}
 		}
-		_textures[i] = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, 20, 20, 4,(uint8_t*) newpixels));
+		_textures[i] = std::unique_ptr<Renderer::Texture>(Renderer::Texture::Create(pdevice, 20, 20, Renderer::TextureFormat::R8G8B8A8,(uint8_t*) newpixels));
 	}
 	delete[] newpixels;
 
@@ -117,20 +117,25 @@ RAY MOUSE::GetRay(mat4& matProj, mat4& matView, mat4& matWorld)
 	int32_t tx = x;
 	int32_t ty = y;
 	//convert from screen coordinates to ndc
-	//float angle_x = (((2.f * tx) / width) - 1.f) / a;
-	//float angle_y = (((2.f * ty) / height) - 1.f) / b;//viewport flipped in vulkan
-	//float angle_y = (((-2.f * ty) / height) + 1.f) / b;
+	
+	
+	
 	float angle_x;
-	float angle_y;//viewport flipped in vulkan
-	//float angle_y = (((-2.f * ty) / height) + 1.f) / b;
+	float angle_y;
+	
+#if defined __GL__TOP__LEFT__ && defined __GL__ZERO__TO__ONE__
+	angle_x = (((2.f * tx) / width) - 1.f) / a;
+	angle_y = (((2.f * ty) / height) - 1.f) / b;
+#else
 	if (Core::GetAPI() == Core::API::Vulkan) {
 		angle_x = (((2.f * tx) / width) - 1.f) / a;
-		angle_y = (((2.f * ty) / height) - 1.f) / b;//viewport flipped in vulkan
+		angle_y = (((2.f * ty) / height) - 1.f) / b;
 	}
 	else {
 		angle_x = (((2.f * tx) / width) - 1.f) / a;
 		angle_y = (((-2.f * ty) / height) + 1.f) / b;
 	}
+#endif
 	vec4 org = vec4(0.f, 0.f, 0.f, 1.f);
 	vec4 dir = vec4(angle_x, angle_y, 1.f, 0.f);
 

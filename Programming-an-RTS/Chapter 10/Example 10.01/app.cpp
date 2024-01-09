@@ -104,6 +104,7 @@ void APPLICATION::Update(float deltaTime) {
 			_threads->QueueJob([player, deltaTime]() {player->UpdateMapObjects(deltaTime); });
 		}
 	}
+	_terrain.RenderFogOfWar(_players[_thisPlayer]);
 	if (_terrain._updateSight) {
 		_terrain._updateSight = false;
 		if (_thisPlayer < _players.size() && _players[_thisPlayer])
@@ -155,11 +156,8 @@ void APPLICATION::Render() {
 	glm::mat4 matView = glm::mat4(1.f);
 	glm::mat4 matProj = glm::mat4(1.f);
 	glm::mat4 viewProj = glm::mat4(1.f);
-	{
-		EASY_BLOCK("Start Render");
-		_device->StartRender(false);
-	}
-	_terrain.RenderFogOfWar(_players[_thisPlayer]);
+	
+	//_terrain.RenderFogOfWar(_players[_thisPlayer]);
 	_device->SetClearColor(0.f, 0.f, 0.f, 1.f);
 	matWorld = mat4(1.f);
 	{

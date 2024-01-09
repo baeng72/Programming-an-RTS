@@ -258,7 +258,7 @@ void TERRAIN::CalculateAlphaMaps() {
 		
 	}
 	//create a new texture
-	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, 4, (uint8_t*)pdata));
+	_alphaMap.reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, Renderer::TextureFormat::R8G8B8A8, (uint8_t*)pdata));
 	
 	delete[] pdata;
 }
