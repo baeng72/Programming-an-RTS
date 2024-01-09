@@ -1,0 +1,20 @@
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                      Fog-of-War Vertexshader                         //
+//                                                                      //
+//                   Written by C. Granberg, 2006                       //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+
+sampler visibleTexture;
+sampler visitedTexture;
+sampler lightMap;
+
+float4 Main(float2 UV : TEXCOORD0) : COLOR
+{
+    float4 c0 = tex2D(visibleTexture, UV);
+    float4 c1 = tex2D(visitedTexture, UV) * 0.5f;
+    float4 c2 = tex2D(lightMap, UV);
+
+    return float4(max(c0.rgb, c1.rgb), 1.0f) * c2.a;
+}
