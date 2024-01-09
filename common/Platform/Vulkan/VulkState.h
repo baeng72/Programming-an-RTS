@@ -108,6 +108,7 @@ namespace Vulkan {
 		VkQueue								getGraphicsQueue()const { return graphicsQueue; }
 		VkQueue								getPresentQueue()const { return presentQueue; }
 		VkQueue								getComputeQueue()const { return computeQueue; }
+		VkCommandPool						getCommandPool()const { return commandPool; }
 		VkPhysicalDeviceProperties			getPhysicalDeviceProperties()const { return deviceProperties; }
 		VkPhysicalDeviceMemoryProperties	getPhysicalDeviceMemoryProperties()const { return deviceMemoryProperties; }
 		VkPhysicalDeviceFeatures			getPhysicalDeviceFeatures()const { return deviceFeatures; }

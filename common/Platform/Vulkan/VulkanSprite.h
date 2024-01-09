@@ -11,8 +11,10 @@ namespace Vulkan {
 			glm::mat4 model;
 		};
 		int _width, _height;
-		glm::vec2 _scale;
-		glm::mat4 _orthoproj;		
+		//glm::vec2 _scale;
+		//bool _scaleoverriden;
+		mat4 _xform;
+		mat4 _orthoproj;		
 		uint32_t _descriptorIndex;
 		Vulkan::Texture* _ptexture;				
 		VkDescriptorSetLayout	_descriptorLayout;
@@ -27,6 +29,11 @@ namespace Vulkan {
 	public:
 		VulkanSprite(Renderer::RenderDevice* pdevice);
 		virtual ~VulkanSprite();		
-		virtual void Draw(Renderer::Texture* ptexture, vec3 position) override;
+		virtual void SetTransform(mat4& xform)override {_xform = xform;}
+		virtual void Draw(Renderer::Texture* ptexture, vec3& position) override;
+		/*virtual void SetScale(vec2 scale) override {
+			_scale = scale;
+			_scaleoverriden = true;
+		}*/
 	};
 }

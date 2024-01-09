@@ -19,6 +19,17 @@ namespace GL {
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_ALWAYS);
 		}
+#ifdef __GL__TOP__LEFT__
+#define GL_CLIP_CTRL_ORIGIN GL_UPPER_LEFT
+#else
+#define GL_CLIP_CTRL_ORIGIN GL_LOWER_LEFT
+#endif
+#ifdef __GL__ZERO__TO__ONE__
+#define GL_CLIP_CTRL_DEPTH GL_ZERO_TO_ONE
+#else
+#define GL_CLIP_CTRL_DEPTH GL_NEGATIVE_ONE_TO_ONE
+#endif
+		glClipControl(GL_CLIP_CTRL_ORIGIN, GL_CLIP_CTRL_DEPTH);
 	}
 	void GLRenderDevice::StartRender(bool mainpass)
 	{
@@ -42,6 +53,13 @@ namespace GL {
 	{
 		//EASY_FUNCTION(profiler::colors::Red);
 		glfwSwapBuffers(_window);
+	}
+
+	void GLRenderDevice::StartOffscreenRender() {
+
+	}
+	void GLRenderDevice::EndOffscreenRender() {
+
 	}
 	/*void GLRenderDevice::StartShadowRender()
 	{

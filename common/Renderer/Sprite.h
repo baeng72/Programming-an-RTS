@@ -7,8 +7,8 @@ namespace Renderer {
 	public:
 		static Sprite* Create(RenderDevice* pdevice);
 		virtual ~Sprite() = default;
-		
-		virtual void Draw(Texture* ptexture, vec3 position) = 0;
-
+		//virtual void SetScale(vec2 scale) = 0;
+		virtual void SetTransform(mat4& xform) = 0;
+		virtual void Draw(Texture* ptexture, vec3& position) = 0;
 	};
 }

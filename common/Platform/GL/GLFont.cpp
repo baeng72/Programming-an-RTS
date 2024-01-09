@@ -176,7 +176,12 @@ void main() {
 			FT_Done_FreeType(ft);
 		}
 		pdevice->GetDimensions(&_width, &_height);
-		_orthoproj = glm::orthoRH_NO(0.f, (float)_width, (float)_height,0.f, -1.f, 1.f);
+#if defined __GL__TOP__LEFT__ && defined __GL__ZERO__TO__ONE__
+		_orthoproj = vulkOrthoRH(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);// glm::ortho(0.f, (float)width, (float)height, (float)0.f, -1.f, 1.f);
+#else
+		_orthoproj = glOrthoRH(0.f, (float)width, 0.f, (float)height, -1.f, 1.f);// glm::ortho(0.f, (float)width, (float)height, (float)0.f, -1.f, 1.f);
+#endif
+		//_orthoproj = glOrthoRH(0.f, (float)_width, (float)_height,0.f, -1.f, 1.f);
 		
 		glGenVertexArrays(1, &_vao);		
 	}
@@ -354,6 +359,11 @@ void main() {
 		_width = width;
 		_height = height;
 		//_orthoproj = glm::ortho(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);
-		_orthoproj = glm::orthoRH_NO(0.f, (float)_width, (float)_height, 0.f, -1.f, 1.f);
+#if defined __GL__TOP__LEFT__ && defined __GL__ZERO__TO__ONE__
+		_orthoproj = vulkOrthoRH(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);// glm::ortho(0.f, (float)width, (float)height, (float)0.f, -1.f, 1.f);
+#else
+		_orthoproj = glOrthoRH(0.f, (float)width, 0.f, (float)height, -1.f, 1.f);// glm::ortho(0.f, (float)width, (float)height, (float)0.f, -1.f, 1.f);
+#endif
+		//_orthoproj = glm::orthoRH_NO(0.f, (float)_width, (float)_height, 0.f, -1.f, 1.f);
 	}
 }

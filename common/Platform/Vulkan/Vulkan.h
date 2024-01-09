@@ -23,8 +23,8 @@
 #include "vk_mem_alloc.h"
 #endif
 
-#define PREFERRED_FORMAT VK_FORMAT_B8G8R8A8_UNORM
-#define PREFERRED_IMAGE_FORMAT VK_FORMAT_R8G8B8A8_UNORM
+#define PREFERRED_FORMAT VK_FORMAT_B8G8R8A8_SRGB//UNORM
+#define PREFERRED_IMAGE_FORMAT VK_FORMAT_R8G8B8A8_SRGB//UNORM
 struct GLFWwindow;
 namespace Vulkan {
 
@@ -84,6 +84,8 @@ namespace Vulkan {
 	void cleanupCommandPool(VkDevice device, VkCommandPool commandPool);
 	void resetCommandPool(VkDevice device, VkCommandPool commandPool);
 	void resetCommandBuffer(VkCommandBuffer commandBuffer);
+	VkCommandBuffer startSingleTimeCommandBuffer(VkDevice device, VkCommandPool commandPool);
+	void endSingleTimeCommandBuffer(VkDevice device, VkQueue queue, VkCommandBuffer cmd);
 
 	VkSwapchainKHR initSwapchain(VkDevice device, VkSurfaceKHR surface, uint32_t width, uint32_t height, VkSurfaceCapabilitiesKHR& surfaceCaps, VkPresentModeKHR& presentMode, VkSurfaceFormatKHR& swapchainFormat, VkExtent2D& swapchainExtent, uint32_t imageCount = UINT32_MAX, VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE);
 	void getSwapchainImages(VkDevice device, VkSwapchainKHR swapchain, std::vector<VkImage>& images);

@@ -7,11 +7,15 @@ namespace GL {
 		Renderer::RenderDevice* _pdevice;
 		ShaderUtil _shader;
 		GLuint _vao;
-		glm::vec2 _scale;
-		glm::mat4 _orthoproj;
+		mat4 _xform;
+		mat4 _orthoproj;
 	public:
 		GLSprite(Renderer::RenderDevice* pdevice);
 		virtual ~GLSprite();
-		virtual void Draw(Renderer::Texture * ptexture, vec3 position)override;
+		virtual void SetTransform(mat4& xform)override { _xform = xform; }
+		virtual void Draw(Renderer::Texture * ptexture, vec3& position)override;
+		/*virtual void SetScale(vec2 scale) override {
+			_scale = scale;
+		}*/
 	};
 }

@@ -1,8 +1,8 @@
 #include "GLFrameBuffer.h"
 #include "GLERR.h"
 namespace GL {
-	GLFrameBuffer::GLFrameBuffer(Renderer::RenderDevice* pdevice, Renderer::Texture**pptextures,uint32_t count,bool clearonrender)
-		:_clearonrender(clearonrender), _currFrame(0)
+	GLFrameBuffer::GLFrameBuffer(Renderer::RenderDevice* pdevice, Renderer::Texture**pptextures,uint32_t count,Renderer::Texture*pdepthmap,bool clearonrender,bool clonedevice)
+		:_clearonrender(clearonrender), _currFrame(0),_depthHandle(0)
 	{
 		_pdevice = pdevice;
 		_textures.insert(_textures.end(), pptextures, &pptextures[count]);
@@ -29,7 +29,20 @@ namespace GL {
 			_textureHandles[i] = handle;
 			GLERR();
 		}
-		
+		if (pdepthmap) {
+			_depthMap = pdepthmap;
+			GLuint handle = *(GLuint*)pdepthmap->GetNativeHandle();
+			for (uint32_t i = 0; i < count; i++) {
+				glNamedFramebufferTexture(_fbos[i], GL_DEPTH_ATTACHMENT, handle, 0);
+				if (count == 0) {
+					//probably doing shadow mapping
+					glDrawBuffer(GL_NONE);
+					glReadBuffer(GL_NONE);
+				}
+				GLERR();
+			}
+			_depthHandle = handle;
+		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		GLERR();
 
@@ -90,6 +103,23 @@ namespace GL {
 	void GLFrameBuffer::DrawVertices(uint32_t count)
 	{
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		GLERR();
+	}
+
+	void GLFrameBuffer::Clear(Rect& r, Color clr) {
+		
+		
+		glEnable(GL_SCISSOR_TEST);
+		GLERR();
+		glScissor(r.left, _height - r.bottom, r.Width(), r.Height());//flip y
+		GLERR();
+		glClearColor(clr.r, clr.g, clr.b, clr.a);
+		GLenum clearFlags = GL_COLOR_BUFFER_BIT;
+		/*if (_depthTest)
+			clearFlags |= GL_DEPTH_BUFFER_BIT;*/
+		glClear(clearFlags);
+		GLERR();
+		glDisable(GL_SCISSOR_TEST);
 		GLERR();
 	}
 }

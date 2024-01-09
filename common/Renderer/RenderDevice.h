@@ -11,6 +11,8 @@ namespace Renderer {
 		virtual void Init() = 0;
 		virtual void StartRender(bool mainpass=true) = 0;
 		virtual void EndRender() = 0;
+		virtual void StartOffscreenRender() = 0;
+		virtual void EndOffscreenRender()=0;
 		/*virtual void StartShadowRender() = 0;
 		virtual void EndShadowRender() = 0;*/
 		virtual void SetVSync(bool vsync) = 0;

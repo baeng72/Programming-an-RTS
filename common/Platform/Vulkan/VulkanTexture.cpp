@@ -18,36 +18,72 @@ namespace Vulkan {
 			.addTexture(pfile)
 			.load(textures);
 		_texture = textures[0];
+		switch (_texture.format) {
+		case VK_FORMAT_R8_UNORM:
+			_fmt = Renderer::TextureFormat::R8;
+			break;
+		case VK_FORMAT_R8G8_UNORM:
+			_fmt = Renderer::TextureFormat::R8G8;
+			break;
+		case VK_FORMAT_R8G8B8_UNORM:
+			_fmt = Renderer::TextureFormat::R8G8B8;
+			break;
+		case VK_FORMAT_R8G8B8A8_UNORM:
+		case VK_FORMAT_R8G8B8A8_SRGB:
+			_fmt = Renderer::TextureFormat::R8G8B8A8;
+			break;
+		default:
+			assert(0);
+			break;
+		}
 		if (_size.x == -1 || _size.y == -1) {
 			_size = glm::vec2(_texture.width, _texture.height);
 		}
 	}
-	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, int bytesperpixel, uint8_t* pixels):_size(glm::vec2(width,height))
+	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, uint8_t* pixels):_size(glm::vec2(width,height))
 	{
 		_pdevice = pdevice;
 		VulkContext* contextptr = reinterpret_cast<VulkContext*>(pdevice->GetDeviceContext());
 		VulkContext& context = *contextptr;
 		bool enableLod = false;
+		int bytesperpixel = 0;
+		_fmt = fmt;
+		VkImageAspectFlagBits aspect = VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM;
 		VkFormat format = VK_FORMAT_MAX_ENUM;
-		switch (bytesperpixel) {
-		case 1:
-			format = VK_FORMAT_R8_UNORM;
+		switch (fmt) {
+		case Renderer::TextureFormat::R8:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			bytesperpixel = 1;
+			format = VK_FORMAT_R8_SRGB;// UNORM;
 			break;
-		case 2:
-			format = VK_FORMAT_R8G8_UNORM;
+		case Renderer::TextureFormat::R8G8:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			bytesperpixel = 2;
+			format = VK_FORMAT_R8G8_SRGB;// UNORM;
 			break;
-		case 3:
-			format = VK_FORMAT_R8G8B8_UNORM;
-			break;		
-		case 4:
-			format = VK_FORMAT_R8G8B8A8_UNORM;
+		case Renderer::TextureFormat::R8G8B8:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			bytesperpixel = 3;
+			format = VK_FORMAT_R8G8B8_SRGB;// UNORM;
+			break;
+		case Renderer::TextureFormat::R8G8B8A8:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			bytesperpixel = 4;
+			format = VK_FORMAT_R8G8B8A8_SRGB;// UNORM;
+			break;
+		case Renderer::TextureFormat::D32:
+			aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
+			bytesperpixel = 4;
+			format = VK_FORMAT_D32_SFLOAT;
 			break;
 		}
+		
+		
 		ASSERT(format != VK_FORMAT_MAX_ENUM, "Unkown format for bytesperpixel: {0}", bytesperpixel);
 		VkDeviceSize imageSize = (uint64_t)width * (uint64_t)height * bytesperpixel;
 		TextureProperties props;
 		props.format = format;
-		props.aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+		props.aspect = aspect;
 		props.height = height;
 		props.width = width;
 		props.layout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -84,36 +120,58 @@ namespace Vulkan {
 		}
 		
 	}
-	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, int bytesperpixel) :_size(glm::vec2(width, height))
+	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt) :_size(glm::vec2(width, height))
 	{
 		_pdevice = pdevice;
 		VulkContext* contextptr = reinterpret_cast<VulkContext*>(pdevice->GetDeviceContext());
 		VulkContext& context = *contextptr;
 		bool enableLod = false;
+		int bytesperpixel = 0;
+		_fmt = fmt;
+		VkImageAspectFlagBits aspect = VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM;
+		VkImageUsageFlagBits usage = VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM;
 		VkFormat format = VK_FORMAT_MAX_ENUM;
-		switch (bytesperpixel) {
-		case 1:
-			format = VK_FORMAT_R8_UNORM;
+		switch (fmt) {
+		case Renderer::TextureFormat::R8:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			bytesperpixel = 1;
+			format = VK_FORMAT_R8_SRGB;// UNORM;
 			break;
-		case 2:
-			format = VK_FORMAT_R8G8_UNORM;
+		case Renderer::TextureFormat::R8G8:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			bytesperpixel = 2;
+			format = VK_FORMAT_R8G8_SRGB;// UNORM;
 			break;
-		case 3:
-			format = VK_FORMAT_R8G8B8_UNORM;
+		case Renderer::TextureFormat::R8G8B8:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			bytesperpixel = 3;
+			format = VK_FORMAT_R8G8B8_SRGB;// UNORM;
 			break;
-		case 4:
-			format = VK_FORMAT_R8G8B8A8_UNORM;
+		case Renderer::TextureFormat::R8G8B8A8:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			bytesperpixel = 4;
+			format = VK_FORMAT_R8G8B8A8_SRGB;// UNORM;
+			break;
+		case Renderer::TextureFormat::D32:
+			aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
+			usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			bytesperpixel = 4;
+			format = VK_FORMAT_D32_SFLOAT;
 			break;
 		}
 		ASSERT(format != VK_FORMAT_MAX_ENUM, "Unkown format for bytesperpixel: {0}", bytesperpixel);
 		VkDeviceSize imageSize = (uint64_t)width * (uint64_t)height * bytesperpixel;
 		TextureProperties props;
 		props.format = format;
-		props.aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+		props.aspect = aspect;
 		props.height = height;
 		props.width = width;
 		props.layout = VK_IMAGE_LAYOUT_UNDEFINED;
-		props.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		props.imageUsage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | usage;
 		props.mipLevels = enableLod ? 0 : 1;
 #ifdef __USE__VMA__
 		props.usage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -168,18 +226,21 @@ namespace Vulkan {
 			case VK_FORMAT_R8_SNORM:
 			case VK_FORMAT_R8_SINT:
 			case VK_FORMAT_R8_UNORM:
+			case VK_FORMAT_R8_SRGB:
 				numpixels = 1;
 				break;
 			case VK_FORMAT_R8G8_UINT:
 			case VK_FORMAT_R8G8_SNORM:
 			case VK_FORMAT_R8G8_SINT:
 			case VK_FORMAT_R8G8_UNORM:
+			case VK_FORMAT_R8G8_SRGB:
 				numpixels = 2;
 				break;
 			case VK_FORMAT_R8G8B8_UINT:
 			case VK_FORMAT_R8G8B8_SNORM:
 			case VK_FORMAT_R8G8B8_SINT:
 			case VK_FORMAT_R8G8B8_UNORM:
+			case VK_FORMAT_R8G8B8_SRGB:
 				numpixels = 3;
 				break;
 			}
@@ -285,14 +346,28 @@ namespace Vulkan {
 				//must be a better way to do this
 				for (uint32_t i = 0; i < _texture.height; i++) {
 					for (uint32_t j = 0; j < _texture.width; j++) {
-	
-						uint32_t pix = ppixel[i * _texture.width + j];
-						uint8_t a = (pix & 0xFF000000) >> 24;
-						uint8_t r = (pix & 0x00FF0000) >> 16;
-						uint8_t g = (pix & 0x0000FF00) >> 8;
-						uint8_t b = (pix & 0x000000FF);
-						uint32_t newPix = (a << 24) | (b << 16) | (g << 8) | r;
-						ppixel[i * _texture.width + j] = newPix;
+						if (numpixels == 4) {
+							uint32_t pix = ppixel[i * _texture.width + j];
+							uint8_t a = (pix & 0xFF000000) >> 24;
+							uint8_t r = (pix & 0x00FF0000) >> 16;
+							uint8_t g = (pix & 0x0000FF00) >> 8;
+							uint8_t b = (pix & 0x000000FF);
+							uint32_t newPix = (a << 24) | (b << 16) | (g << 8) | r;
+							ppixel[i * _texture.width + j] = newPix;
+						}
+						else if (numpixels == 3) {
+							uint8_t r = ppixel[i * _texture.width + j+0];
+							uint8_t g = ppixel[i * _texture.width + j + 1];
+							uint8_t b = ppixel[i * _texture.width + j + 2];
+							ppixel[i * _texture.width + j+0] = b;
+							ppixel[i * _texture.width + j + 0] = r;
+						}
+						else if (numpixels == 2) {
+							assert(0);
+						}
+						else {
+
+						}
 	
 					}
 				}

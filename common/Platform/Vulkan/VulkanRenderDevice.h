@@ -28,12 +28,15 @@ namespace Vulkan {
 		bool				_enableWireframe;
 		bool				_enableDepthBuffer;
 		bool				_inRender;
+		bool				_inOffscreenRender;
 	public:
 		VulkanRenderDevice(void* nativeWindowHandle);
 		virtual ~VulkanRenderDevice();
 		virtual void Init() override;
 		virtual void StartRender(bool mainpass=true) override;
 		virtual void EndRender() override;
+		virtual void StartOffscreenRender() override;
+		virtual void EndOffscreenRender() override;
 		/*virtual void StartShadowRender() override;
 		virtual void EndShadowRender() override;*/
 		virtual void SetVSync(bool vsync) override;

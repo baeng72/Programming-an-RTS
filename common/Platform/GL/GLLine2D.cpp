@@ -68,8 +68,12 @@ void main(){
 	{
 		_width = width;
 		_height = height;
-
-		projection = glOrthoRH(0.f, (float)width, 0.f,(float)height, 1.f, -1.f);
+#if defined __GL__TOP__LEFT__ && defined __GL__ZERO__TO__ONE__
+		projection = vulkOrthoRH(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);// glm::ortho(0.f, (float)width, (float)height, (float)0.f, -1.f, 1.f);
+#else
+		projection = glOrthoRH(0.f, (float)width, 0.f, (float)height, -1.f, 1.f);// glm::ortho(0.f, (float)width, (float)height, (float)0.f, -1.f, 1.f);
+#endif
+		//projection = glOrthoRH(0.f, (float)width, 0.f,(float)height, 1.f, -1.f);
 		
 	}
 }

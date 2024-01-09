@@ -8,7 +8,7 @@ namespace Vulkan {
 
 	
 
-	VulkanRenderDevice::VulkanRenderDevice(void* nativeWindowHandle) :_enableVSync(true),_enableGeometry(false),_enableDepthBuffer(false),_inRender(false)
+	VulkanRenderDevice::VulkanRenderDevice(void* nativeWindowHandle) :_enableVSync(true),_enableGeometry(false),_enableDepthBuffer(false),_inRender(false),_inOffscreenRender(false)
 	{
 		_window = reinterpret_cast<GLFWwindow*>(nativeWindowHandle);
 
@@ -111,12 +111,28 @@ namespace Vulkan {
 
 	void VulkanRenderDevice::EndRender()
 	{
+		assert(_inRender);
 		//EASY_FUNCTION(profiler::colors::Red);
 		_swapchain->EndRender(_cmd);
 
 		_cmd = VK_NULL_HANDLE;
 		_frameData.cmd = _cmd;
 		_inRender = false;
+	}
+
+	void VulkanRenderDevice::StartOffscreenRender() {
+		assert(!_inRender);
+		_cmd = startSingleTimeCommandBuffer(_state->getDevice(),_state->getCommandPool());
+		_frameData.cmd = _cmd;
+		_inOffscreenRender = true;
+	}
+
+	void VulkanRenderDevice::EndOffscreenRender() {
+		assert(_inOffscreenRender);
+		endSingleTimeCommandBuffer(_state->getDevice(),_state->getGraphicsQueue(),_frameData.cmd);
+		_cmd = VK_NULL_HANDLE;
+		_frameData.cmd = _cmd;
+		_inOffscreenRender = false;
 	}
 
 	/*void VulkanRenderDevice::StartShadowRender()

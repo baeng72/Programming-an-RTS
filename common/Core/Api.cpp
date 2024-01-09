@@ -22,10 +22,17 @@ namespace Core {
 			break;
 		case API::GL:
 			//std::cout << "OpenGL API Selected" << std::endl;
+#if defined __GL__TOP__LEFT__ && defined __GL__ZERO__TO__ONE__
+			perspective = vulkPerspectiveLH;// glm::perspectiveFovLH_ZO;
+			orthoWH = vulkOrthoLH;
+			orthoLTRB = vulkOrthoLH;
+			project = vulkProject;
+#else
 			perspective = glPerspectiveLH;
 			orthoWH = glOrthoLH;
 			orthoLTRB = glOrthoLH;
 			project = glProject;
+#endif
 			break;
 		}
 	}

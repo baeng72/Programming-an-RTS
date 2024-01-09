@@ -70,6 +70,8 @@ inline mat4 glOrthoLH(float width, float height, float zn, float zf) {
 	mat4 mat = mat4(1.f);
 	mat[0][0] = 2.f / width;
 	mat[1][1] = 2.f / height;
+	mat[2][2] = 1.f / (zf - zn);
+	mat[3][2] = -zn / (zf - zn);
 	mat[2][2] = -2.f / (zf - zn);
 	mat[3][2] = 2.f*zn / (zf - zn);	
 	return mat;
@@ -89,10 +91,9 @@ inline mat4 glOrthoRH(float left, float right, float top, float bottom, float zn
 	mat[0][0] = 2.f / (right - left);
 	mat[1][1] = 2.f / (top - bottom);
 	mat[2][2] = -2.f / (zf - zn);
-	mat[3][0] = -(right + left) / (right - left);
+	mat[3][0] = -(right + left) / (right - left);	
 	mat[3][1] = -(top + bottom) / (top - bottom);
 	mat[3][2] = -(zf + zn) / (zf - zn);
-
 	return mat;
 }
 
@@ -250,3 +251,21 @@ inline mat4 dxOrthoLH(float left, float right, float top, float bottom, float zn
 	return mat;
 }
 #endif
+
+inline vec4 planeFromPointNormal(vec3 point, vec3 normal) {
+	
+	float dist = dot(point, normal);
+	return vec4(normal, -dist);
+}
+
+inline bool planeIntersectLine(vec3& out, vec4 pp, vec3 pv1, vec3 pv2) {
+	out = vec4(0.f);
+	vec3 normal = vec3(pp);
+	vec3 dir = pv2 - pv1;
+	float d = dot(normal, dir);
+	if (!d)
+		return false;
+	float temp = (pp.w + dot(normal, pv1)) / d;
+	out = pv1 - dir * temp;
+	return true;
+}

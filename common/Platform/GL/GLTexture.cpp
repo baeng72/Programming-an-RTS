@@ -15,12 +15,19 @@ namespace GL {
 		GLint format;
 		if (channels == 1) {
 			format = GL_RED;
+			_fmt = Renderer::TextureFormat::R8;
+		}
+		else if (channels == 2) {
+			format = GL_RG;
+			_fmt = Renderer::TextureFormat::R8G8;
 		}
 		else if (channels == 3) {
 			format = GL_RGB;
+			_fmt = Renderer::TextureFormat::R8G8B8;
 		}
 		else if (channels == 4) {
 			format = GL_RGBA;
+			_fmt = Renderer::TextureFormat::R8G8B8A8;
 		}
 		else {
 			assert(0);//format?
@@ -35,24 +42,37 @@ namespace GL {
 			_size = glm::vec2(_width, _height);
 		}
 		tex.textureID = _textureID;
-		tex.width = _width;
-		tex.height = _height;
+		tex.width = _size.x;
+		tex.height = _size.y;
 		stbi_image_free(data);
 	}
 	
-	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height, int bytesperpixel, uint8_t* pixels):_size(glm::vec2(width, height))
+	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height,Renderer::TextureFormat fmt,uint8_t* pixels):_size(glm::vec2(width, height))
 	{
 		_pdevice = pdevice;
 		GLint format;
-		switch (bytesperpixel) {
-		case 1:
+		_fmt = fmt;
+		int bytesperpixel = 0;
+		switch (fmt) {
+		case Renderer::TextureFormat::R8:
+			bytesperpixel = 1;
 			format = GL_RED;
 			break;
-		case 3:
+		case Renderer::TextureFormat::R8G8:
+			format = GL_RG;
+			bytesperpixel = 2;
+			break;
+		case Renderer::TextureFormat::R8G8B8:
 			format = GL_RGB;
-				break;
-		case 4:
+			bytesperpixel = 3;
+			break;
+		case Renderer::TextureFormat::R8G8B8A8:
 			format = GL_RGBA;
+			bytesperpixel = 4;
+			break;
+		case Renderer::TextureFormat::D32:
+				bytesperpixel = 4;
+				format = GL_DEPTH_COMPONENT32;
 				break;
 		default:
 			assert(0);//format?
@@ -73,22 +93,46 @@ namespace GL {
 		_height = height;
 		_channels = bytesperpixel;
 		tex.textureID = _textureID;
-		tex.width = _width;
-		tex.height = _height;
+		tex.width = _size.x;
+		tex.height = _size.y;
 	}
-	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height, int bytesperpixel) :_size(glm::vec2(width, height))
+	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt) :_size(glm::vec2(width, height))
 	{
 		_pdevice = pdevice;
-		GLint format;
-		switch (bytesperpixel) {
-		case 1:
-			format = GL_RED;
+		GLint internalformat;
+		int bytesperpixel = 0;
+		GLuint gltype;
+		GLenum glfmt;
+		switch (fmt) {
+		case Renderer::TextureFormat::R8:
+			bytesperpixel = 1;
+			internalformat = GL_RED;
+			glfmt = GL_RED;
+			gltype = GL_UNSIGNED_BYTE;
 			break;
-		case 3:
-			format = GL_RGB;
+		case Renderer::TextureFormat::R8G8:
+			internalformat = GL_RG;
+			glfmt = GL_RG;
+			bytesperpixel = 2;
+			gltype = GL_UNSIGNED_BYTE;
 			break;
-		case 4:
-			format = GL_RGBA;
+		case Renderer::TextureFormat::R8G8B8:
+			internalformat = GL_RGB;
+			bytesperpixel = 3;
+			glfmt = GL_RGB;
+			gltype = GL_UNSIGNED_BYTE;
+			break;
+		case Renderer::TextureFormat::R8G8B8A8:
+			internalformat = GL_RGBA;
+			glfmt = GL_RGBA;
+			bytesperpixel = 4;
+			gltype = GL_UNSIGNED_BYTE;
+			break;
+		case Renderer::TextureFormat::D32:
+			bytesperpixel = 4;
+			internalformat = GL_DEPTH_COMPONENT;
+			glfmt = GL_DEPTH_COMPONENT;
+			gltype = GL_FLOAT;
 			break;
 		default:
 			assert(0);//format?
@@ -96,15 +140,16 @@ namespace GL {
 		}
 		glGenTextures(1, &_textureID);
 		glBindTexture(GL_TEXTURE_2D, _textureID);
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, nullptr);
-		glGenerateMipmap(GL_TEXTURE_2D);
+		glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, glfmt, gltype, nullptr);
+		if(internalformat != GL_DEPTH_COMPONENT)
+			glGenerateMipmap(GL_TEXTURE_2D);
 		GLERR();
 		_width = width;
 		_height = height;
 		_channels = bytesperpixel;
 		tex.textureID = _textureID;
-		tex.width = _width;
-		tex.height = _height;
+		tex.width = _size.x;
+		tex.height = _size.y;
 	}
 	GLTexture::~GLTexture()
 	{

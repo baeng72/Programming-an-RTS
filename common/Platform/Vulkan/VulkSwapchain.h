@@ -33,7 +33,7 @@ namespace Vulkan {
 			clientHeight = DEFAULT_SCREEN_HEIGHT;
 			memset(&surfaceCaps, 0, sizeof(VkSurfaceCapabilitiesKHR));
 			presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-			format.format = PREFERRED_FORMAT;
+			format.format = PREFERRED_IMAGE_FORMAT;
 			format.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 			imageCount = 2;
 			graphicsQueueFamily = 0;

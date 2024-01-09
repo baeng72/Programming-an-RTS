@@ -15,7 +15,7 @@ namespace Renderer {
 		Renderer::RenderDevice* _pdevice;
 		Renderer::Texture* _ptexture;
 	public:
-		static FrameBuffer* Create(RenderDevice*pdevice,Texture**pptextures,uint32_t count,bool clearonrender=true);
+		static FrameBuffer* Create(RenderDevice*pdevice,Texture**pptextures,uint32_t count,Texture*pdepthmap=nullptr,bool clearonrender=true,bool clonedevice=false);
 		virtual ~FrameBuffer() = default;
 		virtual void StartRender() =0;
 		virtual void EndRender() =0;
@@ -24,5 +24,6 @@ namespace Renderer {
 		virtual Texture* GetTexture() = 0;
 		virtual void SetClearColor(ClearColor* pclrs, uint32_t count) = 0;
 		virtual void DrawVertices(uint32_t count) = 0;
+		virtual void Clear(Rect& r, Color clr) = 0;
 	};
 }

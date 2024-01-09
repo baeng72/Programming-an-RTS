@@ -34,7 +34,7 @@ namespace Vulkan {
 	std::unique_ptr<VulkanPipeline> VulkanSprite::spritePipelinePtr;
 	int VulkanSprite::instances = 0;
 	
-	VulkanSprite::VulkanSprite(Renderer::RenderDevice* pdevice):_pdevice(pdevice),_ptexture(nullptr)
+	VulkanSprite::VulkanSprite(Renderer::RenderDevice* pdevice):_pdevice(pdevice),_ptexture(nullptr)//,_scaleoverriden(false)
 	{
 		const char* vertexSrc = R"(
 #version 450
@@ -140,6 +140,7 @@ void main(){
 		pdevice->GetDimensions(&_width, &_height);
 		_orthoproj = vulkOrthoRH(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);// myvulkOrthoRH(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);
 		//_orthoproj[1][1] *= -1;
+		_xform = mat4(1.f);
 		
 	}
 
@@ -151,7 +152,7 @@ void main(){
 		}
 	}
 	
-	void VulkanSprite::Draw(Renderer::Texture* ptexture, glm::vec3 position)
+	void VulkanSprite::Draw(Renderer::Texture* ptexture, glm::vec3& position)
 	{
 		if (ptexture) {
 			Vulkan::Texture* ptext = (Vulkan::Texture*)ptexture->GetNativeHandle();
@@ -163,7 +164,8 @@ void main(){
 					_descriptorIndex++;
 					_descriptorIndex %= 2;
 					ASSERT(ptexture, "Invalid Sprite Texture");
-					_scale = ptexture->GetScale();
+					/*if(!_scaleoverriden)
+						_scale = ptexture->GetScale();*/
 					VulkContext* contextptr = reinterpret_cast<VulkContext*>(_pdevice->GetDeviceContext());
 					VulkContext& context = *contextptr;
 					_ptexture = ptext;
@@ -181,10 +183,11 @@ void main(){
 			VulkFrameData& framedata = *framedataptr;
 			VkCommandBuffer cmd = framedata.cmd;
 
-			glm::mat4 id = glm::mat4(1.f);
-			glm::mat4 t = glm::translate(id, position);
-			glm::mat4 s = glm::scale(id, glm::vec3(_ptexture->width * _scale.x, _ptexture->height * _scale.y, 0.f));
-			glm::mat4 model = t * s;
+			mat4 id = glm::mat4(1.f);
+			mat4 t = glm::translate(_xform, position);
+
+			glm::mat4 s = glm::scale(id, glm::vec3(_ptexture->width , _ptexture->height , 0.f));
+			mat4 model = t * s;// *_xform;
 			PushConst pushConst = { _orthoproj ,model };			
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[_descriptorIndex], 0, nullptr);
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline);

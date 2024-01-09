@@ -23,23 +23,23 @@ namespace Renderer {
 		assert(0);
 		return nullptr;
 	}
-	Texture* Texture::Create(RenderDevice* pdevice, int width, int height, int bytesperpixel, uint8_t* pixels) {
+	Texture* Texture::Create(RenderDevice* pdevice, int width, int height, TextureFormat fmt, uint8_t* pixels) {
 		switch (Core::GetAPI()) {
 		case Core::API::GL:
-			return new GL::GLTexture(pdevice, width, height, bytesperpixel, pixels);
+			return new GL::GLTexture(pdevice, width, height, fmt, pixels);
 		case Core::API::Vulkan:
-			return new Vulkan::VulkanTextureImpl(pdevice, width, height, bytesperpixel, pixels);
+			return new Vulkan::VulkanTextureImpl(pdevice, width, height, fmt, pixels);
 		}
 		assert(0);
 		return nullptr;
 	}
 
-	Texture* Texture::Create(RenderDevice* pdevice, int width, int height, int bytesperpixel) {
+	Texture* Texture::Create(RenderDevice* pdevice, int width, int height, TextureFormat fmt) {
 		switch (Core::GetAPI()) {
 		case Core::API::GL:
-			return new GL::GLTexture(pdevice, width, height, bytesperpixel);
+			return new GL::GLTexture(pdevice, width, height, fmt);
 		case Core::API::Vulkan:
-			return new Vulkan::VulkanTextureImpl(pdevice, width, height, bytesperpixel);
+			return new Vulkan::VulkanTextureImpl(pdevice, width, height, fmt);
 		}
 		assert(0);
 		return nullptr;

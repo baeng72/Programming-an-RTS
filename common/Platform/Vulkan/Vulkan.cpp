@@ -483,6 +483,38 @@ namespace Vulkan{
 		vkFreeCommandBuffers(device, commandPool, (uint32_t)commandBuffers.size(), commandBuffers.data());
 	}
 
+	VkCommandBuffer startSingleTimeCommandBuffer(VkDevice device,VkCommandPool commandPool) {
+		VkCommandBuffer cmd = initCommandBuffer(device, commandPool);
+		VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		vkBeginCommandBuffer(cmd, &beginInfo);
+		return cmd;
+	
+	}
+
+	void endSingleTimeCommandBuffer(VkDevice device, VkQueue queue, VkCommandBuffer cmd) {
+		
+
+		VkResult res = vkEndCommandBuffer(cmd);
+		assert(res == VK_SUCCESS);
+
+		VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &cmd;
+
+		VkFence fence = initFence(device);
+
+
+		res = vkQueueSubmit(queue, 1, &submitInfo, fence);
+		assert(res == VK_SUCCESS);
+
+		res = vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+		assert(res == VK_SUCCESS);
+
+
+		vkDestroyFence(device, fence, nullptr);
+	}
+
 	void cleanupCommandPools(VkDevice device, std::vector<VkCommandPool>& commandPools) {
 		for (auto& commandPool : commandPools) {
 			vkDestroyCommandPool(device, commandPool, nullptr);
