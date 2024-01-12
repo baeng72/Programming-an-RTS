@@ -20,7 +20,7 @@ bool LoadObjectResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Rendere
 	shapeMeshes.push_back(std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(1.f, 12, 12)));
 	
 	
-	shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("shape.glsl"), false)));
+	shapeShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("shape.glsl"), Renderer::ShaderCullMode::frontFace)));
 	
 
 	return true;

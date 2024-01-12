@@ -31,9 +31,16 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer
 	_xform = model->GetMeshXForm(0);
 
 	Renderer::ShaderStorageType shaderTypes[] = { Renderer::ShaderStorageType::Uniform,Renderer::ShaderStorageType::StorageDynamic,Renderer::ShaderStorageType::Texture };
-
-	_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("skinnedmesh.glsl"), true, true, true,
-			shaderTypes, 3)));
+	Renderer::ShaderCreateInfo createInfo;
+	createInfo.cullMode = Renderer::ShaderCullMode::backFace;
+	createInfo.depthInfo.enable = true;
+	createInfo.depthInfo.compare = Renderer::ShaderCompareOp::LessOrEqual;
+	createInfo.blendInfo.enable = false;
+	createInfo.ptypes = shaderTypes;
+	createInfo.numtypes = 3;
+	_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("skinnedmesh.glsl"), createInfo)));
+	/*_meshShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("skinnedmesh.glsl"), Renderer::ShaderCullMode::frontFace, true, true,
+			shaderTypes, 3)));*/
 
 
 }

@@ -193,8 +193,8 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,Core::Window*pwindow, std::sh
 	//_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData("../../../../Resources/Chapter 09/Example 9.03/Shaders/terrain.glsl",false)));
 
 	
-	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), false)));
-	_objectShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("mesh.glsl"))));
+	_shader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), Renderer::ShaderCullMode::frontFace)));
+	_objectShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("mesh.glsl"),Renderer::ShaderCullMode::backFace)));
 		
 	InitFogOfWar();
 
@@ -266,7 +266,7 @@ void TERRAIN::InitFogOfWar() {
 		_visibleTexture->SetName("visibleTexture");
 		auto visibleTexture = _visibleTexture.get();
 		_visibleFramebuffer.reset(Renderer::FrameBuffer::Create(_pdevice, &visibleTexture, 1));
-		_visibleShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("visible.glsl"), false, true, false, nullptr, 0, _visibleFramebuffer->GetContext())));
+		_visibleShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("visible.glsl"), Renderer::ShaderCullMode::frontFace, true, false, nullptr, 0, _visibleFramebuffer->GetContext())));
 		_visitedTextures.resize(2);
 		_visitedTextures[0].reset(Renderer::Texture::Create(_pdevice, 256, 256, Renderer::TextureFormat::R8G8B8A8));
 		_visitedTextures[0]->SetName("visitedTexture0");
@@ -274,12 +274,12 @@ void TERRAIN::InitFogOfWar() {
 		_visitedTextures[1]->SetName("visitedTexture1");
 		std::vector < Renderer::Texture*> visitedTextures = { _visitedTextures[0].get(), _visitedTextures[1].get() };
 		_visitedFramebuffer.reset(Renderer::FrameBuffer::Create(_pdevice, visitedTextures.data(), 2,nullptr, false));
-		_visitedShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("visited.glsl"), false, true, false, nullptr, 0, _visitedFramebuffer->GetContext())));
+		_visitedShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("visited.glsl"), Renderer::ShaderCullMode::frontFace, true, false, nullptr, 0, _visitedFramebuffer->GetContext())));
 		_fowTexture.reset(Renderer::Texture::Create(_pdevice, 256, 256, Renderer::TextureFormat::R8G8B8A8));
 		_fowTexture->SetName("FogOfWarTexture");
 		auto fowTexture = _fowTexture.get();
 		_fowFramebuffer.reset(Renderer::FrameBuffer::Create(_pdevice, &fowTexture, 1));
-		_fowShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("fogofwar.glsl"), false, true, false, nullptr, 0, _fowFramebuffer->GetContext())));
+		_fowShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("fogofwar.glsl"), Renderer::ShaderCullMode::frontFace, true, false, nullptr, 0, _fowFramebuffer->GetContext())));
 
 	}
 }
@@ -327,7 +327,7 @@ void TERRAIN::InitMinimap() {
 		_minimapFramebuffer.reset(Renderer::FrameBuffer::Create(_pdevice, textures, 1));
 	}
 	{
-		_minimapShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("minimap.glsl"), false, true, false, nullptr, 0, _minimapFramebuffer->GetContext())));
+		_minimapShader.reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("minimap.glsl"), Renderer::ShaderCullMode::frontFace, true, false, nullptr, 0, _minimapFramebuffer->GetContext())));
 	}
 	{
 		_minimapSprite.reset(Renderer::Sprite::Create(_pdevice));

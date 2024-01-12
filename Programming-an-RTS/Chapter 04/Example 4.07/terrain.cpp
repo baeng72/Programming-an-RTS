@@ -147,7 +147,7 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	_size = size_;
 	_shaders.resize(_diffuseMaps.size());//hacktastic, need to a better way  to do this
 	for (size_t i = 0; i < _diffuseMaps.size(); i++) {		
-		_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), false)));		
+		_shaders[i].reset(Renderer::Shader::Create(_pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), Renderer::ShaderCullMode::frontFace)));		
 	}
 	
 	//std::vector<Renderer::Texture*> textures{ _diffuseMaps[0].get(),_diffuseMaps[1].get(),_diffuseMaps[2].get() };

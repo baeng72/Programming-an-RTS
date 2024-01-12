@@ -141,7 +141,7 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	_shaderManager = shaderManager;
 	_size = size_;	
 	
-	_shader.reset(Renderer::Shader::Create(pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), false)));
+	_shader.reset(Renderer::Shader::Create(pdevice, _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), Renderer::ShaderCullMode::frontFace)));
 	
 	GenerateRandomTerrain(3);
 }

@@ -27,7 +27,7 @@ void SKINNEDMESH::Load(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer:
 	std::unique_ptr<Mesh::Shape> shape = std::unique_ptr<Mesh::Shape>(Mesh::Shape::Create(pdevice));
 	_sphere = std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(0.07f, 12, 12));
 	
-	_sphereShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("shape.glsl"), false)));
+	_sphereShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("shape.glsl"), Renderer::ShaderCullMode::backFace)));
 	
 	//premultiply transforms
 	mat4 xform = _boneXForms[0];
@@ -82,25 +82,7 @@ void SKINNEDMESH::Render(mat4& matVP,mat4&matWorld,Renderer::DirectionalLight&li
 				
 				glm::vec3 currProj = glm::project(curr, matWorld, matVP, vp);
 				vec3 parentProj = glm::project(parent, matWorld, matVP, vp);
-				if (Core::GetAPI() == Core::API::GL) {
-					//need a device independent screen layout so don't have to hack this stuff!
-					if (currProj.y - 300.f >= 0.f) {
-						float diff = currProj.y - 300.f;
-						currProj.y = 300.f - diff;
-					}
-					else {
-						float diff = 300.f - currProj.y;
-						currProj.y = 300.f + diff;
-					}
-					if (parentProj.y - 300.f >= 0.f) {
-						float diff = parentProj.y - 300.f;
-						parentProj.y = 300.f - diff;
-					}
-					else {
-						float diff = 300.f - parentProj.y;
-						parentProj.y = 300.f + diff;
-					}
-				}
+				
 				vec2 verts[2] = { vec2(currProj ), vec2(parentProj)		};
 				_line->Draw(verts, 2, Color(1.f, 0.f, 0.f, 1.f));
 			}

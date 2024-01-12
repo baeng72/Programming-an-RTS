@@ -203,7 +203,7 @@ void TERRAIN::CreatePatches(int numPatches)
 	_pdevice->Wait();//who needs synchronisation when you can block GPU?
 	void* shaderData = nullptr;
 	
-	shaderData = _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), false);
+	shaderData = _shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("terrain.glsl"), Renderer::ShaderCullMode::frontFace);
 	
 	for (int i = 0; i < _patches.size(); i++) {
 		if (_patches[i])

@@ -58,7 +58,7 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::Shad
 	shape.reset(Mesh::Shape::Create(pdevice));
 	_sphereMesh = std::unique_ptr<Mesh::Mesh>(shape->CreateSphere(0.2f, 5, 5));
 
-	_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("shape.glsl"), false)));
+	_sphereShader = std::unique_ptr<Renderer::Shader>(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("shape.glsl"), Renderer::ShaderCullMode::frontFace)));
 }
 
 void MOUSE::Update(TERRAIN&terrain) {
