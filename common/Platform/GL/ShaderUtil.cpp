@@ -5,8 +5,14 @@ namespace GL {
 	ShaderUtil::ShaderUtil() {
 		_programID = -1;
 		_frontFace = GL_CW;
-		_cullFace = GL_FRONT_FACE;
+		_cullFace = GL_BACK;
 		_enableBlend = true;
+		_srcColor = GL_SRC_ALPHA;
+		_dstColor = GL_ONE_MINUS_SRC_ALPHA;
+		_colorOp = GL_FUNC_ADD;
+		_srcAlpha = GL_ONE;
+		_dstAlpha = GL_ZERO;
+		_alphaOp = GL_FUNC_ADD;
 	}
 	GLuint ShaderUtil::compileShader(const char* shaderSrc, GLenum shaderType) {
 		GLuint shaderID = -1;
@@ -104,14 +110,46 @@ namespace GL {
 	
 	ShaderUtil::ShaderUtil(const char* vertexSrc, const char* fragmentSrc)
 	{
+		_programID = -1;
+		_frontFace = GL_CW;
+		_cullFace = GL_FRONT_FACE;
+		_enableDepth = true;
+		_enableBlend = false;
+		_srcColor = GL_SRC_ALPHA;
+		_dstColor = GL_ONE_MINUS_SRC_ALPHA;
+		_colorOp = GL_FUNC_ADD;
+		_srcAlpha = GL_ONE;
+		_dstAlpha = GL_ZERO;
+		_alphaOp = GL_FUNC_ADD;
 		compile(vertexSrc, nullptr, fragmentSrc);
 	}
 	ShaderUtil::ShaderUtil(const char* vertexSrc, const char* geometrySrc, const char* fragmentSrc)
 	{
+		_programID = -1;
+		_frontFace = GL_CW;
+		_cullFace = GL_FRONT;
+		_enableDepth = true;
+		_enableBlend = false;
+		_srcColor = GL_SRC_ALPHA;
+		_dstColor = GL_ONE_MINUS_SRC_ALPHA;
+		_colorOp = GL_FUNC_ADD;
+		_srcAlpha = GL_ONE;
+		_dstAlpha = GL_ZERO;
+		_alphaOp = GL_FUNC_ADD;
 		compile(vertexSrc, geometrySrc, fragmentSrc);
 	}
 	ShaderUtil::ShaderUtil(const char* fileName)
 	{
+		_programID = -1;
+		_frontFace = GL_CW;
+		_cullFace = GL_FRONT;
+		_enableBlend = true;
+		_srcColor = GL_SRC_ALPHA;
+		_dstColor = GL_ONE_MINUS_SRC_ALPHA;
+		_colorOp = GL_FUNC_ADD;
+		_srcAlpha = GL_ONE;
+		_dstAlpha = GL_ZERO;
+		_alphaOp = GL_FUNC_ADD;
 		std::string filepath = fileName;
 		auto lastSlash = filepath.find_last_of("/\\");
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
@@ -222,6 +260,16 @@ namespace GL {
 		GLERR();
 	}
 
+	void ShaderUtil::SetBlendFunction(GLenum srcColor, GLenum dstColor, GLenum colorOp, GLenum srcAlpha, GLenum dstAlpha, GLenum alphaOp)
+	{
+		_colorOp = colorOp;
+		_srcColor = srcColor;
+		_dstColor = dstColor;
+		_alphaOp = alphaOp;
+		_srcAlpha = srcAlpha;
+		_dstAlpha = dstAlpha;
+	}
+
 	void ShaderUtil::Bind() {
 		if (_enableDepth) {
 			glEnable(GL_DEPTH_TEST);
@@ -230,14 +278,28 @@ namespace GL {
 		else
 			glDisable(GL_DEPTH_TEST);
 		GLERR();
-		
-		//glEnable(GL_CULL_FACE);
-		//GLERR();
-		if (_enableBlend) {
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_BLEND);
+		if (_enableCull) {
+			glEnable(GL_CULL_FACE);
+			glCullFace(_cullFace);
+			
 		}
-		
+		else {
+			glDisable(GL_CULL_FACE);
+		}
+		GLERR();
+		if (_enableBlend) {
+			glEnable(GL_BLEND);
+			GLERR();
+			glBlendEquation(_colorOp);
+			//glBlendFunc(_colorOp, _alphaOp);
+			GLERR();
+			glBlendFuncSeparate(_srcColor, _dstColor, _srcAlpha, _dstAlpha);
+			GLERR();
+		}
+		else {
+			glDisable(GL_BLEND);
+		}
+		GLERR();
 		//glEnable(GL_CULL_FACE);
 		//GLERR();
 		//glCullFace(GL_BACK);

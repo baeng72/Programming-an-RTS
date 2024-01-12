@@ -1,6 +1,7 @@
 #include "GLTexture.h"
 #include "../stb/stb_image.h"
 #include "GLERR.h"
+#include "stb/stb_image_write.h"
 namespace GL {
 	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, const char* pfile,vec2 size)
 		:_size(size)
@@ -42,16 +43,16 @@ namespace GL {
 			_size = glm::vec2(_width, _height);
 		}
 		tex.textureID = _textureID;
-		tex.width = _size.x;
-		tex.height = _size.y;
+		tex.width = width;
+		tex.height = height;
 		stbi_image_free(data);
 	}
 	
-	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height,Renderer::TextureFormat fmt,uint8_t* pixels):_size(glm::vec2(width, height))
+	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height,Renderer::TextureFormat fmt,uint8_t* pixels):_size(glm::vec2(width, height)), _fmt(fmt)
 	{
 		_pdevice = pdevice;
 		GLint format;
-		_fmt = fmt;
+		//_fmt = fmt;
 		int bytesperpixel = 0;
 		switch (fmt) {
 		case Renderer::TextureFormat::R8:
@@ -93,10 +94,10 @@ namespace GL {
 		_height = height;
 		_channels = bytesperpixel;
 		tex.textureID = _textureID;
-		tex.width = _size.x;
-		tex.height = _size.y;
+		tex.width = width;
+		tex.height = height;
 	}
-	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt) :_size(glm::vec2(width, height))
+	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt) :_size(glm::vec2(width, height)),_fmt(fmt)
 	{
 		_pdevice = pdevice;
 		GLint internalformat;
@@ -148,8 +149,8 @@ namespace GL {
 		_height = height;
 		_channels = bytesperpixel;
 		tex.textureID = _textureID;
-		tex.width = _size.x;
-		tex.height = _size.y;
+		tex.width = width;
+		tex.height = height;
 	}
 	GLTexture::~GLTexture()
 	{
@@ -168,6 +169,36 @@ namespace GL {
 	}
 	bool GLTexture::SaveToFile(const char* ppath)
 	{
-		return false;
+		int bytesperpixel = 0;
+		GLenum format;
+		switch (_fmt) {
+		case Renderer::TextureFormat::R8:
+			bytesperpixel = 1;
+			format = GL_RED;
+			break;
+		case Renderer::TextureFormat::R8G8:
+			format = GL_RG;
+			bytesperpixel = 2;
+			break;
+		case Renderer::TextureFormat::R8G8B8:
+			format = GL_RGB;
+			bytesperpixel = 3;
+			break;
+		case Renderer::TextureFormat::R8G8B8A8:
+			format = GL_RGBA;
+			bytesperpixel = 4;
+			break;
+		case Renderer::TextureFormat::D32:
+			bytesperpixel = 4;
+			format = GL_DEPTH_COMPONENT32;
+			break;
+		default:
+			assert(0);//format?
+			break;
+		}
+		std::vector<uint8_t> pixels(_width * _height * bytesperpixel);
+		glGetTexImage(GL_TEXTURE_2D, _textureID, format, GL_UNSIGNED_BYTE, pixels.data());
+		stbi_write_jpg(ppath, _width, _height, bytesperpixel, pixels.data(), 100);
+		return true;
 	}
 }

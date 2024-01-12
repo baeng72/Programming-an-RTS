@@ -5,6 +5,7 @@ namespace GL {
 	GLRenderDevice::GLRenderDevice(void* nativeWindowHandle)
 	{
 		_window = reinterpret_cast<GLFWwindow*>(nativeWindowHandle);
+		glfwSwapInterval(0);
 	}
 	GLRenderDevice::~GLRenderDevice()
 	{

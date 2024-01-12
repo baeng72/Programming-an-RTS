@@ -18,14 +18,22 @@ namespace GL {
 		std::vector<GLint> _textureslots;
 		GLenum _frontFace;
 		GLenum _cullFace;
+		bool _enableCull;
 		bool _enableBlend;
 		bool _enableDepth;
+		GLenum _srcColor;
+		GLenum _dstColor;
+		GLenum _colorOp;
+		GLenum _srcAlpha;
+		GLenum _dstAlpha;
+		GLenum _alphaOp;
 	public:
 		ShaderUtil();
+		ShaderUtil(const ShaderUtil& rhs) = delete;
 		ShaderUtil(const char* vertexSrc, const char* fragmentSrc);
 		ShaderUtil(const char* vertexSrc, const char* geometrySrc,const char* fragmentSrc);
 		ShaderUtil(const char* fileName);//load glsl file
-
+		const ShaderUtil& operator=(const ShaderUtil& rhs);
 		~ShaderUtil();
 		void compile(const char* vertexSrc, const char* geometrySrc, const char* fragmentSrc);
 		inline void ensureProgram()const {
@@ -168,8 +176,10 @@ namespace GL {
 		void SetTextures(const char* pname, int* texids, uint32_t count);
 		void SetStorageBuffer(GLuint buffer);	
 		void SetFrontFace(GLenum ff) { _frontFace = ff; }
-		void SetCullFace(GLenum cf) { _cullFace = cf; }
+		void SetCullFace(GLenum cf) { _cullFace = cf; _enableCull = true; }
+		void EnableCull(bool enable) { _enableCull = enable; }
 		void EnableBlend(bool blend) { _enableBlend = blend; }
+		void SetBlendFunction(GLenum srcColor, GLenum dstColor, GLenum colorOp, GLenum srcAlpha, GLenum dstAlpha, GLenum alphaOp);
 		void EnableDepth(bool depth) { _enableDepth = depth; }
 		operator GLuint() { return _programID; }
 		void* getProgramID()const { return (void*)&_programID; }

@@ -15,7 +15,7 @@ namespace Vulkan {
 	
 	VulkanShaderManager::VulkanShaderManager(Renderer::RenderDevice*pdevice)
 		:_pdevice(pdevice) {
-		CompileShaders();
+		
 	}
 	VulkanShaderManager::~VulkanShaderManager() {
 		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
@@ -42,764 +42,8 @@ namespace Vulkan {
 		}*/
 		return (void*)&_shaderList[pname];
 	}
-	/*void* VulkanShaderManager::GetShaderAttribute(Renderer::ShaderAttrData& data)
-	{
-		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
-		Vulkan::VulkContext& context = *contextptr;
-		std::tuple<uint32_t, uint32_t, uint32_t> key = std::make_tuple(data.flags, data.stages, data.count);
-		if (_shaderAttrMap.find(key) == _shaderAttrMap.end()) {
-			VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
-			VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
-			DescriptorSetBuilder builder = DescriptorSetBuilder::begin(context.pPoolCache, context.pLayoutCache);
-			uint32_t index = 0;
-			if (data.flags & Renderer::ShaderAttrFlagBits::SHADER_ATTR_UBO)
-				builder.AddBinding(index++, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, data.stages);
-			if (data.flags & Renderer::ShaderAttrFlagBits::SHADER_ATTR_STORAGE)
-				builder.AddBinding(index++, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, data.stages);
-			if (data.flags & Renderer::ShaderAttrFlagBits::SHADER_ATTR_SAMPLER)
-				builder.AddBinding(index++, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, data.stages);
-			if(data.flags & Renderer::ShaderAttrFlagBits::SHADER_ATTR_SAMPLER_ARRAY)
-				builder.AddBinding(index++, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, data.stages, data.count);
-			builder.build(descriptorSet, descriptorSetLayout);
-			VulkanDescriptorData descData = { descriptorSetLayout,descriptorSet };
-			_shaderAttrMap[key] = descData;
-		}
-		return &_shaderAttrMap[key];
-	}*/
-	void VulkanShaderManager::CompileShaders()
-	{
-		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
-		Vulkan::VulkContext& context = *contextptr;
-		Vulkan::VulkFrameData* framedataptr = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
-		Vulkan::VulkFrameData& framedata = *framedataptr;
-//		{
-//
-//			//Flat shaded
-//			const char* vertexSrcFlat = R"(
-//#version 450
-//layout(location=0) in vec3 inPos;
-//layout(location=1) in vec3 inNormal;
-//layout(location=2) in vec4 inColor;
-//
-//layout(location=0) out vec3 outNormal;
-//layout(location=1) out vec4 outColor;
-//
-//layout(set=0,binding=0) uniform UBO{
-//	mat4 viewProj;
-//};
-//
-//layout (push_constant) uniform PushConst{
-//	mat4 model;
-//};
-//
-//void main(){
-//	gl_Position = viewProj * model * vec4(inPos,1.0);
-//	outNormal = vec3(inverse(model) * vec4(inNormal,0.0));
-//	outColor = inColor;
-//}
-//)";
-//			const char* fragmentSrcFlat = R"(
-//#version 450
-//layout(location=0) in vec3 inNormal;
-//layout(location=1) in vec4 inColor;
-//
-//layout(location=0) out vec4 outFragColor;
-//
-//void main(){
-//	outFragColor = inColor;
-//}
-//)";
-//
-//			ShaderCompiler compiler;
-//			std::vector<uint32_t> vertexSpirv;
-//			std::vector<uint32_t> fragmentSpirv;
-//			vertexSpirv = compiler.compileShader(vertexSrcFlat, VK_SHADER_STAGE_VERTEX_BIT);
-//			fragmentSpirv = compiler.compileShader(fragmentSrcFlat, VK_SHADER_STAGE_FRAGMENT_BIT);
-//			VkDescriptorSetLayout descriptorSetLayout;
-//			VkDescriptorSet descriptorSet;
-//			DescriptorSetBuilder::begin(context.pPoolCache, context.pLayoutCache)
-//				.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
-//				.build(descriptorSet, descriptorSetLayout);
-//			std::vector<VkPushConstantRange> pushConstants{ {VK_SHADER_STAGE_VERTEX_BIT,0,sizeof(Renderer::FlatShaderPushConst)} };
-//			VkPipelineLayout pipelineLayout;
-//			PipelineLayoutBuilder::begin(context.device)
-//				.AddDescriptorSetLayout(descriptorSetLayout)
-//				.AddPushConstants(pushConstants)
-//				.build(pipelineLayout);
-//
-//
-//			std::vector<ShaderModule> shaders;
-//			VkVertexInputBindingDescription vertexInputDescription = {};
-//			std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
-//			ShaderProgramLoader::begin(context.device)
-//				.AddShaderSpirv(vertexSpirv)
-//				.AddShaderSpirv(fragmentSpirv)
-//				.load(shaders, vertexInputDescription, vertexAttributeDescriptions);
-//			VkPipeline pipeline;
-//			{
-//				PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-//					.setBlend(VK_TRUE)
-//					//.setCullMode(VK_CULL_MODE_FRONT_BIT)
-//					.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-//					.build(pipeline);
-//				VulkanShaderData data{ descriptorSetLayout,descriptorSet,pipelineLayout,pipeline };
-//				_shaderList.push_back(data);
-//			}
-//			{
-//				PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-//					.setBlend(VK_TRUE)
-//					.setPolygonMode(VK_POLYGON_MODE_LINE)
-//					.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-//					.build(pipeline);
-//				VulkanShaderData data{ descriptorSetLayout,descriptorSet,pipelineLayout,pipeline };
-//				_wireframeShaderList.push_back(data);
-//			}
-//			for (auto& shader : shaders) {
-//				cleanupShaderModule(context.device, shader.shaderModule);
-//			}
-//
-//		}
-//		{
-//			//Flat directional shaded
-//			const char* vertexSrcFlatDir = R"(
-//#version 450
-//layout(location=0) in vec3 inPos;
-//layout(location=1) in vec3 inNormal;
-//layout(location=2) in vec4 inColor;
-//
-//layout(location=0) out vec3 outNormal;
-//layout(location=1) out vec4 outColor;
-//
-//struct DirectionalLight{
-//	vec4 diffuse;
-//	vec4 ambient;
-//	vec4 specular;
-//	vec3 direction;
-//};
-//
-//layout(set=0,binding=0) uniform UBO{
-//	mat4 viewProj;	//same whole scene
-//	DirectionalLight light;
-//};
-//
-//layout (push_constant) uniform PushConst{	
-//	mat4 model;		//varies per object
-//};
-//
-//void main(){
-//	gl_Position = viewProj * model * vec4(inPos,1.0);
-//	outNormal = vec3(inverse(model) * vec4(inNormal,0.0));
-//	outColor = inColor;
-//}
-//)";
-//			const char* fragmentSrcFlatDir = R"(
-//#version 450
-//layout(location=0) in vec3 inNormal;
-//layout(location=1) in vec4 inColor;
-//
-//layout(location=0) out vec4 outFragColor;
-//
-//struct DirectionalLight{
-//	vec4 diffuse;
-//	vec4 ambient;
-//	vec4 specular;
-//	vec3 direction;
-//};
-//
-//layout(set=0,binding=0) uniform UBO{
-//	mat4 viewProj;	//same whole scene
-//	DirectionalLight light;
-//};
-//
-//
-//void main(){
-//	//normalize interpolated normal
-//	vec3 normal = normalize(inNormal);
-//	float shade = max(dot(normal,-light.direction),0);
-//	vec3 ambient = vec3(inColor)*vec3(light.ambient);
-//	vec3 diffuse = vec3(inColor)*vec3(light.diffuse) * shade;
-//	
-//	float specfactor = pow(shade,32);//hack specular (no view dir at moment)
-//	vec3 spec = vec3(inColor) * vec3(light.specular) * specfactor ;
-//	vec4 color = vec4(ambient + diffuse + spec,1.0);
-//	outFragColor = color;	
-//}
-//)";
-//			ShaderCompiler compiler;
-//			std::vector<uint32_t> vertexSpirv;
-//			std::vector<uint32_t> fragmentSpirv;
-//			vertexSpirv = compiler.compileShader(vertexSrcFlatDir, VK_SHADER_STAGE_VERTEX_BIT);
-//			fragmentSpirv = compiler.compileShader(fragmentSrcFlatDir, VK_SHADER_STAGE_FRAGMENT_BIT);
-//			std::vector<VkPushConstantRange> pushConstants{ {VK_SHADER_STAGE_VERTEX_BIT,0,sizeof(Renderer::FlatShaderPushConst)} };
-//
-//			VkDescriptorSetLayout descriptorSetLayout;
-//			VkDescriptorSet descriptorSet;
-//			DescriptorSetBuilder::begin(context.pPoolCache, context.pLayoutCache)
-//				.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
-//				.build(descriptorSet, descriptorSetLayout);
-//
-//			VkPipelineLayout pipelineLayout;
-//			PipelineLayoutBuilder::begin(context.device)
-//				.AddPushConstants(pushConstants)
-//				.AddDescriptorSetLayout(descriptorSetLayout)
-//				.build(pipelineLayout);
-//
-//
-//			std::vector<ShaderModule> shaders;
-//			VkVertexInputBindingDescription vertexInputDescription = {};
-//			std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
-//			ShaderProgramLoader::begin(context.device)
-//				.AddShaderSpirv(vertexSpirv)
-//				.AddShaderSpirv(fragmentSpirv)
-//				.load(shaders, vertexInputDescription, vertexAttributeDescriptions);
-//			VkPipeline pipeline;
-//			{
-//				PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-//					.setBlend(VK_TRUE)
-//					//.setCullMode(VK_CULL_MODE_FRONT_BIT)
-//					.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-//					.build(pipeline);
-//				VulkanShaderData data{ descriptorSetLayout,descriptorSet,pipelineLayout,pipeline };
-//				_shaderList.push_back(data);
-//			}
-//			{
-//				PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-//					.setBlend(VK_TRUE)
-//					.setPolygonMode(VK_POLYGON_MODE_LINE)
-//					.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-//					.build(pipeline);
-//				VulkanShaderData data{ descriptorSetLayout,descriptorSet,pipelineLayout,pipeline };
-//				_wireframeShaderList.push_back(data);
-//			}
-//			for (auto& shader : shaders) {
-//				cleanupShaderModule(context.device, shader.shaderModule);
-//			}
-//		}
-//		{
-//			//Directional diffuse color material
-//			const char* vertexSrcFlatDir = R"(
-//#version 450
-//layout(location=0) in vec3 inPos;
-//layout(location=1) in vec3 inNormal;
-//
-//
-//layout(location=0) out vec3 outNormal;
-//
-//
-//struct DirectionalLight{
-//	vec4 diffuse;
-//	vec4 ambient;
-//	vec4 specular;
-//	vec3 direction;
-//};
-//
-//layout(set=0,binding=0) uniform UBO{
-//	mat4 viewProj;	//same whole scene
-//	DirectionalLight light;
-//};
-//
-//
-//layout (push_constant) uniform PushConst{	
-//	mat4 model;		//varies per object
-//};
-//
-//void main(){
-//	gl_Position = viewProj * model * vec4(inPos,1.0);
-//	outNormal = vec3(inverse(model) * vec4(inNormal,0.0));
-//	
-//}
-//)";
-//			const char* fragmentSrcFlatDir = R"(
-//#version 450
-//layout(location=0) in vec3 inNormal;
-//
-//
-//layout(location=0) out vec4 outFragColor;
-//
-//struct DirectionalLight{
-//	vec4 diffuse;
-//	vec4 ambient;
-//	vec4 specular;
-//	vec3 direction;
-//};
-//
-//layout(set=0,binding=0) uniform UBO{
-//	mat4 viewProj;	//same whole scene
-//	DirectionalLight light;
-//};
-//
-//layout(set=1,binding=0) uniform MAT{
-//	vec4 color;
-//};
-//
-//
-//
-//void main(){
-//	//normalize interpolated normal
-//	vec3 normal = normalize(inNormal);
-//	float shade = max(dot(normal,-light.direction),0);
-//	vec3 ambient = vec3(color)*vec3(light.ambient);
-//	vec3 diffuse = vec3(color)*vec3(light.diffuse) * shade;
-//	
-//	float specfactor = pow(shade,32);//hack specular (no view dir at moment)
-//	vec3 spec = vec3(color) * vec3(light.specular) * specfactor ;
-//	vec4 finalColor = vec4(ambient + diffuse + spec,color.w);
-//	outFragColor = finalColor;	
-//}
-//)";
-//			ShaderCompiler compiler;
-//			std::vector<uint32_t> vertexSpirv;
-//			std::vector<uint32_t> fragmentSpirv;
-//			vertexSpirv = compiler.compileShader(vertexSrcFlatDir, VK_SHADER_STAGE_VERTEX_BIT);
-//			fragmentSpirv = compiler.compileShader(fragmentSrcFlatDir, VK_SHADER_STAGE_FRAGMENT_BIT);
-//			std::vector<VkPushConstantRange> pushConstants{ {VK_SHADER_STAGE_VERTEX_BIT,0,sizeof(Renderer::FlatShaderPushConst)} };
-//
-//			VkDescriptorSetLayout descriptorSetLayout;
-//			VkDescriptorSet descriptorSet;
-//			DescriptorSetBuilder::begin(context.pPoolCache, context.pLayoutCache)
-//				.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
-//				.build(descriptorSet, descriptorSetLayout);
-//
-//			VkPipelineLayout pipelineLayout;
-//			PipelineLayoutBuilder::begin(context.device)
-//				.AddPushConstants(pushConstants)
-//				.AddDescriptorSetLayout(descriptorSetLayout)
-//				.AddDescriptorSetLayout(descriptorSetLayout)//repeat for set 1 uniform 
-//				.build(pipelineLayout);
-//
-//
-//			std::vector<ShaderModule> shaders;
-//			VkVertexInputBindingDescription vertexInputDescription = {};
-//			std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
-//			ShaderProgramLoader::begin(context.device)
-//				.AddShaderSpirv(vertexSpirv)
-//				.AddShaderSpirv(fragmentSpirv)
-//				.load(shaders, vertexInputDescription, vertexAttributeDescriptions);
-//			VkPipeline pipeline;
-//			{
-//				PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-//					.setBlend(VK_TRUE)
-//					//.setCullMode(VK_CULL_MODE_FRONT_BIT)
-//					.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-//					.build(pipeline);
-//				VulkanShaderData data{ descriptorSetLayout,descriptorSet,pipelineLayout,pipeline };
-//				_shaderList.push_back(data);
-//			}
-//			{
-//				PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-//					.setBlend(VK_TRUE)
-//					.setPolygonMode(VK_POLYGON_MODE_LINE)
-//					.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-//					.build(pipeline);
-//				VulkanShaderData data{ descriptorSetLayout,descriptorSet,pipelineLayout,pipeline };
-//				_wireframeShaderList.push_back(data);
-//			}
-//			for (auto& shader : shaders) {
-//				cleanupShaderModule(context.device, shader.shaderModule);
-//			}
-//		}
-//		{
-//			//Directional diffuse texture material
-//			const char* vertexSrcFlatDir = R"(
-//#version 450
-//layout(location=0) in vec3 inPos;
-//layout(location=1) in vec3 inNormal;
-//layout(location=2) in vec2 inUV;
-//
-//layout(location=0) out vec3 outNormal;
-//layout(location=1) out vec2 outUV;
-//
-//
-//struct DirectionalLight{
-//	vec4 diffuse;
-//	vec4 ambient;
-//	vec4 specular;
-//	vec3 direction;
-//};
-//
-//layout(set=0,binding=0) uniform UBO{
-//	mat4 viewProj;	//same whole scene
-//	DirectionalLight light;
-//};
-//
-//
-//layout (push_constant) uniform PushConst{	
-//	mat4 model;		//varies per object
-//};
-//
-//void main(){
-//	gl_Position = viewProj * model * vec4(inPos,1.0);
-//	outNormal = vec3(inverse(model) * vec4(inNormal,0.0));
-//	outUV = inUV;
-//}
-//)";
-//			const char* fragmentSrcFlatDir = R"(
-//#version 450
-//layout(location=0) in vec3 inNormal;
-//layout(location=1) in vec2 inUV;
-//
-//layout(location=0) out vec4 outFragColor;
-//
-//struct DirectionalLight{
-//	vec4 diffuse;
-//	vec4 ambient;
-//	vec4 specular;
-//	vec3 direction;
-//};
-//
-//layout(set=0,binding=0) uniform UBO{
-//	mat4 viewProj;	//same whole scene
-//	DirectionalLight light;
-//};
-//
-//layout(set=1,binding=0) uniform sampler2D diffuseTex;
-//	
-//
-//
-//
-//void main(){
-//	//normalize interpolated normal
-//	vec3 normal = normalize(inNormal);
-//	vec4 color = texture(diffuseTex,inUV);
-//	float shade = max(dot(normal,-light.direction),0);
-//	vec3 ambient = vec3(color)*vec3(light.ambient);
-//	vec3 diffuse = vec3(color)*vec3(light.diffuse) * shade;
-//	
-//	float specfactor = pow(shade,32);//hack specular (no view dir at moment)
-//	vec3 spec = vec3(color) * vec3(light.specular) * specfactor ;
-//	vec4 finalColor = vec4(ambient + diffuse + spec,color.w);
-//	outFragColor = finalColor;	
-//}
-//)";
-//			ShaderCompiler compiler;
-//			std::vector<uint32_t> vertexSpirv;
-//			std::vector<uint32_t> fragmentSpirv;
-//			vertexSpirv = compiler.compileShader(vertexSrcFlatDir, VK_SHADER_STAGE_VERTEX_BIT);
-//			fragmentSpirv = compiler.compileShader(fragmentSrcFlatDir, VK_SHADER_STAGE_FRAGMENT_BIT);
-//			std::vector<VkPushConstantRange> pushConstants{ {VK_SHADER_STAGE_VERTEX_BIT,0,sizeof(Renderer::FlatShaderPushConst)} };
-//
-//			VkDescriptorSetLayout descriptorSetLayout;
-//			VkDescriptorSet descriptorSet;
-//			DescriptorSetBuilder::begin(context.pPoolCache, context.pLayoutCache)
-//				.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
-//				.build(descriptorSet, descriptorSetLayout);
-//
-//			VkPipelineLayout pipelineLayout;
-//			PipelineLayoutBuilder::begin(context.device)
-//				.AddPushConstants(pushConstants)
-//				.AddDescriptorSetLayout(descriptorSetLayout)
-//				.build(pipelineLayout);
-//
-//
-//			std::vector<ShaderModule> shaders;
-//			VkVertexInputBindingDescription vertexInputDescription = {};
-//			std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
-//			ShaderProgramLoader::begin(context.device)
-//				.AddShaderSpirv(vertexSpirv)
-//				.AddShaderSpirv(fragmentSpirv)
-//				.load(shaders, vertexInputDescription, vertexAttributeDescriptions);
-//			VkPipeline pipeline;
-//			{
-//				PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-//					.setBlend(VK_TRUE)
-//					//.setCullMode(VK_CULL_MODE_FRONT_BIT)
-//					.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-//					.build(pipeline);
-//				VulkanShaderData data{ descriptorSetLayout,descriptorSet,pipelineLayout,pipeline };
-//				_shaderList.push_back(data);
-//			}
-//			{
-//				PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-//					.setBlend(VK_TRUE)
-//					.setPolygonMode(VK_POLYGON_MODE_LINE)
-//					.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-//					.build(pipeline);
-//				VulkanShaderData data{ descriptorSetLayout,descriptorSet,pipelineLayout,pipeline };
-//				_wireframeShaderList.push_back(data);
-//			}
-//			for (auto& shader : shaders) {
-//				cleanupShaderModule(context.device, shader.shaderModule);
-//			}
-//
-//		}
-//		{
-//			//Directional diffuse array
-//			const char* vertexSrcFlatDir = R"(
-//#version 450
-//layout(location=0) in vec3 inPos;
-//layout(location=1) in vec3 inNormal;
-//
-//
-//layout(location=0) out vec3 outNormal;
-//
-//
-//
-//struct DirectionalLight{
-//	vec4 diffuse;
-//	vec4 ambient;
-//	vec4 specular;
-//	vec3 direction;
-//};
-//
-//layout(set=0,binding=0) uniform UBO{
-//	mat4 viewProj;	//same whole scene
-//	DirectionalLight light;
-//};
-//
-//
-//layout (push_constant) uniform PushConst{	
-//	mat4 model;		//varies per object
-//};
-//
-//void main(){
-//	gl_Position = viewProj * model * vec4(inPos,1.0);
-//	outNormal = vec3(inverse(model) * vec4(inNormal,0.0));
-//	
-//}
-//)";
-//			const char* fragmentSrcFlatDir = R"(
-//#version 450
-//layout(location=0) in vec3 inNormal;
-//
-//
-//layout(location=0) out vec4 outFragColor;
-//
-//struct DirectionalLight{
-//	vec4 diffuse;
-//	vec4 ambient;
-//	vec4 specular;
-//	vec3 direction;
-//};
-//
-//layout(set=0,binding=0) uniform UBO{
-//	mat4 viewProj;	//same whole scene
-//	DirectionalLight light;
-//};
-//
-//layout(set=1,binding=0) readonly storage colorArray{
-//	vec4 attrs[];
-//}colors;
-//	
-//
-//
-//
-//void main(){
-//	//normalize interpolated normal
-//	vec3 normal = normalize(inNormal);
-//	vec4 color = colors.attrs[gl_PrimitiveIndex];
-//	float shade = max(dot(normal,-light.direction),0);
-//	vec3 ambient = vec3(color)*vec3(light.ambient);
-//	vec3 diffuse = vec3(color)*vec3(light.diffuse) * shade;
-//	
-//	float specfactor = pow(shade,32);//hack specular (no view dir at moment)
-//	vec3 spec = vec3(color) * vec3(light.specular) * specfactor ;
-//	vec4 finalColor = vec4(ambient + diffuse + spec,color.w);
-//	outFragColor = finalColor;	
-//}
-//)";
-//			ShaderCompiler compiler;
-//			std::vector<uint32_t> vertexSpirv;
-//			std::vector<uint32_t> fragmentSpirv;
-//			vertexSpirv = compiler.compileShader(vertexSrcFlatDir, VK_SHADER_STAGE_VERTEX_BIT);
-//			fragmentSpirv = compiler.compileShader(fragmentSrcFlatDir, VK_SHADER_STAGE_FRAGMENT_BIT);
-//			std::vector<VkPushConstantRange> pushConstants{ {VK_SHADER_STAGE_VERTEX_BIT,0,sizeof(Renderer::FlatShaderPushConst)} };
-//
-//			VkDescriptorSetLayout descriptorSetLayout;
-//			VkDescriptorSet descriptorSet;
-//			DescriptorSetBuilder::begin(context.pPoolCache, context.pLayoutCache)
-//				.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
-//				.build(descriptorSet, descriptorSetLayout);
-//
-//			VkPipelineLayout pipelineLayout;
-//			PipelineLayoutBuilder::begin(context.device)
-//				.AddPushConstants(pushConstants)
-//				.AddDescriptorSetLayout(descriptorSetLayout)
-//				.build(pipelineLayout);
-//
-//
-//			std::vector<ShaderModule> shaders;
-//			VkVertexInputBindingDescription vertexInputDescription = {};
-//			std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
-//			ShaderProgramLoader::begin(context.device)
-//				.AddShaderSpirv(vertexSpirv)
-//				.AddShaderSpirv(fragmentSpirv)
-//				.load(shaders, vertexInputDescription, vertexAttributeDescriptions);
-//			VkPipeline pipeline;
-//			{
-//				PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-//					.setBlend(VK_TRUE)
-//					//.setCullMode(VK_CULL_MODE_FRONT_BIT)
-//					.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-//					.build(pipeline);
-//				VulkanShaderData data{ descriptorSetLayout,descriptorSet,pipelineLayout,pipeline };
-//				_shaderList.push_back(data);
-//			}
-//			{
-//				PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-//					.setBlend(VK_TRUE)
-//					.setPolygonMode(VK_POLYGON_MODE_LINE)
-//					.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-//					.build(pipeline);
-//				VulkanShaderData data{ descriptorSetLayout,descriptorSet,pipelineLayout,pipeline };
-//				_wireframeShaderList.push_back(data);
-//			}
-//			for (auto& shader : shaders) {
-//				cleanupShaderModule(context.device, shader.shaderModule);
-//			}
-//			
-//		}
-//		{
-//			//Directional diffuse texture material
-//			const char* vertexSrcFlatDir = R"(
-//#version 450
-//layout(location=0) in vec3 inPos;
-//layout(location=1) in vec3 inNormal;
-//layout(location=2) in vec2 inUV;
-//
-//layout(location=0) out vec3 outNormal;
-//layout(location=1) out vec2 outUV;
-//
-//
-//struct DirectionalLight{
-//	vec4 diffuse;
-//	vec4 ambient;
-//	vec4 specular;
-//	vec3 direction;
-//};
-//
-//layout(set=0,binding=0) uniform UBO{
-//	mat4 viewProj;	//same whole scene
-//	DirectionalLight light;
-//};
-//
-//
-//layout (push_constant) uniform PushConst{	
-//	mat4 model;		//varies per object
-//};
-//
-//void main(){
-//	gl_Position = viewProj * model * vec4(inPos,1.0);
-//	outNormal = vec3(inverse(model) * vec4(inNormal,0.0));
-//	outUV = inUV;
-//}
-//)";
-//			const char* fragmentSrcFlatDir = R"(
-//#version 450
-//layout(location=0) in vec3 inNormal;
-//layout(location=1) in vec2 inUV;
-//
-//layout(location=0) out vec4 outFragColor;
-//
-//struct DirectionalLight{
-//	vec4 diffuse;
-//	vec4 ambient;
-//	vec4 specular;
-//	vec3 direction;
-//};
-//
-//layout(set=0,binding=0) uniform UBO{
-//	mat4 viewProj;	//same whole scene
-//	DirectionalLight light;
-//};
-//
-//layout(set=1,binding=0) readonly storage matAttr{
-//	int attrs[];
-//}material;
-//layout(set=1,binding=1) uniform sampler2D diffuseTextures[];//may need to put a value in this, with dummy texture filling empty spaces?
-//	
-//
-//
-//
-//void main(){
-//	//normalize interpolated normal
-//	vec3 normal = normalize(inNormal);
-//	int attr = material.attrs[gl_PrimitiveIndex];
-//	vec4 color = texture(diffuseTextures[attr],inUV);
-//	float shade = max(dot(normal,-light.direction),0);
-//	vec3 ambient = vec3(color)*vec3(light.ambient);
-//	vec3 diffuse = vec3(color)*vec3(light.diffuse) * shade;
-//	
-//	float specfactor = pow(shade,32);//hack specular (no view dir at moment)
-//	vec3 spec = vec3(color) * vec3(light.specular) * specfactor ;
-//	vec4 finalColor = vec4(ambient + diffuse + spec,color.w);
-//	outFragColor = finalColor;	
-//}
-//)";
-//			ShaderCompiler compiler;
-//			std::vector<uint32_t> vertexSpirv;
-//			std::vector<uint32_t> fragmentSpirv;
-//			vertexSpirv = compiler.compileShader(vertexSrcFlatDir, VK_SHADER_STAGE_VERTEX_BIT);
-//			fragmentSpirv = compiler.compileShader(fragmentSrcFlatDir, VK_SHADER_STAGE_FRAGMENT_BIT);
-//			std::vector<VkPushConstantRange> pushConstants{ {VK_SHADER_STAGE_VERTEX_BIT,0,sizeof(Renderer::FlatShaderPushConst)} };
-//
-//			VkDescriptorSetLayout descriptorSetLayout;
-//			VkDescriptorSet descriptorSet;
-//			DescriptorSetBuilder::begin(context.pPoolCache, context.pLayoutCache)
-//				.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
-//				.build(descriptorSet, descriptorSetLayout);
-//
-//			VkPipelineLayout pipelineLayout;
-//			PipelineLayoutBuilder::begin(context.device)
-//				.AddPushConstants(pushConstants)
-//				.AddDescriptorSetLayout(descriptorSetLayout)
-//				.build(pipelineLayout);
-//
-//
-//			std::vector<ShaderModule> shaders;
-//			VkVertexInputBindingDescription vertexInputDescription = {};
-//			std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
-//			ShaderProgramLoader::begin(context.device)
-//				.AddShaderSpirv(vertexSpirv)
-//				.AddShaderSpirv(fragmentSpirv)
-//				.load(shaders, vertexInputDescription, vertexAttributeDescriptions);
-//			VkPipeline pipeline;
-//			{
-//				PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-//					.setBlend(VK_TRUE)
-//					//.setCullMode(VK_CULL_MODE_FRONT_BIT)
-//					.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-//					.build(pipeline);
-//				VulkanShaderData data{ descriptorSetLayout,descriptorSet,pipelineLayout,pipeline };
-//				_shaderList.push_back(data);
-//			}
-//			{
-//				PipelineBuilder::begin(context.device, pipelineLayout, framedata.renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
-//					.setBlend(VK_TRUE)
-//					.setPolygonMode(VK_POLYGON_MODE_LINE)
-//					.setFrontFace(VK_FRONT_FACE_CLOCKWISE)
-//					.build(pipeline);
-//				VulkanShaderData data{ descriptorSetLayout,descriptorSet,pipelineLayout,pipeline };
-//				_wireframeShaderList.push_back(data);
-//			}
-//			for (auto& shader : shaders) {
-//				cleanupShaderModule(context.device, shader.shaderModule);
-//			}
-//			
-//			
-//
-//		}
-//		//build ubos
-//		{
-//			UniformBufferBuilder::begin(context.device, context.deviceProperties, context.memoryProperties, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, true)
-//				.AddBuffer(sizeof(Renderer::FlatShaderUBO), 1, 1)
-//				.AddBuffer(sizeof(Renderer::FlatShaderDirectionalUBO), 1, 1)
-//				.build(_uniformBuffer, _uboInfo);
-//			VkDeviceSize offset = 0;
-//			for (int i = 0; i < (int)Renderer::ShaderManager::ShaderType::MAX_SHADERS; i++) {
-//				_shaderList[i].ubo = _uboInfo[i].ptr;
-//				_wireframeShaderList[i].ubo = _uboInfo[i].ptr;
-//				VkDescriptorBufferInfo bufferInfo{};
-//				bufferInfo.buffer = _uniformBuffer.buffer;
-//				VkDeviceSize size = _uboInfo[i].objectCount * _uboInfo[i].objectSize * _uboInfo[i].repeatCount;
-//				bufferInfo.range = size;
-//				bufferInfo.offset = offset;
-//				offset += size;
-//				DescriptorSetUpdater::begin(context.pLayoutCache, _shaderList[i].descriptorSetLayout, _shaderList[i].descriptorSet)
-//					.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &bufferInfo)
-//					.update();
-//			}
-//		}
-	}
+	
+	
 	uint32_t GetMemberSize(SpvReflectTypeDescription& member) {
 		uint32_t size = 0;
 		if (member.type_flags & SPV_REFLECT_TYPE_FLAG_MATRIX) {
@@ -1108,7 +352,377 @@ namespace Vulkan {
 			FlattenBlocks(member,setid,bindingid, blockmembers, id);
 		}
 	}
-	void VulkanShaderManager::CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,bool cullBackFaces, bool enableBlend,bool enableDepth, Renderer::ShaderStorageType* ptypes, uint32_t numtypes, void* platformData)
+	VkCompareOp VulkanShaderManager::GetCompareOp(Renderer::ShaderCompareOp op) {
+		VkCompareOp res = VK_COMPARE_OP_ALWAYS;
+		switch (op) {
+		case Renderer::ShaderCompareOp::Always:
+			res = VK_COMPARE_OP_ALWAYS;
+			break;
+		case Renderer::ShaderCompareOp::Equal:
+			res = VK_COMPARE_OP_EQUAL;
+			break;
+		case Renderer::ShaderCompareOp::Greater:
+			res = VK_COMPARE_OP_GREATER;
+			break;
+		case Renderer::ShaderCompareOp::GreaterOrEqual:
+			res = VK_COMPARE_OP_GREATER_OR_EQUAL;
+			break;
+		case Renderer::ShaderCompareOp::Less:
+			res = VK_COMPARE_OP_LESS;
+			break;
+		case Renderer::ShaderCompareOp::LessOrEqual:
+			res = VK_COMPARE_OP_LESS_OR_EQUAL;
+			break;
+		case Renderer::ShaderCompareOp::Never:
+			res = VK_COMPARE_OP_NEVER;
+			break;
+		case Renderer::ShaderCompareOp::NotEqual:
+			res = VK_COMPARE_OP_NOT_EQUAL;
+			break;
+		}
+		return res;
+	}
+	VkBlendFactor VulkanShaderManager::GetBlendFactor(Renderer::ShaderBlendFactor factor) {
+		VkBlendFactor res = VK_BLEND_FACTOR_MAX_ENUM;
+		switch (factor) {
+		case Renderer::ShaderBlendFactor::ConstantAlpha:
+			res = VK_BLEND_FACTOR_CONSTANT_ALPHA;
+			break;
+		case Renderer::ShaderBlendFactor::ConstantColor:
+			res = VK_BLEND_FACTOR_CONSTANT_COLOR;
+			break;
+		case Renderer::ShaderBlendFactor::DstAlpha:
+			res = VK_BLEND_FACTOR_DST_ALPHA;
+			break;
+		case Renderer::ShaderBlendFactor::DstColor:
+			res = VK_BLEND_FACTOR_DST_COLOR;
+			break;
+		case Renderer::ShaderBlendFactor::One:
+			res = VK_BLEND_FACTOR_ONE;
+			break;
+		case Renderer::ShaderBlendFactor::OneMinusConstantAlpha:
+			res = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
+			break;
+		case Renderer::ShaderBlendFactor::OneMinusConstantColor:
+			res = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
+			break;
+		case Renderer::ShaderBlendFactor::OneMinusDstAlpha:
+			res = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+			break;
+		case Renderer::ShaderBlendFactor::OneMinusDstColor:
+			res = VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+			break;
+		case Renderer::ShaderBlendFactor::OneMinusSrcAlpha:
+			res = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			break;
+		case Renderer::ShaderBlendFactor::OneMinusSrcColor:
+			res = VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+			break;
+		case Renderer::ShaderBlendFactor::SrcAlpha:
+			res = VK_BLEND_FACTOR_SRC_ALPHA;
+			break;
+		case Renderer::ShaderBlendFactor::SrcColor:
+			res = VK_BLEND_FACTOR_SRC_COLOR;
+			break;
+		case Renderer::ShaderBlendFactor::Zero:
+			res = VK_BLEND_FACTOR_ZERO;
+			break;
+		}
+		return res;
+	}
+	VkBlendOp VulkanShaderManager::GetBlendOp(Renderer::ShaderBlendOp op) {
+		VkBlendOp res = VK_BLEND_OP_MAX_ENUM;
+		switch (op) {
+		case Renderer::ShaderBlendOp::Add:
+			res = VK_BLEND_OP_ADD;
+			break;
+		case Renderer::ShaderBlendOp::Max:
+			res = VK_BLEND_OP_MAX;
+			break;
+		case Renderer::ShaderBlendOp::Min:
+			res = VK_BLEND_OP_MIN;
+			break;
+		case Renderer::ShaderBlendOp::ReverseSubstract:
+			res = VK_BLEND_OP_REVERSE_SUBTRACT;
+			break;
+		case Renderer::ShaderBlendOp::Subtract:
+			res = VK_BLEND_OP_SUBTRACT;
+			break;		
+		}
+		return res;
+	}
+	VkCullModeFlagBits VulkanShaderManager::GetCullMode(Renderer::ShaderCullMode mode) {
+		VkCullModeFlagBits res = VK_CULL_MODE_FLAG_BITS_MAX_ENUM;
+		switch (mode) {
+			
+		case Renderer::ShaderCullMode::backFace:
+			res = VK_CULL_MODE_BACK_BIT;
+			break;
+		case Renderer::ShaderCullMode::frontFace:
+			res = VK_CULL_MODE_FRONT_BIT;
+			break;
+		case Renderer::ShaderCullMode::frontandbackFace:
+			res = VK_CULL_MODE_FRONT_AND_BACK;
+			break;
+		case Renderer::ShaderCullMode::None:
+			res = VK_CULL_MODE_NONE;
+			break;
+		}
+		return res;
+	}
+	void VulkanShaderManager::CompileShader(const std::string& name, const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources, Renderer::ShaderCreateInfo& createInfo) {
+		LOG_INFO("Compiling shader {0}", name);
+		ShaderCompiler compiler;
+		std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>> spirvMap;
+		for (auto& pair : shaderSources) {
+			std::vector<uint32_t> spirv = compiler.compileShader(pair.second.c_str(), pair.first);
+			if (spirv.size() == 0) {
+				LOG_ERROR("Unable to compile shader: {0}", pair.first);
+			}
+			spirvMap[pair.first] = spirv;
+		}
+
+		std::unordered_map < VkShaderStageFlagBits, std::vector<std::vector<VkDescriptorSetLayoutBinding>>> shaderBindings;
+		std::unordered_map < VkShaderStageFlagBits, std::vector<std::vector<std::string>>> shaderBindingNames;
+		std::unordered_map<VkShaderStageFlagBits, std::vector<std::vector<std::string>>> shaderBindingCombinedNames;
+		std::unordered_map<VkShaderStageFlagBits, std::vector<std::vector<uint32_t>>> shaderBindingCombinedOffsets;
+		std::unordered_map < VkShaderStageFlagBits, std::vector<std::vector<uint32_t>>> shaderBindingSizes;
+		std::unordered_map < VkShaderStageFlagBits, std::vector<std::tuple<std::string, VkFormat, uint32_t>>> shaderInputs;
+		std::unordered_map<VkShaderStageFlagBits, std::vector<VkPushConstantRange>> pushConstRanges;
+		std::unordered_map<VkShaderStageFlagBits, std::vector<std::string>> pushConstNames;
+		uint32_t maxSet = 0;
+		uint32_t maxPushConst = 0;
+
+		ShaderReflection& reflection = _shaderList[name].reflection;
+		Reflect(spirvMap, reflection);
+		std::vector<std::tuple<std::string, int, int, int, uint32_t, uint32_t, uint32_t, void*>>& blockmembers = reflection.blockmembers;
+		std::unordered_map<size_t, int>& blockmap = reflection.blockmap;
+		for (auto& bindingset : reflection.bindings) {
+			for (auto& binding : bindingset) {
+				int resType = (int)binding.restype;
+				if (resType & (int)VlkResourceType::Sampler) {
+					blockmembers.push_back({ binding.name,-1,binding.set , binding.binding,binding.count,0,0,nullptr });
+				}
+				else {
+					FlattenBlocks(binding.block, binding.set, binding.binding, blockmembers, -1);
+				}
+			}
+		}
+		if (reflection.pushBlock.block.members.size() > 0)
+			FlattenBlocks(reflection.pushBlock.block, -1, -1, blockmembers, -1);
+		for (size_t i = 0; i < blockmembers.size(); i++) {
+			auto& tup = blockmembers[i];
+			std::string str = std::get<0>(tup);
+			int parent = std::get<1>(tup);
+			std::vector<std::string> list = { str };
+			std::vector<std::string> names = { str };
+			while (parent != -1) {
+				str = std::get<0>(blockmembers[parent]);
+				parent = std::get<1>(blockmembers[parent]);
+				list.push_back(str);
+				std::string fullname;
+				for (auto& name : list) {
+					if (fullname.empty())
+						fullname = name;
+					else fullname = name + "." + fullname;
+					if (std::find(names.begin(), names.end(), fullname) == names.end()) {
+						names.push_back(fullname);
+					}
+				}
+			}
+			for (auto& name : names) {
+				size_t hash = Core::HashFNV1A(name.c_str(), name.length());
+				assert(blockmap.find(hash) == blockmap.end());
+				blockmap[hash] = (int)i;
+			}
+		}
+		auto ptypes = createInfo.ptypes;
+		auto numtypes = createInfo.numtypes;
+		if (ptypes && numtypes > 0)
+		{
+			uint32_t typeIndex = 0;
+			//change dynamic types
+
+			for (auto& set : reflection.bindings) {
+				for (auto& binding : set) {
+					VkDescriptorType descriptorType = binding.descriptorType;
+
+					if (typeIndex > numtypes) {
+						LOG_WARN("More storage types {0} in shader than expected {1}.", typeIndex, numtypes);
+					}
+					switch (ptypes[typeIndex]) {
+					case Renderer::ShaderStorageType::Uniform:
+						if (descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+							LOG_WARN("Expected Uniform at {0}", typeIndex);
+						break;
+					case Renderer::ShaderStorageType::UniformDynamic:
+						if (!(descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER || descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC))
+							LOG_WARN("Expected Dynamic Uniform at {0}", typeIndex);
+						descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+						break;
+					case Renderer::ShaderStorageType::Storage:
+						if (descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
+							LOG_WARN("Expected Storage buffer at {0}", typeIndex);
+						break;
+					case Renderer::ShaderStorageType::StorageDynamic:
+						if (!(descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER || descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC))
+							LOG_WARN("Expected Dynamic Storage buffer at {0}", typeIndex);
+						descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+						break;
+					case Renderer::ShaderStorageType::Texture:
+						if (descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+							LOG_WARN("Expected Combined image sampler at {0}", typeIndex);
+						break;
+					default:
+						LOG_WARN("Unexpected shader type at {0}", typeIndex);
+						break;
+					}
+
+					typeIndex++;
+					binding.descriptorType = descriptorType;
+				}
+
+			}
+		}
+		{
+			Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
+			Vulkan::VulkContext& context = *contextptr;
+			Vulkan::VulkFrameData* framedataptr = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
+			Vulkan::VulkFrameData& framedata = *framedataptr;
+			VkRenderPass renderPass = framedata.renderPass;
+			if (createInfo.platformData) {
+				renderPass = (*(VkRenderPass*)createInfo.platformData);
+			}
+			//build descriptor sets
+			std::vector<VkDescriptorSetLayout> layouts;
+			for (auto& set : reflection.bindings) {
+				auto layoutbuilder = DescriptorSetLayoutBuilder::begin(context.pLayoutCache);
+				for (auto& binding : set) {
+					layoutbuilder.AddBinding(binding.getBinding());
+				}
+				VkDescriptorSetLayout descriptorLayout = layoutbuilder.build();
+				layouts.push_back(descriptorLayout);
+
+			}
+			std::vector<VkPushConstantRange> pushConstRanges;
+			if (reflection.pushBlock.size > 0)
+				pushConstRanges.push_back({ reflection.pushBlock.stageFlags,0,reflection.pushBlock.size });
+
+			VkPipelineLayout pipelineLayout;
+			PipelineLayoutBuilder::begin(context.device)
+				.AddDescriptorSetLayouts(layouts)
+				.AddPushConstants(pushConstRanges)
+				.build(pipelineLayout);
+
+			std::vector<ShaderModule> shaders;
+			for (auto& pair : spirvMap) {
+				auto& spirv = pair.second;
+				VkShaderModule shader = VK_NULL_HANDLE;
+
+				VkShaderModuleCreateInfo createInfo{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+				createInfo.codeSize = spirv.size() * sizeof(uint32_t);
+				createInfo.pCode = reinterpret_cast<const uint32_t*>(spirv.data());
+				VkResult res = vkCreateShaderModule(context.device, &createInfo, nullptr, &shader);
+				ASSERT(res == VK_SUCCESS, "Unable to create shader module!");
+				shaders.push_back({ shader,pair.first });
+			}
+			VkVertexInputBindingDescription vertexInputDescription;
+
+			auto& vertexInputs = reflection.inputs;// shaderInputs[VK_SHADER_STAGE_VERTEX_BIT];
+			std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions(vertexInputs.size());
+			uint32_t offset = 0;
+			for (size_t i = 0; i < vertexInputs.size(); i++) {
+				auto& tuple = vertexInputs[i];
+				VkFormat format = std::get<1>(tuple);
+				uint32_t size = std::get<2>(tuple);
+
+				vertexAttributeDescriptions[i].location = (uint32_t)i;
+				vertexAttributeDescriptions[i].offset = offset;
+				vertexAttributeDescriptions[i].format = format;
+				offset += size;
+			}
+			vertexInputDescription.binding = 0;
+			vertexInputDescription.stride = offset;
+			vertexInputDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+			{
+				VkPipeline pipeline = VK_NULL_HANDLE;
+				PipelineBuilder::begin(context.device, pipelineLayout, renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
+					.setBlend(createInfo.blendInfo.enable? VK_TRUE : VK_FALSE)
+					.setDepthTest(createInfo.depthInfo.enable ? VK_TRUE : VK_FALSE)
+					.setDepthCompareOp(GetCompareOp(createInfo.depthInfo.compare))
+					.setCullMode(GetCullMode(createInfo.cullMode))//cullMode == Renderer::ShaderCullMode::frontFace ? VK_CULL_MODE_FRONT_BIT : cullMode == Renderer::ShaderCullMode::backFace ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE)
+					.setBlendState(GetBlendFactor(createInfo.blendInfo.srcColorFactor),GetBlendFactor(createInfo.blendInfo.dstColorFactor),GetBlendOp(createInfo.blendInfo.colorOp),GetBlendFactor(createInfo.blendInfo.srcAlphaFactor),GetBlendFactor(createInfo.blendInfo.dstAlphaFactor),GetBlendOp(createInfo.blendInfo.alphaOp))					
+					.build(pipeline);
+				auto& shaderData = _shaderList[name];
+				shaderData.descriptorSetLayouts = layouts;
+
+				shaderData.pipeline = shaderData.filledPipeline = pipeline;
+				shaderData.pipelineLayout = pipelineLayout;
+
+			}
+			{
+				VkPipeline pipeline = VK_NULL_HANDLE;
+				//wireframe
+				PipelineBuilder::begin(context.device, pipelineLayout, renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
+					.setPolygonMode(VK_POLYGON_MODE_LINE)
+					.setBlend(createInfo.blendInfo.enable ? VK_TRUE : VK_FALSE)
+					.setDepthTest(createInfo.depthInfo.enable ? VK_TRUE : VK_FALSE)
+					.setDepthCompareOp(GetCompareOp(createInfo.depthInfo.compare))
+					.setCullMode(GetCullMode(createInfo.cullMode))//cullMode == Renderer::ShaderCullMode::frontFace ? VK_CULL_MODE_FRONT_BIT : cullMode == Renderer::ShaderCullMode::backFace ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE)
+					.setBlendState(GetBlendFactor(createInfo.blendInfo.srcColorFactor), GetBlendFactor(createInfo.blendInfo.dstColorFactor), GetBlendOp(createInfo.blendInfo.colorOp), GetBlendFactor(createInfo.blendInfo.srcAlphaFactor), GetBlendFactor(createInfo.blendInfo.dstAlphaFactor), GetBlendOp(createInfo.blendInfo.alphaOp))
+					.build(pipeline);
+				_shaderList[name].wireframePipeline = pipeline;
+
+
+			}
+			for (auto& shader : shaders) {
+				cleanupShaderModule(context.device, shader.shaderModule);
+			}
+
+
+			//allocate uniforms, TODO: don't allocate for each shader, as could be 1 uniform buffer used by many shaders.
+			std::vector<UniformBufferInfo> bufferInfo;
+			std::vector<std::pair<size_t, size_t>> bindsets;
+			Vulkan::Buffer uniformBuffer;
+			UniformBufferBuilder builder = UniformBufferBuilder::begin(context.device, context.deviceProperties, context.memoryProperties, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, true);
+			bool hasUniform = false;
+			for (size_t s = 0; s < reflection.bindings.size(); s++) {
+				auto& bindingset = reflection.bindings[s];
+				for (size_t b = 0; b < bindingset.size(); b++) {
+					auto& binding = bindingset[b];
+					if (binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
+						hasUniform = true;
+						builder.AddBuffer(binding.getPaddedSize(), 1, 1);
+						bindsets.push_back(std::make_pair(s, b));
+					}
+				}
+			}
+			if (hasUniform) {//create uniform buffers and set pointer in table to memory
+				builder.build(uniformBuffer, bufferInfo);
+				_shaderList[name].uniformBuffer = uniformBuffer;
+				for (size_t i = 0; i < bindsets.size(); i++) {
+					int s = (int)bindsets[i].first;
+					int b = (int)bindsets[i].second;
+					for (size_t j = 0; j < reflection.blockmembers.size(); j++) {
+						//int p = std::get<1>(reflection.blockmembers[j]);
+						int s2 = std::get<2>(reflection.blockmembers[j]);
+						int b2 = std::get<3>(reflection.blockmembers[j]);
+						uint32_t offset = std::get<4>(reflection.blockmembers[j]);
+						if (s == s2 && b == b2) {
+							std::get<7>(reflection.blockmembers[j]) = (void*)((uint8_t*)bufferInfo[i].ptr + offset);
+
+						}
+					}
+				}
+			}
+
+
+
+
+		}
+	}
+	void VulkanShaderManager::CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,Renderer::ShaderCullMode cullMode, bool enableBlend,bool enableDepth, Renderer::ShaderStorageType* ptypes, uint32_t numtypes, void* platformData)
 	{
 		LOG_INFO("Compiling shader {0}", name);
 		ShaderCompiler compiler;
@@ -1299,8 +913,8 @@ namespace Vulkan {
 					.setBlend(enableBlend ? VK_TRUE : VK_FALSE)
 					.setDepthTest(enableDepth ? VK_TRUE : VK_FALSE)
 					.setDepthCompareOp(VK_COMPARE_OP_LESS_OR_EQUAL)
-					.setCullMode(cullBackFaces ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_FRONT_BIT)
-					.setDepthTest(VK_TRUE)//need this to be a parameter
+					.setCullMode(cullMode==Renderer::ShaderCullMode::frontFace ? VK_CULL_MODE_FRONT_BIT : cullMode == Renderer::ShaderCullMode::backFace ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE)
+					//.setDepthTest(VK_TRUE)//need this to be a parameter
 					.build(pipeline);
 				auto& shaderData = _shaderList[name];
 				shaderData.descriptorSetLayouts = layouts;
@@ -1314,8 +928,8 @@ namespace Vulkan {
 				//wireframe
 				PipelineBuilder::begin(context.device, pipelineLayout, renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
 					.setPolygonMode(VK_POLYGON_MODE_LINE)
-					.setCullMode(cullBackFaces ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_FRONT_BIT)
-					.setDepthTest(VK_TRUE)//need this to be a parameter
+					.setCullMode(cullMode == Renderer::ShaderCullMode::frontFace ? VK_CULL_MODE_FRONT_BIT : cullMode == Renderer::ShaderCullMode::backFace ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE)
+					//.setDepthTest(VK_TRUE)//need this to be a parameter
 					.build(pipeline);
 				_shaderList[name].wireframePipeline = pipeline;
 
@@ -1412,7 +1026,7 @@ namespace Vulkan {
 			return VK_SHADER_STAGE_FRAGMENT_BIT;
 		return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 	}
-	void* VulkanShaderManager::CreateShaderData(const char* shaderPath,bool cullBackFaces,bool enableBlend,bool enableDepth, Renderer::ShaderStorageType* ptypes, uint32_t numtypes, void* platformData) {
+	void* VulkanShaderManager::CreateShaderData(const char* shaderPath,Renderer::ShaderCullMode cullMode,bool enableBlend,bool enableDepth, Renderer::ShaderStorageType* ptypes, uint32_t numtypes, void* platformData) {
 		std::string filepath = shaderPath;
 		auto lastSlash = filepath.find_last_of("/\\");
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
@@ -1422,7 +1036,22 @@ namespace Vulkan {
 		if (_shaderList.find(name) == _shaderList.end()) {
 			std::string source = readFile(filepath);
 			const std::unordered_map<VkShaderStageFlagBits, std::string> shaderSources = PreProcess(source);
-			CompileShader(name,shaderSources,cullBackFaces,enableBlend,enableDepth,ptypes,numtypes,platformData);
+			CompileShader(name,shaderSources,cullMode,enableBlend,enableDepth,ptypes,numtypes,platformData);
+		}
+		return &_shaderList[name];
+	}
+
+	void* VulkanShaderManager::CreateShaderData(const char* shaderPath, Renderer::ShaderCreateInfo& info) {
+		std::string filepath = shaderPath;
+		auto lastSlash = filepath.find_last_of("/\\");
+		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
+		auto lastDot = filepath.rfind('.');
+		auto count = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
+		std::string name = filepath.substr(lastSlash, count);
+		if (_shaderList.find(name) == _shaderList.end()) {
+			std::string source = readFile(filepath);
+			const std::unordered_map<VkShaderStageFlagBits, std::string> shaderSources = PreProcess(source);
+			CompileShader(name, shaderSources, info);
 		}
 		return &_shaderList[name];
 	}

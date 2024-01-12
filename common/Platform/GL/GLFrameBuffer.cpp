@@ -43,6 +43,8 @@ namespace GL {
 			}
 			_depthHandle = handle;
 		}
+
+		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		GLERR();
 
@@ -61,7 +63,9 @@ namespace GL {
 		glBindFramebuffer(GL_FRAMEBUFFER, _fbos[_currFrame]);
 		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _textureHandles[_currFrame], 0); 		
 		glGetIntegerv(GL_VIEWPORT, _viewport);
+
 		glViewport(0, 0, _width, _height);
+
 		if (_clearonrender) {
 			glClearColor(_clearColors[0].x, _clearColors[0].y, _clearColors[0].z, _clearColors[0].w);
 			glClear(GL_COLOR_BUFFER_BIT);

@@ -324,7 +324,7 @@ void main() {
 		GLint polygonMode;
 		glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
 		if(polygonMode!=GL_FILL)
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glPolygonMode(GL_POLYGON_MODE, GL_FILL);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		_shader.Bind();
@@ -333,7 +333,7 @@ void main() {
 		//glFrontFace(GL_CW);
 		glDrawElements(GL_TRIANGLES, frame.numIndices, GL_UNSIGNED_INT, 0);
 		if(polygonMode!=GL_FILL)
-			glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
+			glPolygonMode(GL_POLYGON_MODE, polygonMode);
 		GLERR();
 	}
 	void GLFont::GetTextSize(const char* ptext, float& width, float& height)

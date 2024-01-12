@@ -51,6 +51,9 @@ void main(){
 }
 )";
 		_shader.compile(vertexSrc, nullptr, fragmentSrc);
+		//_shader.EnableBlend(false);
+		_shader.EnableDepth(false);
+		_shader.EnableCull(false);
 		int width, height;
 		pdevice->GetDimensions(&width, &height);
 #if defined __GL__TOP__LEFT__ && defined __GL__ZERO__TO__ONE__
@@ -80,11 +83,12 @@ void main(){
 		glm::mat4 model = t * s;
 		mat4 mvp = _orthoproj * model;
 		vec4 p = mvp * vec4(0.f, 0.f, 0.f, 1.f);
-		glFrontFace(GL_CW);
+		
 		glBindVertexArray(_vao);
 		_shader.Bind();
 		_shader.setMat4("projection", _orthoproj);
 		_shader.setMat4("model", model);
+		//glFrontFace(GL_CW);
 		glBindTexture(GL_TEXTURE_2D, pText->textureID);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}

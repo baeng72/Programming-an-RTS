@@ -87,6 +87,9 @@ void main(){
 }
 )";
 		_shader.compile(vertexSrc, geometrySrc, fragmentSrc);
+		_shader.EnableCull(false);
+		_shader.EnableBlend(false);
+		_shader.EnableDepth(false);
 		glGenVertexArrays(1, &_vao);
 		
 		uint32_t vertSize = vertexCount * sizeof(Renderer::ParticleVertex);

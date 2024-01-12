@@ -99,8 +99,12 @@ namespace Vulkan {
 		Vulkan::Buffer _uniformBuffer;
 		std::vector<Vulkan::UniformBufferInfo> _uboInfo;		
 		std::unordered_map<std::string,VulkanShaderData> _shaderList;
-		void CompileShaders();
-		void CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,bool cullBackFaces,bool enableBlend,bool enableDepth, Renderer::ShaderStorageType* ptypes, uint32_t numtypes, void* platformData = nullptr);
+		VkCompareOp GetCompareOp(Renderer::ShaderCompareOp op);
+		VkCullModeFlagBits GetCullMode(Renderer::ShaderCullMode mode);
+		VkBlendFactor GetBlendFactor(Renderer::ShaderBlendFactor factor);
+		VkBlendOp GetBlendOp(Renderer::ShaderBlendOp op);
+		void CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,Renderer::ShaderCullMode cullMode,bool enableBlend,bool enableDepth, Renderer::ShaderStorageType* ptypes, uint32_t numtypes, void* platformData = nullptr);
+		void CompileShader(const std::string& name, const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources, Renderer::ShaderCreateInfo& createInfo);
 		std::string readFile(const std::string& filepath);
 		std::unordered_map<VkShaderStageFlagBits, std::string> PreProcess(const std::string& src);
 		VkShaderStageFlagBits ShaderTypeFromString(const std::string& type);
@@ -110,6 +114,7 @@ namespace Vulkan {
 		VulkanShaderManager(Renderer::RenderDevice* pdevice);
 		virtual ~VulkanShaderManager();
 		virtual void* GetShaderDataByName(const char*pname) override;
-		virtual void* CreateShaderData(const char* shaderPath,bool cullBackFaces=true,bool enableBlend=true,bool enableDepth=true,Renderer::ShaderStorageType * ptypes = nullptr, uint32_t numtypes=0, void* platformData = nullptr) override;				
+		virtual void* CreateShaderData(const char* shaderPath,Renderer::ShaderCullMode cullMode=Renderer::ShaderCullMode::backFace,bool enableBlend=true,bool enableDepth=true,Renderer::ShaderStorageType * ptypes = nullptr, uint32_t numtypes=0, void* platformData = nullptr) override;				
+		virtual void* CreateShaderData(const char* shaderPath, Renderer::ShaderCreateInfo& createInfo) override;
 	};
 }
