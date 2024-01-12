@@ -1,5 +1,6 @@
 *.cap
 *.log
+*.bin
 /build*
 /temp*
 /Programming-an-RTS/Sandbox*

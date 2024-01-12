@@ -6,5 +6,7 @@ add_subdirectory("Chapter 07")
 add_subdirectory("Chapter 08")
 add_subdirectory("Chapter 09")
 add_subdirectory("Chapter 10")
+add_subdirectory("Chapter 11")
+add_subdirectory("Chapter 12")
 
 #add_subdirectory("Sandbox")
