@@ -197,7 +197,13 @@ namespace GL {
 			break;
 		}
 		std::vector<uint8_t> pixels(_width * _height * bytesperpixel);
-		glGetTexImage(GL_TEXTURE_2D, _textureID, format, GL_UNSIGNED_BYTE, pixels.data());
+		GLint currID;
+		glGetIntegerv(GL_TEXTURE_BINDING_2D, &currID);
+		if(currID!=_textureID)
+			glBindTexture(GL_TEXTURE_2D,_textureID);
+		glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, pixels.data());
+		if (currID != _textureID);
+		glBindTexture(GL_TEXTURE_2D, currID);
 		stbi_write_jpg(ppath, _width, _height, bytesperpixel, pixels.data(), 100);
 		return true;
 	}
