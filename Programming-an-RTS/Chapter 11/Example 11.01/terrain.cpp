@@ -371,17 +371,10 @@ void TERRAIN::GenerateRandomTerrain(Core::Window* pwindow, int numPatches)
 	}
 	
 	
-	InitPathfinding();
-		
-		
-	CreatePatches(numPatches);
-		
-		
-	CalculateAlphaMaps();
-		
+	InitPathfinding();				
+	CreatePatches(numPatches);				
+	CalculateAlphaMaps();		
 	CalculateLightMap(pwindow);
-
-
 	RenderLandscape();
 	
 }
@@ -961,6 +954,7 @@ void TERRAIN::LoadTerrain(const char* pfilename)
 		InitPathfinding();
 		CreatePatches(3);
 		CalculateAlphaMaps();
+		RenderLandscape();
 	}
 	in.close();
 }

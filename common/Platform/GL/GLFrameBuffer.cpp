@@ -2,7 +2,7 @@
 #include "GLERR.h"
 namespace GL {
 	GLFrameBuffer::GLFrameBuffer(Renderer::RenderDevice* pdevice, Renderer::Texture**pptextures,uint32_t count,Renderer::Texture*pdepthmap,bool clearonrender,bool clonedevice)
-		:_clearonrender(clearonrender), _currFrame(0),_depthHandle(0)
+		:_clearonrender(clearonrender), _currFrame(0),_depthHandle(0),_depthMap(nullptr)
 	{
 		_pdevice = pdevice;
 		_textures.insert(_textures.end(), pptextures, &pptextures[count]);
@@ -50,7 +50,10 @@ namespace GL {
 
 		_clearColors[0] = Color( 0.f,0.f,0.f,1.f );
 		_clearColorCount = 1u;
-		
+		if (pdepthmap) {
+			_clearColors[1] = Color(1.f, 0.f, 0.f, 0.f);
+			_clearColorCount = 2u;
+		}
 	}
 	GLFrameBuffer::~GLFrameBuffer()
 	{
@@ -68,10 +71,22 @@ namespace GL {
 
 		if (_clearonrender) {
 			glClearColor(_clearColors[0].x, _clearColors[0].y, _clearColors[0].z, _clearColors[0].w);
-			glClear(GL_COLOR_BUFFER_BIT);
+			GLenum clearFlags = GL_COLOR_BUFFER_BIT;
+			if (_depthMap)
+				clearFlags |= GL_DEPTH_BUFFER_BIT;
+			glClear(clearFlags);
+		}
+		else {
+
+		}
+		if (_depthHandle) {
+			glEnable(GL_DEPTH_TEST);
+		}
+		else {
+			glDisable(GL_DEPTH_TEST);
 		}
 		glDisable(GL_BLEND);
-		glDisable(GL_DEPTH_TEST);
+		
 
 		GLERR();
 		assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
@@ -115,7 +130,7 @@ namespace GL {
 		
 		glEnable(GL_SCISSOR_TEST);
 		GLERR();
-		glScissor(r.left, _height - r.bottom, r.Width(), r.Height());//flip y
+		glScissor(r.left, r.top, r.Width(), r.Height());//flip y
 		GLERR();
 		glClearColor(clr.r, clr.g, clr.b, clr.a);
 		GLenum clearFlags = GL_COLOR_BUFFER_BIT;

@@ -118,7 +118,7 @@ void APPLICATION::Update(float deltaTime) {
 		
 		_terrain.UpdateMinimap(_players);
 	}
-	/*_terrain.RenderLandscape();*/
+	//_terrain.RenderLandscape();
 	//Order unitos of team 0 around...
 	if (_players.size() && _players[0]) {
 		_players[0]->UnitOrders(_mouse);
@@ -182,7 +182,8 @@ void APPLICATION::Render() {
 		EASY_BLOCK("Start Render");
 		_device->StartRender();
 	}
-	
+	//_terrain.RenderLandscape();
+	//_terrain.UpdateMinimap(_players);
 	{
 		EASY_BLOCK("Render Terrain");
 		_terrain.Render(viewProj, matWorld, _light, _camera);
