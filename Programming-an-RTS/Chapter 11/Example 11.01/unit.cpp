@@ -11,7 +11,7 @@ void LoadUnitResources(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer
 	unitMeshes.resize(fnames.size());
 	for (int i = 0; i < fnames.size(); i++) {
 		auto& fname = fnames[i];
-		std::string path = "../../../../Resources/Chapter 09/Example 9.03/" + fname;
+		std::string path = "../../../../Resources/Chapter 11/Example 11.01/" + fname;
 
 		unitMeshes[i] = std::make_unique<SKINNEDMESH>();
 		unitMeshes[i]->Load(pdevice, shaderManager, path.c_str());

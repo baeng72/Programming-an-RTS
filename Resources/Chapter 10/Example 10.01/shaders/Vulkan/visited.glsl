@@ -33,13 +33,13 @@ void main(){
 layout (location=0) in vec2 inUV;
 layout (location=0) out vec4 outFragColor;
 
-layout (binding=0) uniform sampler2D visibleTexture;
-layout (binding=1) uniform sampler2D visitedTexture;
+layout (binding=0) uniform sampler2D a_visibleTexture;
+layout (binding=1) uniform sampler2D b_visitedTexture;
 
 
 void main(){		
-	vec3 visibleColor = texture(visibleTexture,inUV).xyz;
-	vec3 visitedColor =  texture(visitedTexture,inUV).xyz;
+	vec3 visibleColor = texture(a_visibleTexture,inUV).xyz;
+	vec3 visitedColor =  texture(b_visitedTexture,inUV).xyz;
 	vec3 color = max(visibleColor,visitedColor);	
 	outFragColor = vec4(color,1.0);
 }

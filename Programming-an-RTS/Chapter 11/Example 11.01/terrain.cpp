@@ -1081,13 +1081,13 @@ void TERRAIN::RenderFogOfWar(PLAYER* player) {
 	{
 		EASY_BLOCK("Visited Pass");
 		auto visibleTexture = _visibleTexture.get();
-		auto visibleTexture2 = _visibleFramebuffer->GetTexture();
-		visibleTexture->SaveToFile(Core::ResourcePath::GetTexturePath("visible.jpg"));
+		
+		
 		_visitedFramebuffer->StartRender();
 		auto visitedTexture = _visitedFramebuffer->GetTexture();
 		
-		_visitedShader->SetTexture("visibleTexture", &visibleTexture, 1);
-		_visitedShader->SetTexture("visitedTexture", &visitedTexture, 1);
+		_visitedShader->SetTexture("a_visibleTexture", &visibleTexture, 1);
+		_visitedShader->SetTexture("b_visitedTexture", &visitedTexture, 1);
 		_visitedShader->Bind();
 		_visitedFramebuffer->DrawVertices(6);
 		_visitedFramebuffer->EndRender();
@@ -1098,9 +1098,9 @@ void TERRAIN::RenderFogOfWar(PLAYER* player) {
 		auto lightMap = _lightMap.get();
 		auto visibleTexture = _visibleTexture.get();
 		auto visitedTexture = _visitedFramebuffer->GetTexture();
-		_fowShader->SetTexture("visibleTexture", &visibleTexture, 1);
-		_fowShader->SetTexture("visitedTexture", &visitedTexture, 1);
-		_fowShader->SetTexture("lightMap", &lightMap, 1);
+		_fowShader->SetTexture("a_visibleTexture", &visibleTexture, 1);
+		_fowShader->SetTexture("b_visitedTexture", &visitedTexture, 1);
+		_fowShader->SetTexture("c_lightMap", &lightMap, 1);
 		_fowShader->Bind();
 		_fowFramebuffer->StartRender();
 		_fowFramebuffer->DrawVertices(6);

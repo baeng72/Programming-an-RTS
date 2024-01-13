@@ -15,7 +15,7 @@ uniform	mat4 matWorld;
 
 void main(){	
 	vec4 pos = matVP * matWorld * vec4(inPos,1.0);
-	gl_Position = vec4(pos.x,-pos.y,pos.z,pos.w);
+	gl_Position = vec4(pos.x,pos.y,pos.z,pos.w);
 	outUV=inUV;
 	
 }
