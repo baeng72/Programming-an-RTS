@@ -53,6 +53,6 @@ namespace Vulkan {
 		virtual void Clear(Rect& r, Color clr) override;
 		virtual void SetViewport(ViewPort& vp)override;
 		virtual float GetCurrentTicks()override { return (float)glfwGetTime(); }
-		
+		virtual void DrawVertices(uint32_t count, uint32_t offset = 0)override;
 	};
 }

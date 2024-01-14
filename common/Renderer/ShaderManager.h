@@ -10,6 +10,7 @@ namespace Renderer {
 	enum class ShaderBlendFactor{Zero,One,SrcColor,OneMinusSrcColor,DstColor,OneMinusDstColor,SrcAlpha,OneMinusSrcAlpha,DstAlpha,OneMinusDstAlpha,ConstantColor,OneMinusConstantColor,ConstantAlpha,OneMinusConstantAlpha};
 	enum class ShaderBlendOp{Add,Subtract,ReverseSubstract,Min,Max};
 	enum class ShaderCompareOp{Never,Less,Equal,LessOrEqual,Greater,NotEqual,GreaterOrEqual,Always};
+	enum class ShaderTopologyType{PointList,LineList,TriangleList};
 	//enum ShaderAttrFlagBits {
 	//	SHADER_ATTR_UBO	= 0x0000001,		//uniform buffer
 	//	SHADER_ATTR_STORAGE	= 0x000002,		//storage buffer
@@ -59,9 +60,10 @@ namespace Renderer {
 		ShaderCompareOp compare{ ShaderCompareOp::LessOrEqual };
 	};
 	struct ShaderCreateInfo {
-		ShaderCullMode cullMode;
+		ShaderCullMode cullMode{ ShaderCullMode::backFace };
 		ShaderBlendInfo blendInfo;
 		ShaderDepthInfo depthInfo;
+		ShaderTopologyType topologyType{ ShaderTopologyType::TriangleList };
 		ShaderStorageType* ptypes{ nullptr };
 		uint32_t numtypes{ 0 };
 		void* platformData{ nullptr };

@@ -149,4 +149,8 @@ namespace GL {
 	{
 		return (float)glfwGetTime();
 	}
+	void GLRenderDevice::DrawVertices(uint32_t count, uint32_t offset)
+	{
+		glDrawArrays(GL_POINTS, offset, count);
+	}
 }

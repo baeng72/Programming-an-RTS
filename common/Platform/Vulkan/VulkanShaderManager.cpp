@@ -309,17 +309,18 @@ namespace Vulkan {
 					continue;
 				uint32_t maxBinding = 0;
 				for (auto& srcbinding : srcbindingset) {
-					maxBinding = std::max(maxBinding, srcbinding.binding + 1);
+					maxBinding = std::max(maxBinding, srcbinding.binding + 1);//can introduce empty slots, so need to remove later
 				}
 				auto& dstbindingset = reflection.bindings[srcbindingset[0].set];
 				if (dstbindingset.size() < maxBinding) {
+					
 					dstbindingset.resize(maxBinding);
 				}
 				for (size_t b = 0; b < srcbindingset.size(); b++) {
 					auto& srcbinding = srcbindingset[b];
 					uint32_t set = srcbinding.set;
 					uint32_t binding = srcbinding.binding;
-
+					
 					auto& dstbinding = dstbindingset[binding];
 					dstbinding.stageFlags |= stage;
 					dstbinding.binding = srcbinding.binding;
@@ -343,7 +344,19 @@ namespace Vulkan {
 				}
 			}
 		}
-
+		//check for empty binding
+		for (size_t s = 0; s < reflection.bindings.size();s++) {
+			auto& bindingset = reflection.bindings[s];
+			std::vector<VlkBinding> newbinding;
+			for (size_t i = 0; i < bindingset.size(); i++) {
+				if (bindingset[i].descriptorType != VK_DESCRIPTOR_TYPE_MAX_ENUM) {
+					newbinding.push_back(bindingset[i]);
+				}
+			}
+			if (newbinding.size() < bindingset.size()) {
+				reflection.bindings[s] = newbinding;
+			}
+		}
 	}
 	void FlattenBlocks(VlkBlock& block, int setid,int bindingid,std::vector<std::tuple<std::string, int, int, int, uint32_t, uint32_t, uint32_t,void*>>& blockmembers,int parent) {
 		int id = (int)blockmembers.size();
@@ -497,16 +510,20 @@ namespace Vulkan {
 		Reflect(spirvMap, reflection);
 		std::vector<std::tuple<std::string, int, int, int, uint32_t, uint32_t, uint32_t, void*>>& blockmembers = reflection.blockmembers;
 		std::unordered_map<size_t, int>& blockmap = reflection.blockmap;
+		
 		for (auto& bindingset : reflection.bindings) {
+			int idx = 0;
 			for (auto& binding : bindingset) {
 				int resType = (int)binding.restype;
 				if (resType & (int)VlkResourceType::Sampler) {
-					blockmembers.push_back({ binding.name,-1,binding.set , binding.binding,binding.count,0,0,nullptr });
+					blockmembers.push_back({ binding.name,-1,binding.set , binding.binding,binding.count,0,0,(void*)idx });
 				}
 				else {
 					FlattenBlocks(binding.block, binding.set, binding.binding, blockmembers, -1);
 				}
+				idx++;
 			}
+			
 		}
 		if (reflection.pushBlock.block.members.size() > 0)
 			FlattenBlocks(reflection.pushBlock.block, -1, -1, blockmembers, -1);
@@ -644,10 +661,25 @@ namespace Vulkan {
 			vertexInputDescription.binding = 0;
 			vertexInputDescription.stride = offset;
 			vertexInputDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
+			VkPrimitiveTopology topo = VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
+			switch (createInfo.topologyType) {
+			case Renderer::ShaderTopologyType::PointList:
+				topo = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+				break;
+			case Renderer::ShaderTopologyType::LineList:
+				topo = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+				break;
+			case Renderer::ShaderTopologyType::TriangleList:
+				topo = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+				break;
+			default:
+				assert(0);
+				break;
+			}
 			{
 				VkPipeline pipeline = VK_NULL_HANDLE;
 				PipelineBuilder::begin(context.device, pipelineLayout, renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
+					.setTopology(topo)
 					.setBlend(createInfo.blendInfo.enable? VK_TRUE : VK_FALSE)
 					.setDepthTest(createInfo.depthInfo.enable ? VK_TRUE : VK_FALSE)
 					.setDepthCompareOp(GetCompareOp(createInfo.depthInfo.compare))
@@ -665,6 +697,7 @@ namespace Vulkan {
 				VkPipeline pipeline = VK_NULL_HANDLE;
 				//wireframe
 				PipelineBuilder::begin(context.device, pipelineLayout, renderPass, shaders, vertexInputDescription, vertexAttributeDescriptions)
+					.setTopology(topo)
 					.setPolygonMode(VK_POLYGON_MODE_LINE)
 					.setBlend(createInfo.blendInfo.enable ? VK_TRUE : VK_FALSE)
 					.setDepthTest(createInfo.depthInfo.enable ? VK_TRUE : VK_FALSE)
@@ -1021,7 +1054,7 @@ namespace Vulkan {
 		if (type == "vertex")
 			return VK_SHADER_STAGE_VERTEX_BIT;
 		else if (type == "geometry")
-			return VK_SHADER_STAGE_VERTEX_BIT;
+			return VK_SHADER_STAGE_GEOMETRY_BIT;
 		else if (type == "fragment")
 			return VK_SHADER_STAGE_FRAGMENT_BIT;
 		return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;

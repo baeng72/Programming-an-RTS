@@ -29,6 +29,7 @@ namespace Renderer {
 		virtual void Clear(Rect& r, Color clr) = 0;
 		virtual void SetViewport(ViewPort& vp)=0;
 		virtual float GetCurrentTicks() = 0;
+		virtual void DrawVertices(uint32_t count,uint32_t offset=0) = 0;
 		static RenderDevice* Create(void* nativeWidowHandle);
 	};
 }

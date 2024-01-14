@@ -48,29 +48,29 @@ namespace Vulkan {
 				uint32_t set = binding.set;
 				uint32_t bindx = binding.binding;
 				uint32_t count = binding.count;
-				_writes[set][bindx].descriptorType = binding.descriptorType;
-				_writes[set][bindx].descriptorCount = count;
-				_writes[set][bindx].dstBinding = bindx;
-				_writes[set][bindx].sType= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				_writes[set][b].descriptorType = binding.descriptorType;
+				_writes[set][b].descriptorCount = count;
+				_writes[set][b].dstBinding = bindx;
+				_writes[set][b].sType= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				switch (binding.descriptorType) {
 				case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
 					
 					//TODO: using pre-alloctated uniform, this may need to change to use externally allocated uniform
 					_writeBuffers.push_back({ _pShaderData->uniformBuffer.buffer,offset,binding.getPaddedSize() });
-					_writes[set][bindx].pBufferInfo = &_writeBuffers[bufferCount++];
+					_writes[set][b].pBufferInfo = &_writeBuffers[bufferCount++];
 					offset += binding.getPaddedSize();
 					break;
 				case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
 					_writeBuffers.push_back({ defRes->defUniformDynamic.buffer,0,defRes->defUniformDynamic.size });
-					_writes[set][bindx].pBufferInfo = &_writeBuffers[bufferCount++];
+					_writes[set][b].pBufferInfo = &_writeBuffers[bufferCount++];
 					break;
 				case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
 					_writeBuffers.push_back({ defRes->defStorage.buffer,0,defRes->defStorage.size });
-					_writes[set][bindx].pBufferInfo = &_writeBuffers[bufferCount++];
+					_writes[set][b].pBufferInfo = &_writeBuffers[bufferCount++];
 					break;
 				case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
 					_writeBuffers.push_back({ defRes->defStorageDynamic.buffer,0,defRes->defStorageDynamic.size });
-					_writes[set][bindx].pBufferInfo = &_writeBuffers[bufferCount++];
+					_writes[set][b].pBufferInfo = &_writeBuffers[bufferCount++];
 
 
 					break;
@@ -81,7 +81,7 @@ namespace Vulkan {
 					for (uint32_t i = 0; i < count; i++,imageCount++) {
 						_writeImages.push_back({ defRes->defTexture.sampler,defRes->defTexture.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 					}
-					_writes[set][bindx].pImageInfo = &_writeImages[firstImage];
+					_writes[set][b].pImageInfo = &_writeImages[firstImage];
 					break;
 				}
 				}
@@ -89,74 +89,6 @@ namespace Vulkan {
 		}
 
 		
-
-		//uint32_t offset=0;
-		//bufferInfos.resize(_pShaderData->reflection.bindings.size());
-		//imageInfos.resize(_pShaderData->reflection.bindings.size());
-		////_descriptors.push_back({});
-		////_descriptors[0].sets.resize(_pShaderData->reflection.bindings.size());
-		//for (size_t s = 0; s < _pShaderData->reflection.bindings.size(); s++) {
-		//	auto& bindingset = _pShaderData->reflection.bindings[s];
-		//	std::vector<VkDescriptorBufferInfo>& buffers = bufferInfos[s];
-		//	buffers.resize(bindingset.size());
-		//	//_descriptors[0].sets[s].bindings.resize(bindingset.size());
-		//	std::vector<std::vector<VkDescriptorImageInfo>>& images = imageInfos[s];
-		//	images.resize(bindingset.size());
-		//	auto updater = DescriptorSetUpdater::begin(context.pLayoutCache, layouts[s], sets[s]);
-		//	for (size_t b = 0; b < bindingset.size(); b++) {
-		//		auto& binding = bindingset[b];
-		//		uint32_t set = binding.set;
-		//		uint32_t bindx = binding.binding;
-		//		uint32_t count = binding.count;
-		//		auto& bindimages = images[bindx];
-		//		switch (binding.descriptorType) {
-		//		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-		//			buffers[bindx].buffer = _pShaderData->uniformBuffer.buffer;
-		//			buffers[bindx].offset = offset;
-		//			buffers[bindx].range = binding.getPaddedSize();
-		//			offset += binding.getPaddedSize();
-		//			updater.AddBinding(bindx, binding.descriptorType, &buffers[bindx]);
-		//			//_descriptors[0].sets[s].bindings[b].buffer = _pShaderData->uniformBuffer.buffer;
-		//			break;
-		//		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-		//			buffers[bindx].buffer = defRes->defUniformDynamic.buffer;
-		//			buffers[bindx].offset = 0;
-		//			buffers[bindx].range = defRes->defUniformDynamicInfo[0].objectSize;
-		//			updater.AddBinding(bindx, binding.descriptorType, &buffers[bindx]);
-		//			//_descriptors[0].sets[s].bindings[b].buffer = defRes->defUniformDynamic.buffer;
-		//			break;
-		//		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-		//			buffers[bindx].buffer = defRes->defStorage.buffer;
-		//			buffers[bindx].offset = 0;
-		//			buffers[bindx].range = defRes->defStorageInfo[0].objectSize;
-		//			updater.AddBinding(bindx, binding.descriptorType, &buffers[bindx]);
-		//			//_descriptors[0].sets[s].bindings[b].buffer = defRes->defStorage.buffer;
-		//			break;
-		//		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-		//			buffers[bindx].buffer = defRes->defStorageDynamic.buffer;
-		//			buffers[bindx].offset = 0;
-		//			buffers[bindx].range = defRes->defStorageDynamicInfo[0].objectSize;
-		//			updater.AddBinding(bindx, binding.descriptorType, &buffers[bindx]);
-		//			//_descriptors[0].sets[s].bindings[b].buffer = defRes->defStorageDynamic.buffer;
-		//			break;
-		//		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-		//			bindimages.resize(count);
-		//			//assert(count < MAX_IMAGE_COUNT);
-		//			for (uint32_t i = 0; i < count; i++) {
-		//				bindimages[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		//				bindimages[i].imageView = defRes->defTexture.imageView;
-		//				bindimages[i].sampler = defRes->defTexture.sampler;
-		//				//_descriptors[0].sets[s].bindings[b].images[i]=defRes->defTexture.image;
-		//			}
-		//			updater.AddBinding(bindx, binding.descriptorType, bindimages.data(),count);
-		//			break;
-		//		default:
-		//			assert(0);
-		//			break;
-		//		}
-		//	}
-		//	updater.update();
-		//}
 
 		//textures are a uniform type, but treating differently, so copy to different datamap
 		for (size_t m = 0; m < _pShaderData->reflection.blockmembers.size(); m++) {
@@ -471,9 +403,10 @@ namespace Vulkan {
 				memcpy(pdst, ptr, len);
 			}
 			else {
+				uint32_t size = std::get<6>(blockmembers[i]);
 				Vulkan::VulkFrameData* framedataptr = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
 				Vulkan::VulkFrameData& framedata = *framedataptr;
-				vkCmdPushConstants(framedata.cmd, _pShaderData->pipelineLayout, _pShaderData->reflection.pushBlock.stageFlags, offset, len, ptr);
+				vkCmdPushConstants(framedata.cmd, _pShaderData->pipelineLayout, _pShaderData->reflection.pushBlock.stageFlags, offset, size, ptr);
 			}
 			return true;
 		}		
@@ -519,8 +452,9 @@ namespace Vulkan {
 
 		int set = std::get<2>(member);
 		int bindx = std::get<3>(member);
+		int writeidx = (int)(long)std::get<7>(member);//use index into binding set above
 		int imagecount = std::get<4>(member);//need to have 'offset' be count, using size as indicator that it's a texture
-		auto& write = _writes[set][bindx];
+		auto& write = _writes[set][writeidx];
 		assert(write.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 		assert(write.descriptorCount == imagecount);
 		for (int i = 0; i < imagecount; i++) {
@@ -613,10 +547,11 @@ namespace Vulkan {
 				auto& member = texturemembers[m];
 				int set = std::get<2>(member);
 				int binding = std::get<3>(member);
+				int writeidx =(int) std::get<7>(member);//index set above
 				/*if (set == (int)s) {
 					cursettuple.push_back(member);
 				}*/
-				auto& write = _writes[set][binding];
+				auto& write = _writes[set][writeidx];
 				Vulkan::Texture* ptextdata = (Vulkan::Texture*)pptextures[imageIndex++]->GetNativeHandle();
 				((VkDescriptorImageInfo*)write.pImageInfo)->imageView = ptextdata->imageView;
 				((VkDescriptorImageInfo*)write.pImageInfo)->sampler = ptextdata->sampler;

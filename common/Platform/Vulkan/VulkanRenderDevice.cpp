@@ -208,5 +208,10 @@ namespace Vulkan {
 		VkViewport viewport = { vp.x,vp.y,vp.width,vp.height,vp.fnear,vp.ffar };
 		vkCmdSetViewport(_cmd, 0, 1, &viewport);
 	}
+
+	void VulkanRenderDevice::DrawVertices(uint32_t count, uint32_t offset)
+	{
+		vkCmdDraw(_cmd, count, 1, offset, 0);
+	}
 	
 }
