@@ -1,0 +1,15 @@
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                        Effect Pixelshader                            //
+//                                                                      //
+//                   Written by C. Granberg, 2006                       //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+
+sampler effectTexture;
+
+float4 Main(float4 color : COLOR0, float2 UV : TEXCOORD0) : COLOR
+{
+    float4 c0 = tex2D(effectTexture, UV);
+    return c0 * color;
+}
