@@ -404,6 +404,8 @@ namespace Vulkan {
 		std::vector<bool> enableLods;
 		bool isArray{ false };
 		bool isCube{ false };
+		VkSamplerAddressMode addrMode {VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE};
+		VkFilter filter{ VK_FILTER_LINEAR };
 
 		TextureLoader(VkDevice device_, VkCommandBuffer commandBuffer_, VkQueue queue_, VkPhysicalDeviceMemoryProperties memoryProperties_);
 		void loadTexture(uint8_t* pixels, uint32_t width, uint32_t height, VkFormat format, bool enableLod, Texture& texture);
@@ -414,6 +416,8 @@ namespace Vulkan {
 		TextureLoader& addTexture(const char* imagePath, bool enableLod = false);
 		TextureLoader& setIsArray(bool isArray_);
 		TextureLoader& setIsCube(bool isCube_);
+		TextureLoader& setSamplerAddressMode(VkSamplerAddressMode mode);
+		TextureLoader& setSamplerFilter(VkFilter filter);
 		bool load(std::vector<Texture>& textures);
 
 	};

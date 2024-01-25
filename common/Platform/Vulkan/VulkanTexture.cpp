@@ -7,7 +7,35 @@
 
 
 namespace Vulkan {
-	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, const char* pfile,glm::vec2 size):_size(size)
+	VkSamplerAddressMode VulkanTextureImpl::GetSamplerAddrMode(Renderer::TextureSamplerAddress add)
+	{
+		VkSamplerAddressMode mode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		switch (add) {
+		case Renderer::TextureSamplerAddress::Clamp:
+			mode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			break;
+		case Renderer::TextureSamplerAddress::Repeat:
+			mode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+			break;
+		case Renderer::TextureSamplerAddress::Border:
+			mode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+			break;		
+		}
+		return mode;
+	}
+	VkFilter VulkanTextureImpl::GetSamplerFilter(Renderer::TextureSamplerFilter filt) {
+		VkFilter filter = VK_FILTER_LINEAR;
+		switch (filt) {
+		case Renderer::TextureSamplerFilter::Linear:
+			filter = VK_FILTER_LINEAR;
+			break;
+		case Renderer::TextureSamplerFilter::Nearest:
+			filter = VK_FILTER_NEAREST;
+			break;
+		}
+		return filter;
+	}
+	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, const char* pfile,glm::vec2 size, Renderer::TextureSamplerAddress samplerAdd, Renderer::TextureSamplerFilter filter):_size(size)
 	{		
 		_pdevice = pdevice;
 		VulkContext* contextptr = reinterpret_cast<VulkContext*>(pdevice->GetDeviceContext());
@@ -16,6 +44,8 @@ namespace Vulkan {
 		
 		TextureLoader::begin(context.device, context.commandBuffer, context.queue, context.memoryProperties)
 			.addTexture(pfile)
+			.setSamplerAddressMode(GetSamplerAddrMode(samplerAdd))
+			.setSamplerFilter(GetSamplerFilter(filter))
 			.load(textures);
 		_texture = textures[0];
 		switch (_texture.format) {
@@ -40,7 +70,8 @@ namespace Vulkan {
 			_size = glm::vec2(_texture.width, _texture.height);
 		}
 	}
-	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, uint8_t* pixels):_size(glm::vec2(width,height))
+	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, uint8_t* pixels, Renderer::TextureSamplerAddress samplerAdd, Renderer::TextureSamplerFilter filter)
+		:_size(glm::vec2(width,height))
 	{
 		_pdevice = pdevice;
 		VulkContext* contextptr = reinterpret_cast<VulkContext*>(pdevice->GetDeviceContext());
@@ -88,6 +119,9 @@ namespace Vulkan {
 		props.width = width;
 		props.layout = VK_IMAGE_LAYOUT_UNDEFINED;
 		props.imageUsage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		props.samplerProps.addressMode = GetSamplerAddrMode(samplerAdd);
+		props.samplerProps.filter = GetSamplerFilter(filter);
+
 		if (pixels != nullptr)
 			props.imageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
@@ -120,7 +154,8 @@ namespace Vulkan {
 		}
 		
 	}
-	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt) :_size(glm::vec2(width, height))
+	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, Renderer::TextureSamplerAddress samplerAdd, Renderer::TextureSamplerFilter filter) 
+		:_size(glm::vec2(width, height))
 	{
 		_pdevice = pdevice;
 		VulkContext* contextptr = reinterpret_cast<VulkContext*>(pdevice->GetDeviceContext());
@@ -173,6 +208,8 @@ namespace Vulkan {
 		props.layout = VK_IMAGE_LAYOUT_UNDEFINED;
 		props.imageUsage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | usage;
 		props.mipLevels = enableLod ? 0 : 1;
+		props.samplerProps.addressMode = GetSamplerAddrMode(samplerAdd);
+		props.samplerProps.filter = GetSamplerFilter(filter);
 #ifdef __USE__VMA__
 		props.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 #else

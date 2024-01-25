@@ -174,6 +174,7 @@ namespace GL {
 		void SetTexture(const char* pname, int texID);
 		void SetTextures(int* ptexids, uint32_t count);
 		void SetTextures(const char* pname, int* texids, uint32_t count);
+		void SetSampler(GLenum addrMode, GLenum filter);
 		void SetStorageBuffer(GLuint buffer);	
 		void SetFrontFace(GLenum ff) { _frontFace = ff; }
 		void SetCullFace(GLenum cf) { _cullFace = cf; _enableCull = true; }

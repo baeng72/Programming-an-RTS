@@ -8,10 +8,12 @@ namespace Vulkan{
 		Vulkan::Texture _texture;
 		glm::vec2 _size;
 		Renderer::TextureFormat _fmt;
+		VkSamplerAddressMode GetSamplerAddrMode(Renderer::TextureSamplerAddress add);
+		VkFilter GetSamplerFilter(Renderer::TextureSamplerFilter filter);
 	public:
-		VulkanTextureImpl(Renderer::RenderDevice* pdevice, const char* pfile,glm::vec2 size);
-		VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, uint8_t * pixels);
-		VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt);
+		VulkanTextureImpl(Renderer::RenderDevice* pdevice, const char* pfile,glm::vec2 size, Renderer::TextureSamplerAddress samplerAdd = Renderer::TextureSamplerAddress::Clamp, Renderer::TextureSamplerFilter filter = Renderer::TextureSamplerFilter::Linear);
+		VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, uint8_t * pixels, Renderer::TextureSamplerAddress samplerAdd = Renderer::TextureSamplerAddress::Clamp, Renderer::TextureSamplerFilter filter = Renderer::TextureSamplerFilter::Linear);
+		VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, Renderer::TextureSamplerAddress samplerAdd = Renderer::TextureSamplerAddress::Clamp, Renderer::TextureSamplerFilter filter = Renderer::TextureSamplerFilter::Linear);
 		virtual ~VulkanTextureImpl();		
 		virtual void* GetNativeHandle()const override;
 		virtual glm::vec2 GetScale()const override;

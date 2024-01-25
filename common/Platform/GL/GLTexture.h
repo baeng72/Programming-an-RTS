@@ -15,11 +15,15 @@ namespace GL {
 			int textureID;
 			int width;
 			int height;
+			GLenum addrMode;
+			GLenum filter;
 		}tex;
+		GLenum GetSamplerAddressMode(Renderer::TextureSamplerAddress addrMode);
+		GLenum GetSamplerFilter(Renderer::TextureSamplerFilter filter);
 	public:		
-		GLTexture(Renderer::RenderDevice* pdevice, const char* pfile, glm::vec2 size);
-		GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, uint8_t* pixels);
-		GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt );
+		GLTexture(Renderer::RenderDevice* pdevice, const char* pfile, glm::vec2 size, Renderer::TextureSamplerAddress samplerAdd = Renderer::TextureSamplerAddress::Clamp, Renderer::TextureSamplerFilter filter = Renderer::TextureSamplerFilter::Linear);
+		GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, uint8_t* pixels, Renderer::TextureSamplerAddress samplerAdd = Renderer::TextureSamplerAddress::Clamp, Renderer::TextureSamplerFilter filter = Renderer::TextureSamplerFilter::Linear);
+		GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, Renderer::TextureSamplerAddress samplerAdd = Renderer::TextureSamplerAddress::Clamp, Renderer::TextureSamplerFilter filter = Renderer::TextureSamplerFilter::Linear);
 		virtual ~GLTexture();
 		virtual void* GetNativeHandle()const override;
 		virtual glm::vec2 GetScale()const override;

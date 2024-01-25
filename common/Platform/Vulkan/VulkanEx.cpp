@@ -1199,6 +1199,16 @@ TextureLoader& TextureLoader::setIsCube(bool isCube_) {
 	return *this;
 }
 
+TextureLoader& TextureLoader::setSamplerAddressMode(VkSamplerAddressMode addrMode_) {
+	addrMode = addrMode_;
+	return *this;
+}
+
+TextureLoader& TextureLoader::setSamplerFilter(VkFilter filter_) {
+	filter = filter_;
+	return *this;
+}
+
 
 void TextureLoader::loadTextureArray(std::vector<uint8_t*>& pixelArray, uint32_t width, uint32_t height, bool enableLod, Texture& texture) {
 	uint32_t imageCount = (uint32_t)pixelArray.size();
@@ -1215,7 +1225,9 @@ void TextureLoader::loadTextureArray(std::vector<uint8_t*>& pixelArray, uint32_t
 	props.width = (uint32_t)width;
 	props.height = (uint32_t)height;
 	props.mipLevels = enableLod ? 0 : 1;
-	props.samplerProps.addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	props.samplerProps.addressMode = addrMode;
+	props.samplerProps.filter = filter;
+
 	props.layers = imageCount;
 
 	initTexture(device, memoryProperties, props, texture);
@@ -1267,7 +1279,8 @@ void TextureLoader::loadCubeMap(std::vector<uint8_t*>& pixelArray, uint32_t widt
 	props.width = (uint32_t)width;
 	props.height = (uint32_t)height;
 	props.mipLevels = enableLod ? 0 : 1;
-	props.samplerProps.addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	props.samplerProps.addressMode = addrMode;
+	props.samplerProps.filter = filter;
 	props.layers = 6;
 	props.isCubeMap = true;
 
@@ -1320,7 +1333,9 @@ void TextureLoader::loadTexture(uint8_t* pixels, uint32_t width, uint32_t height
 	props.width = (uint32_t)width;
 	props.height = (uint32_t)height;
 	props.mipLevels = enableLod ? 0 : 1;
-	props.samplerProps.addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	props.samplerProps.addressMode = addrMode;
+	props.samplerProps.filter = filter;
+
 	initTexture(device, memoryProperties, props, texture);
 	transitionImage(device, queue, commandBuffer, texture.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, texture.mipLevels);
 

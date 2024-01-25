@@ -197,13 +197,20 @@ namespace GL {
 			int textureID;
 			int width;
 			int height;
+			GLenum addrMode;
+			GLenum filter;
 		};
+		GLenum addrMode;
+		GLenum filter;
 		std::vector<int> texids(count);
 		for (uint32_t i = 0; i < count; i++) {
 			GLTextureInfo*pinfo=(GLTextureInfo*)pptexture[i]->GetNativeHandle();
 			texids[i] = pinfo->textureID;
+			addrMode = pinfo->addrMode;
+			filter = pinfo->filter;
 		}
 		_pshader->SetTextures(texids.data(),count);
+		_pshader->SetSampler(addrMode, filter);
 		return true;
 	}
 	bool GLShader::SetTexture(const char* pname, Renderer::Texture** pptexture, uint32_t count)
@@ -212,13 +219,20 @@ namespace GL {
 			int textureID;
 			int width;
 			int height;
+			GLenum addrMode;
+			GLenum filter;
 		};
+		GLenum addrMode;
+		GLenum filter;
 		std::vector<int> texids(count);
 		for (uint32_t i = 0; i < count; i++) {
 			GLTextureInfo* pinfo = (GLTextureInfo*)pptexture[i]->GetNativeHandle();
 			texids[i] = pinfo->textureID;
+			addrMode = pinfo->addrMode;
+			filter = pinfo->filter;
 		}
 		_pshader->SetTextures(pname, texids.data(), count);
+		_pshader->SetSampler(addrMode, filter);
 		return true;
 	}
 	bool GLShader::SetTextures(Renderer::Texture** pptextures, uint32_t count)
@@ -227,13 +241,20 @@ namespace GL {
 			int textureID;
 			int width;
 			int height;
+			GLenum addrMode;
+			GLenum filter;
 		};
+		GLenum addrMode;
+		GLenum filter;
 		std::vector<int> texids(count);
 		for (uint32_t i = 0; i < count; i++) {
 			GLTextureInfo* pinfo = (GLTextureInfo*)pptextures[i]->GetNativeHandle();
 			texids[i] = pinfo->textureID;
+			addrMode = pinfo->addrMode;
+			filter = pinfo->filter;
 		}
 		_pshader->SetTextures(texids.data(), count);
+		_pshader->SetSampler(addrMode, filter);
 		return true;
 	}
 	uint32_t GLShader::GetTextureId(const char* pname)

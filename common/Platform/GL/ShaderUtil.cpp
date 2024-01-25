@@ -251,6 +251,17 @@ namespace GL {
 		glUniform1iv(location, count, (const GLint*)locs.data());
 		GLERR();
 	}
+	void ShaderUtil::SetSampler(GLenum addrMode, GLenum filter)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+		GLERR();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+		GLERR();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, addrMode);
+		GLERR();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, addrMode);
+		GLERR();
+	}
 	void ShaderUtil::SetStorageBuffer(GLuint buffer)
 	{
 		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);

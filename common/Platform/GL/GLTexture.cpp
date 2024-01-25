@@ -3,7 +3,9 @@
 #include "GLERR.h"
 #include "stb/stb_image_write.h"
 namespace GL {
-	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, const char* pfile,vec2 size)
+
+
+	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, const char* pfile,vec2 size, Renderer::TextureSamplerAddress samplerAdd, Renderer::TextureSamplerFilter filter)
 		:_size(size)
 
 	{
@@ -45,10 +47,13 @@ namespace GL {
 		tex.textureID = _textureID;
 		tex.width = width;
 		tex.height = height;
+		tex.addrMode = GetSamplerAddressMode(samplerAdd);
+		tex.filter = GetSamplerFilter(filter);
 		stbi_image_free(data);
 	}
 	
-	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height,Renderer::TextureFormat fmt,uint8_t* pixels):_size(glm::vec2(width, height)), _fmt(fmt)
+	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height,Renderer::TextureFormat fmt,uint8_t* pixels, Renderer::TextureSamplerAddress samplerAdd, Renderer::TextureSamplerFilter filter)
+		:_size(glm::vec2(width, height)), _fmt(fmt)
 	{
 		_pdevice = pdevice;
 		GLint format;
@@ -96,8 +101,11 @@ namespace GL {
 		tex.textureID = _textureID;
 		tex.width = width;
 		tex.height = height;
+		tex.addrMode = GetSamplerAddressMode(samplerAdd);
+		tex.filter = GetSamplerFilter(filter);
 	}
-	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt) :_size(glm::vec2(width, height)),_fmt(fmt)
+	GLTexture::GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, Renderer::TextureSamplerAddress samplerAdd, Renderer::TextureSamplerFilter filter) 
+		:_size(glm::vec2(width, height)),_fmt(fmt)
 	{
 		_pdevice = pdevice;
 		GLint internalformat;
@@ -151,6 +159,8 @@ namespace GL {
 		tex.textureID = _textureID;
 		tex.width = width;
 		tex.height = height;
+		tex.addrMode = GetSamplerAddressMode(samplerAdd);
+		tex.filter = GetSamplerFilter(filter);
 	}
 	GLTexture::~GLTexture()
 	{
@@ -202,9 +212,38 @@ namespace GL {
 		if(currID!=_textureID)
 			glBindTexture(GL_TEXTURE_2D,_textureID);
 		glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, pixels.data());
-		if (currID != _textureID);
-		glBindTexture(GL_TEXTURE_2D, currID);
+		if (currID != _textureID)
+			glBindTexture(GL_TEXTURE_2D, currID);
 		stbi_write_jpg(ppath, _width, _height, bytesperpixel, pixels.data(), 100);
 		return true;
+	}
+
+	GLenum GLTexture::GetSamplerAddressMode(Renderer::TextureSamplerAddress addrMode)
+	{
+		GLenum mode = GL_CLAMP_TO_EDGE;
+		switch (addrMode) {
+		case Renderer::TextureSamplerAddress::Clamp:
+			mode = GL_CLAMP_TO_EDGE;
+			break;
+		case Renderer::TextureSamplerAddress::Border:
+			mode = GL_CLAMP_TO_BORDER;
+			break;
+		case Renderer::TextureSamplerAddress::Repeat:
+			mode = GL_REPEAT;
+			break;
+		}
+		return mode;
+	}
+	GLenum GLTexture::GetSamplerFilter(Renderer::TextureSamplerFilter filt) {
+		GLenum filter = GL_LINEAR;
+		switch (filt) {
+		case Renderer::TextureSamplerFilter::Linear:
+			filter = GL_LINEAR;
+			break;
+		case Renderer::TextureSamplerFilter::Nearest:
+			filter = GL_NEAREST;
+			break;
+		}
+		return filter;
 	}
 }
