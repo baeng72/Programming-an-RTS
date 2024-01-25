@@ -21,7 +21,7 @@ SKYBOX::SKYBOX(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderM
 	_textures.resize(6);
 	for (int i = 0; i < 6; i++) {
 		std::string fname = pfilename + endings[i];
-		_textures[i].reset(Renderer::Texture::Create(pdevice, fname.c_str()));
+		_textures[i].reset(Renderer::Texture::Create(pdevice, fname.c_str(),Renderer::TextureSamplerAddress::Clamp));
 	}
 	std::vector<SKYBOX_VERTEX> v(24);
 	vec3 corners[8] = { vec3(-size,  size,  size),
