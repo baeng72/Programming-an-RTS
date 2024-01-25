@@ -454,7 +454,7 @@ namespace Vulkan {
 		int bindx = std::get<3>(member);
 		int writeidx = (int)(long)std::get<7>(member);//use index into binding set above
 		int imagecount = std::get<4>(member);//need to have 'offset' be count, using size as indicator that it's a texture
-		auto& write = _writes[set][writeidx];
+		auto& write = _writes[set][bindx];
 		assert(write.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 		assert(write.descriptorCount == imagecount);
 		for (int i = 0; i < imagecount; i++) {
