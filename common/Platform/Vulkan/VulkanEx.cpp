@@ -512,16 +512,31 @@ VkDescriptorSet DescriptorSetCache::getDescriptor(std::vector<VkWriteDescriptorS
 	uint32_t hash = getHash(writes);
 	VkDescriptorSet set = _cache[hash];
 	if (set == VK_NULL_HANDLE) {
-		_pPoolCache->allocateDescriptorSet(&set, _layout);
+		if (_availableDescriptors.size() > 0) {
+			set = _availableDescriptors.front();
+			_availableDescriptors.pop();
+		}
+		else {
+			_pPoolCache->allocateDescriptorSet(&set, _layout);
+		}
 		_cache[hash] = set;
 		for (auto& write : writes) {
 			write.dstSet = set;
 		}
+
 		DescriptorSetUpdater::begin(_pLayoutCache, _layout, set)
 			.AddBindings(writes)
 			.update();
 	}
 	return set;
+}
+
+void DescriptorSetCache::Reset() {
+	
+	for (auto& pair : _cache) {
+		_availableDescriptors.emplace(pair.second);
+	}
+	_cache.clear();
 }
 
 DescriptorSetLayoutBuilder::DescriptorSetLayoutBuilder( DescriptorSetLayoutCache* pLayout_) : pLayout(pLayout_)

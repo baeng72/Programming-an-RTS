@@ -136,12 +136,15 @@ namespace Vulkan {
 		
 	}
 	
-	void VulkanShader::Bind(uint32_t* pdynoffsets, uint32_t dynoffcount)
+	void VulkanShader::Bind(uint32_t* pdynoffsets, uint32_t dynoffcount,bool override)
 	{
 
 		Vulkan::VulkFrameData* framedataptr = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
 		Vulkan::VulkFrameData& framedata = *framedataptr;
+		
 		for (size_t i = 0; i < _writes.size(); i++) {
+			if (override)
+				_descriptorCache[i].Reset();
 			_descriptorSets[i] = _descriptorCache[i].getDescriptor(_writes[i]);
 		}
 		vkCmdBindDescriptorSets(framedata.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pShaderData->pipelineLayout, 0, (uint32_t)_descriptorSets.size(), _descriptorSets.data(), dynoffcount, pdynoffsets);
@@ -441,6 +444,7 @@ namespace Vulkan {
 		
 	}
 
+	
 	bool VulkanShader::SetTexture(uint32_t id, Renderer::Texture** pptexture, uint32_t count)
 	{
 		assert(id < texturemembers.size());
@@ -454,7 +458,7 @@ namespace Vulkan {
 		int bindx = std::get<3>(member);
 		int writeidx = (int)(long)std::get<7>(member);//use index into binding set above
 		int imagecount = std::get<4>(member);//need to have 'offset' be count, using size as indicator that it's a texture
-		auto& write = _writes[set][bindx];
+		auto& write = _writes[set][writeidx];
 		assert(write.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 		assert(write.descriptorCount == imagecount);
 		for (int i = 0; i < imagecount; i++) {
@@ -745,6 +749,8 @@ namespace Vulkan {
 	{
 		return &_pShaderData->pipeline;
 	}
+
+	
 
 	/*void VulkanShader::Rebind(uint32_t* pdynoffsets, uint32_t dynoffcount)
 	{

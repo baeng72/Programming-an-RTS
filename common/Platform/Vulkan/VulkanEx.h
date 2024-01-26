@@ -3,6 +3,7 @@
 //#include <vector>
 //#include <array>
 #include <unordered_map>
+#include <queue>
 //#include <memory>
 #include <algorithm>
 #include "Vulkan.h"
@@ -284,7 +285,7 @@ namespace Vulkan {
 		DescriptorSetPoolCache* _pPoolCache;
 		DescriptorSetLayoutCache* _pLayoutCache;
 		VkDescriptorSetLayout _layout;
-		
+		std::queue<VkDescriptorSet> _availableDescriptors;
 		std::vector<VkDescriptorSetLayoutBinding> _bindings;	//may not be necessary
 		std::unordered_map<size_t, VkDescriptorSet> _cache;	//hash for each combination of buffers/textures and the matching descriptor
 		uint32_t hashval(const void* data, size_t count);
@@ -297,6 +298,7 @@ namespace Vulkan {
 		DescriptorSetCache(VkDescriptorSetLayout layout, DescriptorSetPoolCache* pPoolCache, DescriptorSetLayoutCache*pLayoutCache);
 		void init(VkDescriptorSetLayout layout, DescriptorSetPoolCache* pPoolCache, DescriptorSetLayoutCache* pLayoutCache);
 		VkDescriptorSet getDescriptor(std::vector<VkWriteDescriptorSet>& writes);
+		void Reset();
 
 	};
 

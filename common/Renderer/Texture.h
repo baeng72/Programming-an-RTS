@@ -7,10 +7,11 @@ namespace Renderer {
 	enum class TextureSamplerFilter {Linear,Nearest};
 	class Texture {
 	public:
-		static Texture* Create(Renderer::RenderDevice* pdevice, const char* pfile,TextureSamplerAddress samplerAdd=TextureSamplerAddress::Clamp,TextureSamplerFilter filter=TextureSamplerFilter::Linear);
-		static Texture* Create(Renderer::RenderDevice* pdevice, const char* pfile,glm::vec2 size, TextureSamplerAddress samplerAdd = TextureSamplerAddress::Clamp, TextureSamplerFilter filter = TextureSamplerFilter::Linear);
+		static Texture* Create(Renderer::RenderDevice* pdevice, const char* pfile,TextureSamplerAddress samplerAdd=TextureSamplerAddress::Repeat,TextureSamplerFilter filter=TextureSamplerFilter::Linear);
+		static Texture* Create(Renderer::RenderDevice* pdevice, const char* pfile,glm::vec2 size, TextureSamplerAddress samplerAdd = TextureSamplerAddress::Repeat, TextureSamplerFilter filter = TextureSamplerFilter::Linear);
 		static Texture* Create(Renderer::RenderDevice* pdevice, int width, int height, TextureFormat fmt, uint8_t* pixels, TextureSamplerAddress samplerAdd = TextureSamplerAddress::Clamp, TextureSamplerFilter filter = TextureSamplerFilter::Linear);
-		static Texture* Create(Renderer::RenderDevice* pdevice, int width, int height, TextureFormat fmt, TextureSamplerAddress samplerAdd = TextureSamplerAddress::Clamp, TextureSamplerFilter filter = TextureSamplerFilter::Linear);
+		static Texture* Create(Renderer::RenderDevice* pdevice, int width, int height, TextureFormat fmt, TextureSamplerAddress samplerAdd = TextureSamplerAddress::Repeat, TextureSamplerFilter filter = TextureSamplerFilter::Linear);
+		static Texture* Create(Renderer::RenderDevice* pdevice, Renderer::Texture* psrc);
 		virtual ~Texture() = default;		
 		virtual void* GetNativeHandle()const = 0;
 		virtual glm::vec2 GetScale()const = 0;

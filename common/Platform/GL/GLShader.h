@@ -11,7 +11,7 @@ namespace GL {
 	public:
 		GLShader(Renderer::RenderDevice* pdevice, void* shaderData);
 		virtual ~GLShader();
-		virtual void Bind(uint32_t* pdynoffsets = nullptr, uint32_t dynoffcount = 0)override;
+		virtual void Bind(uint32_t* pdynoffsets = nullptr, uint32_t dynoffcount = 0,bool override=false)override;
 		virtual void SetWireframe(bool wireframe)override;
 		//virtual void SetPushConstData(void*, uint32_t len)override;
 		virtual bool SetUniformBuffer(uint32_t i, Renderer::Buffer* pbuffer, bool dynamic = false)override;

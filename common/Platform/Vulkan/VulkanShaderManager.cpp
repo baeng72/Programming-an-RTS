@@ -794,15 +794,18 @@ namespace Vulkan {
 		Reflect(spirvMap, reflection);
 		std::vector<std::tuple<std::string, int, int,int, uint32_t, uint32_t, uint32_t,void*>> &blockmembers=reflection.blockmembers;
 		std::unordered_map<size_t, int>& blockmap=reflection.blockmap;
+
 		for (auto& bindingset : reflection.bindings) {
+			uint32_t idx = 0;
 			for (auto& binding : bindingset) {
 				int resType = (int)binding.restype;
 				if (resType & (int)VlkResourceType::Sampler) {
-					blockmembers.push_back({ binding.name,-1,binding.set , binding.binding,binding.count,0,0,nullptr });
+					blockmembers.push_back({ binding.name,-1,binding.set , binding.binding,binding.count,0,0,(void*)idx });
 				}
 				else {
 					FlattenBlocks(binding.block, binding.set, binding.binding, blockmembers, -1);
 				}
+				idx++;
 			}
 		}
 		if(reflection.pushBlock.block.members.size()>0)

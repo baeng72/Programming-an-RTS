@@ -50,7 +50,7 @@ namespace Vulkan {
 		VulkanShader(Renderer::RenderDevice* pdevice,void*shaderData);		
 		virtual ~VulkanShader();
 		
-		void Bind(uint32_t* pdynoffsets = nullptr, uint32_t dynoffcount = 0)override;
+		void Bind(uint32_t* pdynoffsets = nullptr, uint32_t dynoffcount = 0,bool override=false)override;
 		
 		//virtual void SetPushConstData(void*, uint32_t len)override;
 		virtual void SetWireframe(bool wireframe)override;
@@ -81,6 +81,7 @@ namespace Vulkan {
 		virtual bool SetTexture(uint32_t, Renderer::Texture** pptexture, uint32_t count) override;
 		virtual bool SetTexture(const char* pname, Renderer::Texture** pptexture, uint32_t count) override;
 		virtual bool SetTextures(Renderer::Texture** pptextures, uint32_t count) override;
+		
 		virtual uint32_t GetTextureId(const char* pname) override;
 		virtual bool SetStorageBuffer(uint32_t i, Renderer::Buffer* pbuffer, bool dynamic = false) override;
 		virtual bool SetStorageBuffer(const char* pname, Renderer::Buffer* pbuffer, bool dynamic = false) override;
@@ -91,6 +92,7 @@ namespace Vulkan {
 
 		//virtual void Rebind(uint32_t* pdynoffsets = nullptr, uint32_t dynoffcount = 0)override;
 		virtual void* GetNativeHandle()override;
+		
 		
 	};
 }

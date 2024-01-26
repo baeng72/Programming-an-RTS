@@ -123,21 +123,26 @@ namespace Vulkan {
 			.build(defResources.defStorageDynamic, defResources.defStorageDynamicInfo);
 		constexpr int check_width = 16;
 		constexpr int check_height = 16;
+		constexpr int pixcount = 4;
+		constexpr int pitch = check_width * pixcount;
 		Vulkan::Buffer stagingBuffer = StagingBufferBuilder::begin(device, deviceMemoryProperties)
-			.setSize(check_width * check_height)
+			.setSize(check_width * check_height * pixcount)
 			.build();
 		uint8_t* ppixels = (uint8_t*)Vulkan::mapBuffer(device, stagingBuffer);
 		for (int y = 0; y < check_height; y++) {
 			for (int x = 0; x < check_width; x++) {
-				uint32_t offset = y * check_width + x;
+				uint32_t offset = y * pitch + x*pixcount;
 				uint8_t clr = x % 2 == y % 2  ? 0 : 255;
-				ppixels[offset] = clr;
+				ppixels[offset+0] = clr;
+				ppixels[offset + 1] = clr;
+				ppixels[offset + 2] = clr;
+				ppixels[offset + 3] = 1;
 			}
 		}
 		Vulkan::unmapBuffer(device, stagingBuffer);
 		defResources.defTexture = TextureBuilder::begin(device, deviceMemoryProperties)
 			.setDimensions(check_width, check_height)
-			.setFormat(VK_FORMAT_R8_UNORM)
+			.setFormat(VK_FORMAT_R8G8B8A8_SRGB)
 			.setImageUsage(VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT)
 
 			.setMipLevels(1)

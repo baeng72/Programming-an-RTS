@@ -17,13 +17,15 @@ namespace GL {
 			int height;
 			GLenum addrMode;
 			GLenum filter;
+			GLenum format;
 		}tex;
 		GLenum GetSamplerAddressMode(Renderer::TextureSamplerAddress addrMode);
 		GLenum GetSamplerFilter(Renderer::TextureSamplerFilter filter);
 	public:		
-		GLTexture(Renderer::RenderDevice* pdevice, const char* pfile, glm::vec2 size, Renderer::TextureSamplerAddress samplerAdd = Renderer::TextureSamplerAddress::Clamp, Renderer::TextureSamplerFilter filter = Renderer::TextureSamplerFilter::Linear);
-		GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, uint8_t* pixels, Renderer::TextureSamplerAddress samplerAdd = Renderer::TextureSamplerAddress::Clamp, Renderer::TextureSamplerFilter filter = Renderer::TextureSamplerFilter::Linear);
-		GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, Renderer::TextureSamplerAddress samplerAdd = Renderer::TextureSamplerAddress::Clamp, Renderer::TextureSamplerFilter filter = Renderer::TextureSamplerFilter::Linear);
+		GLTexture(Renderer::RenderDevice* pdevice, const char* pfile, glm::vec2 size, Renderer::TextureSamplerAddress samplerAdd = Renderer::TextureSamplerAddress::Repeat, Renderer::TextureSamplerFilter filter = Renderer::TextureSamplerFilter::Linear);
+		GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, uint8_t* pixels, Renderer::TextureSamplerAddress samplerAdd = Renderer::TextureSamplerAddress::Repeat, Renderer::TextureSamplerFilter filter = Renderer::TextureSamplerFilter::Linear);
+		GLTexture(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, Renderer::TextureSamplerAddress samplerAdd = Renderer::TextureSamplerAddress::Repeat, Renderer::TextureSamplerFilter filter = Renderer::TextureSamplerFilter::Linear);
+		GLTexture(Renderer::RenderDevice* pdevice, Renderer::Texture* psrc);
 		virtual ~GLTexture();
 		virtual void* GetNativeHandle()const override;
 		virtual glm::vec2 GetScale()const override;

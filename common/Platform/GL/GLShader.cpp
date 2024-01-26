@@ -8,7 +8,7 @@ namespace GL {
 	GLShader::~GLShader() {
 
 	}
-	void GLShader::Bind(uint32_t* pdynoffsets, uint32_t dynoffcount)
+	void GLShader::Bind(uint32_t* pdynoffsets, uint32_t dynoffcount,bool override)
 		
 	{
 		
