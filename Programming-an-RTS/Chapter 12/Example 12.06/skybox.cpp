@@ -1,6 +1,5 @@
 #include "skybox.h"
-#include "camera.h"
-constexpr int TEX_DIM = 1024;
+
 struct SKYBOX_VERTEX {
 	vec3 pos;
 	vec2 uv;
@@ -17,13 +16,13 @@ struct SKYBOX_VERTEX {
 SKYBOX::SKYBOX(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderManager>&shaderManager, const char* pfilename, float size)
 	:_pdevice(pdevice)
 {
-	//std::string endings[] = { "_UP.jpg","_FR.jpg","_BK.jpg","_RT.jpg","_LF.jpg","_DN.jpg" };
-	////Load the 6 skybox textures
+	std::string endings[] = { "_UP.jpg","_FR.jpg","_BK.jpg","_RT.jpg","_LF.jpg","_DN.jpg" };
+	//Load the 6 skybox textures
 	_textures.resize(6);
-	//for (int i = 0; i < 6; i++) {
-	//	std::string fname = pfilename + endings[i];
-	//	_textures[i].reset(Renderer::Texture::Create(pdevice, fname.c_str(),Renderer::TextureSamplerAddress::Clamp));
-	//}
+	for (int i = 0; i < 6; i++) {
+		std::string fname = pfilename + endings[i];
+		_textures[i].reset(Renderer::Texture::Create(pdevice, fname.c_str(),Renderer::TextureSamplerAddress::Clamp));
+	}
 	std::vector<SKYBOX_VERTEX> v(24);
 	vec3 corners[8] = { vec3(-size,  size,  size),
 								vec3(size,  size,  size),
@@ -118,32 +117,19 @@ SKYBOX::SKYBOX(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderM
 	Renderer::ShaderCreateInfo ci;
 	ci.cullMode = Renderer::ShaderCullMode::frontFace;
 	_shader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("skybox.glsl"),ci)));
-	_skyboxTexture.reset(Renderer::Texture::Create(pdevice, TEX_DIM, TEX_DIM, Renderer::TextureFormat::R8G8B8A8,Renderer::TextureSamplerAddress::Clamp,Renderer::TextureSamplerFilter::Nearest));
-	_depthTexture.reset(Renderer::Texture::Create(pdevice, TEX_DIM, TEX_DIM, Renderer::TextureFormat::D32));
-	auto texture = _skyboxTexture.get();
-	auto depth = _depthTexture.get();
-	_skyboxFramebuffer.reset(Renderer::FrameBuffer::Create(pdevice, &texture, 1,depth,true,true));
-	Renderer::ClearColor clrs[2] = { vec4(1.f),vec4(1.f,0.f,0.f,0.f )};
-
-	_skyboxFramebuffer->SetClearColor(clrs, 2);
 }
 
 SKYBOX::~SKYBOX()
 {
-	_skyboxFramebuffer.reset();
-	_skyboxTexture.reset();
-	_depthTexture.reset();
 	for (auto& tex : _textures)
 		tex.reset();
 	_textures.clear();
 	_mesh.reset();
-	_shader.reset();
 }
 
 void SKYBOX::Render(mat4&viewProj,vec3 cameraPos)
 {
 	mat4 position = translate(mat4(1.f), cameraPos);
-	
 	_shader->SetUniform("viewProj", viewProj);
 	_shader->SetUniform("world", position);
 	_mesh->Bind();
@@ -152,68 +138,5 @@ void SKYBOX::Render(mat4&viewProj,vec3 cameraPos)
 		_shader->SetTexture("texmap", &texture, 1);
 		_shader->Bind();
 		_mesh->Render(i);
-	}
-}
-inline mat4 _vulkPerspectiveLH(float fov, float width, float height, float zn, float zf) {
-
-
-	float rad = fov * 0.25f;
-	const float h = glm::cos(rad) / glm::sin(rad);
-	const float w = h * height / width; ///todo max(width , Height) / min(width , Height)?
-	mat4 result = mat4(1.f);
-	result[0][0] = w;
-	result[1][1] = -h;//flip y
-	result[2][2] = zf / (zf - zn);
-	result[2][3] = 1.f;
-	result[3][2] = -zf * zn / (zf - zn);
-
-	return result;
-}
-void SKYBOX::GenerateEnvironmentMap(vec3 position, bool saveToFile, TERRAIN& terrain, Renderer::DirectionalLight& light, Core::Window* pwindow)
-{
-	vec3 directions[] = { vec3(0.0f, 1.0f, 0.0f),		//UP
-								vec3(0.0f, 0.0f, -1.0f),		//Front
-								vec3(0.0f, 0.0f, 1.0f),		//Back
-								vec3(1.0f, 0.0f, 0.0f),		//Right
-								vec3(-1.0f, 0.0f, 0.0f),		//Left
-								vec3(0.0f, -1.0f, 0.0f) };	//Down
-
-	//The camera "UP" direction for the 6 cameras
-	vec3 up[] = { vec3(0.0f, 0.0f, -1.0f),
-						vec3(0.0f, 1.0f, 0.0f),
-						vec3(0.0f, 1.0f, 0.0f),
-						vec3(0.0f, 1.0f, 0.0f),
-						vec3(0.0f, 1.0f, 0.0f),
-						vec3(0.0f, 0.0f, 1.0f) };
-
-	std::string fNames[] = { "UP.jpg", "FR.jpg", "BK.jpg", "RT.jpg", "LF.jpg", "DN.jpg" };
-	
-	
-	mat4 proj = Core::perspective(pi*0.5f, (float)TEX_DIM, (float)TEX_DIM, 1.f, 1000.f);
-	
-	for (int i = 0; i < 6; i++) {
-		
-		vec3 centre = (position + directions[i]);
-		
-		
-		mat4 view = glm::lookAtLH(position, centre, up[i]);
-
-		mat4 matVP = proj * view;
-
-		CAMERA cam;
-		cam.Init(pwindow);
-		cam.CalculateFrustum(proj, view);
-		_pdevice->StartOffscreenRender();
-		_skyboxFramebuffer->StartRender();
-		terrain.Render(matVP, mat4(1.f), light, cam);
-		_skyboxFramebuffer->EndRender();
-		_pdevice->EndOffscreenRender();
-		if (saveToFile) {
-			
-			_skyboxTexture->SaveToFile(Core::ResourcePath::GetTexturePath(fNames[i].c_str()));
-		}
-		//copy to a texture
-		
-		_textures[i].reset(Renderer::Texture::Create(_pdevice, _skyboxTexture.get()));
 	}
 }
