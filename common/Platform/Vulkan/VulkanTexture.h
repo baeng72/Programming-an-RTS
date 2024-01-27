@@ -8,6 +8,8 @@ namespace Vulkan{
 		Vulkan::Texture _texture;
 		glm::vec2 _size;
 		Renderer::TextureFormat _fmt;
+		Renderer::TextureSamplerAddress _addr;
+		Renderer::TextureSamplerFilter _filter;
 		VkSamplerAddressMode GetSamplerAddrMode(Renderer::TextureSamplerAddress add);
 		VkFilter GetSamplerFilter(Renderer::TextureSamplerFilter filter);
 	public:

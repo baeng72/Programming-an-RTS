@@ -39,6 +39,7 @@ namespace Vulkan {
 		const char* vertexSrc = R"(
 #version 450
 layout (location=0) out vec2 outUV;
+layout (location=1) out vec4 outColor;
 
 vec3 vertices[4]={
 	{0.0,0.0,0.0},
@@ -47,40 +48,48 @@ vec3 vertices[4]={
 	{ 0.0, 1.0,0.0},
 };
 
-vec2 uvs[4]={
-	{0.0,0.0},
-	{1.0,0.0},
-	{1.0,1.0},
-	{0.0,1.0},
-};
+//vec2 uvs[4]={
+//	{0.0,0.0},
+//	{1.0,0.0},
+//	{1.0,1.0},
+//	{0.0,1.0},
+//};
 
 int indices[6] = {
 	0,1,2,0,2,3
 };
 
-layout (push_constant) uniform PushConst{
-	mat4 projection;	
+layout(set=0,binding=0) uniform UBO{
+	mat4 projection;
+};
+
+layout (push_constant) uniform PushConst{	
 	mat4 model;
+	vec4	color;
+	vec2 uvs[4];	
+	
 };
 
 void main(){
 	vec3 inPos = vertices[indices[gl_VertexIndex]];
-	vec2 inUV = uvs[indices[gl_VertexIndex]];
+	vec2 inUV = uvs[indices[gl_VertexIndex]];//+uvOffsets[indices[gl_VertexIndex]];
 	gl_Position = projection * model * vec4(inPos,1.0);
 	outUV = inUV;
+	outColor = color;
 }
 
 )";
 		const char* fragmentSrc = R"(
 #version 450
 layout (location=0) in vec2 inUV;
+layout (location=1) in vec4 inColor;
 layout (location=0) out vec4 outFragColor;
 
-layout (set=0,binding=0) uniform sampler2D text;
+layout (set=0,binding=1) uniform sampler2D text;
 
 void main(){
 	vec4 sampled = texture(text,inUV);
-	outFragColor = sampled;
+	outFragColor = sampled*inColor;
 }
 )";
 		_pdevice = pdevice;
@@ -90,7 +99,8 @@ void main(){
 		VulkFrameData& framedata = *framedataptr;
 		std::vector<VkDescriptorSet> descriptorSetList;
 		DescriptorSetBuilder::begin(context.pPoolCache, context.pLayoutCache)
-			.AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(0,VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,VK_SHADER_STAGE_VERTEX_BIT,1)
+			.AddBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,VK_SHADER_STAGE_FRAGMENT_BIT)
 			.build(descriptorSetList, _descriptorLayout,MAX_FRAMES);
 		spriteDescriptorPtr = std::make_unique<VulkanDescriptorList>(context.device, descriptorSetList);
 		_descriptorSets[0] = descriptorSetList[0];
@@ -138,7 +148,10 @@ void main(){
 		}
 		instances++;
 		pdevice->GetDimensions(&_width, &_height);
+		_uboBuffer.reset(Renderer::Buffer::Create(pdevice, sizeof(UBO), 1, true));
+		_pubo = (UBO*)_uboBuffer->MapPtr();
 		_orthoproj = vulkOrthoRH(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);// myvulkOrthoRH(0.f, (float)_width, 0.f, (float)_height, -1.f, 1.f);
+		memcpy(_pubo, &_orthoproj, sizeof(UBO));
 		//_orthoproj[1][1] *= -1;
 		_xform = mat4(1.f);
 		
@@ -146,6 +159,7 @@ void main(){
 
 	VulkanSprite::~VulkanSprite()
 	{
+		_uboBuffer.reset();
 		if (--instances == 0) {
 			spritePipelineLayoutPtr.reset();
 			spritePipelinePtr.reset();
@@ -161,6 +175,7 @@ void main(){
 					//resuse existing
 				}
 				else {
+					Vulkan::Buffer* pbuffer = (Vulkan::Buffer*)_uboBuffer->GetNativeHandle();
 					_descriptorIndex++;
 					_descriptorIndex %= 2;
 					ASSERT(ptexture, "Invalid Sprite Texture");
@@ -169,12 +184,18 @@ void main(){
 					VulkContext* contextptr = reinterpret_cast<VulkContext*>(_pdevice->GetDeviceContext());
 					VulkContext& context = *contextptr;
 					_ptexture = ptext;
+					
+
+					VkDescriptorBufferInfo bufferInfo{};
+					bufferInfo.buffer = pbuffer->buffer;
+					bufferInfo.range = sizeof(UBO);
 					VkDescriptorImageInfo imageInfo{};
 					imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 					imageInfo.imageView = ptext->imageView;
 					imageInfo.sampler = ptext->sampler;
 					DescriptorSetUpdater::begin(context.pLayoutCache, _descriptorLayout, _descriptorSets[_descriptorIndex])
-						.AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo)
+						.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,&bufferInfo)
+						.AddBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo)
 						.update();
 				}
 			}
@@ -188,7 +209,61 @@ void main(){
 
 			glm::mat4 s = glm::scale(id, glm::vec3(_ptexture->width , _ptexture->height , 0.f));
 			mat4 model = t * s;// *_xform;
-			PushConst pushConst = { _orthoproj ,model };			
+			PushConst pushConst = { model,Color(1.f),{{0.f,0.f},{1.f,0.f},{1.f,1.f},{0.f,1.f}} };
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[_descriptorIndex], 0, nullptr);
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline);
+			vkCmdPushConstants(cmd, _pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConst), &pushConst);
+			vkCmdDraw(cmd, 6, 1, 0, 0);
+		}
+	}
+	void VulkanSprite::Draw(Renderer::Texture* ptexture,Rect&rc, glm::vec3& position,Color&color)
+	{
+		if (ptexture) {
+			Vulkan::Texture* ptext = (Vulkan::Texture*)ptexture->GetNativeHandle();
+			if (_ptexture != ptext) {
+				if (_ptexture && !ptext) {
+					//resuse existing
+				}
+				else {
+					Vulkan::Buffer* pbuffer = (Vulkan::Buffer*)_uboBuffer->GetNativeHandle();
+					_descriptorIndex++;
+					_descriptorIndex %= 2;
+					ASSERT(ptexture, "Invalid Sprite Texture");
+					/*if(!_scaleoverriden)
+						_scale = ptexture->GetScale();*/
+					VulkContext* contextptr = reinterpret_cast<VulkContext*>(_pdevice->GetDeviceContext());
+					VulkContext& context = *contextptr;
+					_ptexture = ptext;
+					
+					VkDescriptorBufferInfo bufferInfo{};
+					bufferInfo.buffer = pbuffer->buffer;
+					bufferInfo.range = sizeof(UBO);
+					VkDescriptorImageInfo imageInfo{};
+					imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					imageInfo.imageView = ptext->imageView;
+					imageInfo.sampler = ptext->sampler;
+					DescriptorSetUpdater::begin(context.pLayoutCache, _descriptorLayout, _descriptorSets[_descriptorIndex])
+						.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &bufferInfo)
+						.AddBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo)
+						.update();
+				}
+			}
+
+			VulkFrameData* framedataptr = reinterpret_cast<VulkFrameData*>(_pdevice->GetCurrentFrameData());
+			VulkFrameData& framedata = *framedataptr;
+			VkCommandBuffer cmd = framedata.cmd;
+
+			mat4 id = glm::mat4(1.f);
+			mat4 t = glm::translate(_xform, position);
+
+			glm::mat4 s = glm::scale(id, glm::vec3(_ptexture->width, _ptexture->height, 0.f));
+			mat4 model = t * s;// *_xform;
+			//calculate uv offsets
+			float leftStart = rc.left / (float)_ptexture->width;
+			float rightEnd = rc.right / (float)_ptexture->width;
+			float topStart = rc.top / (float)_ptexture->height;
+			float bottomEnd = rc.bottom / (float)_ptexture->height;
+			PushConst pushConst = { model,color,{{leftStart,topStart},{rightEnd,topStart},{rightEnd,bottomEnd},{leftStart,bottomEnd}} };
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[_descriptorIndex], 0, nullptr);
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline);
 			vkCmdPushConstants(cmd, _pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConst), &pushConst);

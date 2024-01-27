@@ -10,5 +10,6 @@ namespace Renderer {
 		//virtual void SetScale(vec2 scale) = 0;
 		virtual void SetTransform(mat4& xform) = 0;
 		virtual void Draw(Texture* ptexture, vec3& position) = 0;
+		virtual void Draw(Texture* ptexture, Rect& r, vec3& position,Color&color) = 0;
 	};
 }

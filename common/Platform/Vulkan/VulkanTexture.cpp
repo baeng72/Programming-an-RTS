@@ -42,6 +42,8 @@ namespace Vulkan {
 		if (_size.x == -1 || _size.y == -1) {
 			_size = glm::vec2(_texture.width, _texture.height);
 		}
+		_addr = samplerAdd;
+		_filter = filter;
 	}
 	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, uint8_t* pixels, Renderer::TextureSamplerAddress samplerAdd, Renderer::TextureSamplerFilter filter)
 		:_size(glm::vec2(width,height))
@@ -81,7 +83,8 @@ namespace Vulkan {
 			format = VK_FORMAT_D32_SFLOAT;
 			break;
 		}
-		
+		_addr = samplerAdd;
+		_filter = filter;
 		
 		ASSERT(format != VK_FORMAT_MAX_ENUM, "Unkown format for bytesperpixel: {0}", bytesperpixel);
 		VkDeviceSize imageSize = (uint64_t)width * (uint64_t)height * bytesperpixel;
@@ -171,6 +174,8 @@ namespace Vulkan {
 			format = VK_FORMAT_D32_SFLOAT;
 			break;
 		}
+		_addr = samplerAdd;
+		_filter = filter;
 		ASSERT(format != VK_FORMAT_MAX_ENUM, "Unkown format for bytesperpixel: {0}", bytesperpixel);
 		VkDeviceSize imageSize = (uint64_t)width * (uint64_t)height * bytesperpixel;
 		TextureProperties props;
@@ -181,8 +186,8 @@ namespace Vulkan {
 		props.layout = VK_IMAGE_LAYOUT_UNDEFINED;
 		props.imageUsage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | usage;
 		props.mipLevels = enableLod ? 0 : 1;
-		props.samplerProps.addressMode = GetSamplerAddrMode(samplerAdd);
-		props.samplerProps.filter = GetSamplerFilter(filter);
+		props.samplerProps.addressMode =  GetSamplerAddrMode(samplerAdd);
+		props.samplerProps.filter =  GetSamplerFilter(filter);
 #ifdef __USE__VMA__
 		props.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 #else
@@ -236,6 +241,8 @@ namespace Vulkan {
 			format = VK_FORMAT_D32_SFLOAT;
 			break;
 		}
+		_addr = pvsrc->_addr;
+		_filter = pvsrc->_filter;
 		VkDeviceSize imageSize = (uint64_t)width * (uint64_t)height * bytesperpixel;
 		TextureProperties props;
 		props.format = format;
@@ -245,7 +252,8 @@ namespace Vulkan {
 		props.layout = VK_IMAGE_LAYOUT_UNDEFINED;
 		props.imageUsage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | usage;
 		props.mipLevels = enableLod ? 0 : 1;
-		props.samplerProps.addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		props.samplerProps.addressMode = GetSamplerAddrMode(_addr);
+		props.samplerProps.filter = GetSamplerFilter(_filter);
 #ifdef __USE__VMA__
 		props.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 #else

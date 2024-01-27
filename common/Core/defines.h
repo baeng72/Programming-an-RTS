@@ -130,11 +130,12 @@ inline vec3 glProject(vec3 const& obj, mat4 const& model, mat4 const& mvp, vec4 
 //////////////////////////////
 
 inline mat4 vulkPerspectiveLH(float fov, float width, float height, float zn, float zf) {
-	const float rad = fov;
-	const float h = glm::cos(static_cast<float>(0.5f) * rad) / glm::sin(static_cast<float>(0.5f) * rad);
-	const float w = h * height / width; ///todo max(width , Height) / min(width , Height)?
-	mat4 result=mat4(1.f);
 	
+
+	float rad = fov * 0.25f;
+	const float h = 1 / glm::tan(rad);// glm::cos(rad) / glm::sin(rad);
+	const float w = h * height / width; ///todo max(width , Height) / min(width , Height)?
+	mat4 result=mat4(1.f);	
 	result[0][0] = w;
 	result[1][1] = -h;//flip y
 	result[2][2] = zf / (zf - zn);

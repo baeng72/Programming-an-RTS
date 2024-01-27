@@ -165,9 +165,17 @@ namespace GL {
 		int GetUniformLocation(const char* name) {
 			
 			size_t hash = Core::HashFNV1A(name, strlen(name));
-			int location = _uniformMap[hash];
+			int location = 0;
+			if(_uniformMap.find(hash)!=_uniformMap.end())
+				location =_uniformMap[hash];
+			else {
+				ensureProgram();
+				location = glGetUniformLocation(_programID, name);
+				GLERR();
+				_uniformMap[hash] = location;
+			}
 			
-			GLERR();
+			
 			return location;
 		}
 		void SetTexture(int texID);

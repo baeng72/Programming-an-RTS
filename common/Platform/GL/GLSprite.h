@@ -14,6 +14,7 @@ namespace GL {
 		virtual ~GLSprite();
 		virtual void SetTransform(mat4& xform)override { _xform = xform; }
 		virtual void Draw(Renderer::Texture * ptexture, vec3& position)override;
+		virtual void Draw(Renderer::Texture* ptexture, Rect& r, vec3& position,Color&color)override;
 		/*virtual void SetScale(vec2 scale) override {
 			_scale = scale;
 		}*/
