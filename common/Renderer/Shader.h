@@ -17,6 +17,10 @@ namespace Renderer {
 		virtual bool SetUniformBuffer(const char* pname, Buffer* pbuffer,bool dynamic=false) = 0;
 		virtual bool SetUniformData(uint32_t i,void*ptr,uint32_t len,bool dynamic=false) = 0;
 		virtual bool SetUniformData(const char*pname, void* ptr, uint32_t len,bool dynamic=false) = 0;	
+		virtual bool SetUniform(const char* pname, float f) = 0;
+		virtual bool SetUniform(uint32_t i, int32_t v) = 0;
+		virtual bool SetUniform(const char* pname, int32_t v) = 0;
+		virtual bool SetUniform(uint32_t i, float f)=0;
 		virtual bool SetUniform(uint32_t i, vec2& v) = 0;
 		virtual bool SetUniform(uint32_t i, vec2* p) = 0;
 		virtual bool SetUniform(const char* pname, vec2& v) = 0;

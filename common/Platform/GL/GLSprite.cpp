@@ -105,6 +105,7 @@ void main(){
 		//glFrontFace(GL_CW);
 		glBindTexture(GL_TEXTURE_2D, pText->textureID);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
 	}
 	void GLSprite::Draw(Renderer::Texture* ptexture,Rect&rc, vec3& position,Color& color)
 	{
@@ -123,6 +124,7 @@ void main(){
 		vec4 p = mvp * vec4(0.f, 0.f, 0.f, 1.f);
 
 		glBindVertexArray(_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		_shader.Bind();
 		_shader.setMat4("projection", _orthoproj);
 		_shader.setMat4("model", model);
@@ -140,5 +142,6 @@ void main(){
 		//glFrontFace(GL_CW);
 		glBindTexture(GL_TEXTURE_2D, pText->textureID);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
 	}
 }

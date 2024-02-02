@@ -35,3 +35,6 @@
 #include "Renderer/VIBuffer.h"
 #include "Renderer/FrameBuffer.h"
 
+//ImGui stuff
+#include "Platform/imgui/ImGuiWrapper.h"
+

@@ -483,6 +483,11 @@ namespace Vulkan {
 		}
 		return res;
 	}
+	std::unordered_map<VkShaderStageFlagBits, const char*> nameMap = {
+			{VK_SHADER_STAGE_VERTEX_BIT,"Vertex"},
+			{VK_SHADER_STAGE_GEOMETRY_BIT,"Geometry"},
+			{VK_SHADER_STAGE_FRAGMENT_BIT,"Fragment"}
+	};
 	void VulkanShaderManager::CompileShader(const std::string& name, const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources, Renderer::ShaderCreateInfo& createInfo) {
 		LOG_INFO("Compiling shader {0}", name);
 		ShaderCompiler compiler;
@@ -490,7 +495,7 @@ namespace Vulkan {
 		for (auto& pair : shaderSources) {
 			std::vector<uint32_t> spirv = compiler.compileShader(pair.second.c_str(), pair.first);
 			if (spirv.size() == 0) {
-				LOG_ERROR("Unable to compile shader: {0}", pair.first);
+				LOG_ERROR("Unable to compile shader: {0} Shader", nameMap[pair.first]);
 			}
 			spirvMap[pair.first] = spirv;
 		}
@@ -755,17 +760,36 @@ namespace Vulkan {
 
 		}
 	}
+	
 	void VulkanShaderManager::CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,Renderer::ShaderCullMode cullMode, bool enableBlend,bool enableDepth, Renderer::ShaderStorageType* ptypes, uint32_t numtypes, void* platformData)
 	{
 		LOG_INFO("Compiling shader {0}", name);
 		ShaderCompiler compiler;
+		
 		std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>> spirvMap;
 		for (auto &pair : shaderSources) {
 			std::vector<uint32_t> spirv = compiler.compileShader(pair.second.c_str(),pair.first);
 			if (spirv.size() == 0) {
-				LOG_ERROR("Unable to compile shader: {0}", pair.first);
+				LOG_ERROR("Unable to compile shader: {0} Shader", nameMap[pair.first]);
 			}
 			spirvMap[pair.first] = spirv;
+		}
+		{
+			if (_shaderList.find(name) != _shaderList.end()) {
+				Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
+				Vulkan::VulkContext& context = *contextptr;
+				auto& shaderData = _shaderList[name];
+				if (shaderData.pipeline != VK_NULL_HANDLE) {
+					cleanupPipeline(context.device, shaderData.pipeline);
+					cleanupPipeline(context.device, shaderData.wireframePipeline);
+					cleanupPipelineLayout(context.device, shaderData.pipelineLayout);
+					for (auto& layout : shaderData.descriptorSetLayouts) {
+						cleanupDescriptorSetLayout(context.device, layout);
+					}
+					if(shaderData.uniformBuffer.buffer!=VK_NULL_HANDLE)
+						cleanupBuffer(context.device, shaderData.uniformBuffer);
+				}
+			}
 		}
 		////get descriptor sets, ubo sizes, etc
 		//struct DescrBase {
@@ -953,6 +977,7 @@ namespace Vulkan {
 					//.setDepthTest(VK_TRUE)//need this to be a parameter
 					.build(pipeline);
 				auto& shaderData = _shaderList[name];
+				
 				shaderData.descriptorSetLayouts = layouts;
 
 				shaderData.pipeline = shaderData.filledPipeline = pipeline;
@@ -1089,6 +1114,18 @@ namespace Vulkan {
 			const std::unordered_map<VkShaderStageFlagBits, std::string> shaderSources = PreProcess(source);
 			CompileShader(name, shaderSources, info);
 		}
+		return &_shaderList[name];
+	}
+
+	void* VulkanShaderManager::CreateShaderData(const char* name, const char* vertexSrc, const char* geometrySrc, const char* fragmentSrc, Renderer::ShaderCreateInfo& info) {
+		std::unordered_map<VkShaderStageFlagBits, std::string> shaderSources;
+		if (vertexSrc != nullptr)
+			shaderSources[VK_SHADER_STAGE_VERTEX_BIT] = vertexSrc;
+		if (geometrySrc != nullptr)
+			shaderSources[VK_SHADER_STAGE_GEOMETRY_BIT] = geometrySrc;
+		if (fragmentSrc != nullptr)
+			shaderSources[VK_SHADER_STAGE_FRAGMENT_BIT] = fragmentSrc;
+		CompileShader(name, shaderSources, info);
 		return &_shaderList[name];
 	}
 }

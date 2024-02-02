@@ -78,6 +78,7 @@ namespace Renderer {
 		//virtual void* GetShaderData(const char* shaderPath) = 0;
 		virtual void* CreateShaderData(const char* shaderPath, ShaderCullMode mode=ShaderCullMode::backFace, bool enableBlend = true,bool enableDepth=true,  ShaderStorageType* ptypes = nullptr, uint32_t numtypes=0,  void* platformData = nullptr) = 0;
 		virtual void* CreateShaderData(const char* shaderPath, ShaderCreateInfo& createInfo)=0;
+		virtual void* CreateShaderData(const char* name, const char* vertexSrc, const char* geometrySrc, const char* fragmentSrc, ShaderCreateInfo& info) = 0;
 		//virtual void* GetShaderAttribute(ShaderAttrData&data) = 0;		
 		
 	};

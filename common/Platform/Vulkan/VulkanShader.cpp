@@ -298,6 +298,28 @@ namespace Vulkan {
 		
 	}
 
+	bool VulkanShader::SetUniform(const char* pname, int32_t v)
+	{
+		return SetUniform(pname, &v, sizeof(int32_t));
+	}
+
+
+	bool VulkanShader::SetUniform(uint32_t i, int32_t v)
+	{
+		return SetUniform(i, &v, sizeof(int32_t));
+	}
+
+	bool VulkanShader::SetUniform(const char* pname, float f)
+	{
+		return SetUniform(pname, &f, sizeof(float));
+	}
+
+
+	bool VulkanShader::SetUniform(uint32_t i, float f)
+	{
+		return SetUniform(i, &f, sizeof(float));
+	}
+
 	bool VulkanShader::SetUniform(uint32_t i, vec2& v)
 	{
 		return SetUniform(i, &v, sizeof(vec2));

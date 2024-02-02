@@ -1,6 +1,7 @@
 #pragma once
 #include "ShaderCompiler.h"
 #include <cassert>
+#include <sstream>
 #include <glslang/SPIRV/GlslangToSpv.h>
 //#if NDEBUG
 //#pragma comment(lib,"glslang.lib")
@@ -178,7 +179,41 @@ struct SpirvHelper
 		shader.setEnvClient(glslang::EShClient::EShClientVulkan, glslang::EShTargetClientVersion::EShTargetVulkan_1_0);
 		shader.setEnvTarget(glslang::EShTargetLanguage::EShTargetSpv, glslang::EShTargetLanguageVersion::EShTargetSpv_1_0);
 		if (!shader.parse(&Resources, 100, false, messages)) {
-			puts(shader.getInfoLog());
+			std::string info = shader.getInfoLog();
+			if (info.substr(0, 6) == "ERROR:") {
+				std::string remainder = info.substr(7, info.length() - 7);
+				int lineNo = 0;
+				int colNo = 0;
+				std::string lineColStr = remainder.substr(0,remainder.find('\'')-2);
+				size_t pos = lineColStr.find(':');
+				if (pos != std::string::npos) {
+					std::string lineStr = lineColStr.substr(0, pos);
+					std::string colStr = lineColStr.substr(pos + 1, lineColStr.length() - pos - 1);
+					lineNo = std::atoi(lineStr.c_str());
+					colNo = std::atoi(colStr.c_str());
+					std::string errorLine = shader.getInfoDebugLog();
+					puts(info.c_str());
+					int i = 0;
+					std::stringstream str(pshader);
+					std::string prevLine;
+					std::string errLine;
+					do {
+						prevLine = errLine;
+						std::getline(str, errLine);
+						i++;
+					} while (i < colNo);
+					char buffer[256];
+					if (colNo > 0) {
+						sprintf_s(buffer, "Line %d: %s", colNo - 1, prevLine.c_str());
+						puts(buffer);
+					}
+					sprintf_s(buffer, "Line %d: %s", colNo, errLine.c_str());
+					puts(buffer);
+				}
+
+
+			}else
+				puts(shader.getInfoLog());
 			//puts(shader.getInfoDebugLog());
 			return false;  // something didn't work
 		}

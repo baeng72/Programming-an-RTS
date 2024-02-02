@@ -44,6 +44,18 @@ namespace GL {
 				GLERR();
 			}
 		}
+		void setInt(int location, GLint v)const {
+			ensureProgram();
+			glUniform1i(location, v);
+			GLERR();
+		}
+		void setInt(const char* name, GLint v)const {
+			int location = glGetUniformLocation(_programID, name);
+			GLERR();
+			ensureProgram();
+			glUniform1i(location, v);
+			GLERR();
+		}
 		void setFloat(int location, float value)const {
 			ensureProgram();
 			glUniform1f(location, value);

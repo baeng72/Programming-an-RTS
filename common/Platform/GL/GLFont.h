@@ -26,6 +26,7 @@ namespace GL {
 		float invBmpWidth;
 		uint32_t bmpHeight;
 		struct FrameData {
+			GLuint vao;
 			GLuint vertexBuffer;
 			GLuint indexBuffer;
 			uint32_t vertSize;

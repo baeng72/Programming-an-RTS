@@ -18,5 +18,6 @@ namespace GL {
 		virtual void* GetShaderDataByName(const char* name)override;		
 		virtual void* CreateShaderData(const char* shaderPath, Renderer::ShaderCullMode cullMode=Renderer::ShaderCullMode::backFace, bool enableBlend = true, bool enableDepth = true, Renderer::ShaderStorageType* ptypes = nullptr, uint32_t numtypes = 0,void *platformData=nullptr)override;
 		virtual void* CreateShaderData(const char* shaderPath, Renderer::ShaderCreateInfo& createInfo) override;
+		virtual void* CreateShaderData(const char* name, const char* vertexSrc, const char* geometrySrc, const char* fragmentSrc, Renderer::ShaderCreateInfo& info)override;
 	};
 }

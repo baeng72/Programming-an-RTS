@@ -153,4 +153,38 @@ namespace GL {
 		}
 		return _shaderList[name].get();
 	}
+
+	void* GLShaderManager::CreateShaderData(const char* name, const char* vertexSrc, const char* geometrySrc, const char* fragmentSrc, Renderer::ShaderCreateInfo& info) {
+		if (_shaderList.find(name) != _shaderList.end()) {
+			_shaderList[name].reset();
+		}
+		std::unique_ptr<ShaderUtil> shader = std::make_unique<ShaderUtil>(vertexSrc,geometrySrc,fragmentSrc);
+		//shader->SetFrontFace(cullBackFaces ? GL_CW : GL_CCW);
+
+		shader->EnableCull(info.cullMode != Renderer::ShaderCullMode::None);
+#if defined __GL__TOP__LEFT__ && defined __GL__ZERO__TO__ONE__ //flip clip control converts CCW to CW or vice versa
+		if (info.cullMode == Renderer::ShaderCullMode::frontFace)
+			shader->SetCullFace(GL_BACK);
+		else if (info.cullMode == Renderer::ShaderCullMode::backFace)
+			shader->SetCullFace(GL_FRONT);
+#else
+		if (info.cullMode == Renderer::ShaderCullMode::frontFace)
+			shader->SetCullFace(GL_FRONT);
+		else if (info.cullMode == Renderer::ShaderCullMode::backFace)
+			shader->SetCullFace(GL_BACK);
+#endif
+
+		else if (info.cullMode == Renderer::ShaderCullMode::frontandbackFace)
+			shader->SetCullFace(GL_FRONT_AND_BACK);
+		shader->EnableBlend(info.blendInfo.enable);
+		if (info.blendInfo.enable) {
+			shader->SetBlendFunction(GetBlendFactor(info.blendInfo.srcColorFactor), GetBlendFactor(info.blendInfo.dstColorFactor), GetBlendOp(info.blendInfo.colorOp), GetBlendFactor(info.blendInfo.srcAlphaFactor), GetBlendFactor(info.blendInfo.dstAlphaFactor), GetBlendOp(info.blendInfo.alphaOp));
+		}
+		shader->EnableDepth(info.depthInfo.enable);
+		
+		_shaderList[name] = std::move(shader);
+
+		return &_shaderList[name];
+		
+	}
 }

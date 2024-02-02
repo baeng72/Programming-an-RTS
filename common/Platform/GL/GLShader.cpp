@@ -100,6 +100,26 @@ namespace GL {
 		}
 		return false;
 	}
+	bool GLShader::SetUniform(const char* pname, int32_t v)
+	{
+		_pshader->setInt(pname, v);
+		return true;
+	}
+	bool GLShader::SetUniform(uint32_t i, int32_t v)
+	{
+		_pshader->setInt(i, v);
+		return true;
+	}
+	bool GLShader::SetUniform(const char* pname, float f)
+	{
+		_pshader->setFloat(pname, f);
+		return true;
+	}
+	bool GLShader::SetUniform(uint32_t i, float f)
+	{
+		_pshader->setFloat(i, f);
+		return true;
+	}
 	bool GLShader::SetUniform(uint32_t i, vec2& v)
 	{
 		_pshader->setVec2(i, &v);

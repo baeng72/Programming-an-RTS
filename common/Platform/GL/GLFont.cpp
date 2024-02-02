@@ -37,8 +37,10 @@ namespace GL {
 layout(location=0) in vec3 inPos;
 layout(location=1) in vec4 inColor;
 layout(location=2) in vec2 inTexCoords;
-out vec2 aTexCoords;
-out vec4 aColor;
+layout (location=0) out vec2 aTexCoords;
+layout (location=1) out vec4 aColor;
+
+
 
 uniform mat4 projection;
 
@@ -182,8 +184,10 @@ void main() {
 		_orthoproj = glOrthoRH(0.f, (float)width, 0.f, (float)height, -1.f, 1.f);// glm::ortho(0.f, (float)width, (float)height, (float)0.f, -1.f, 1.f);
 #endif
 		//_orthoproj = glOrthoRH(0.f, (float)_width, (float)_height,0.f, -1.f, 1.f);
-		
-		glGenVertexArrays(1, &_vao);		
+		GLuint vaos[2];
+		glGenVertexArrays(2, vaos);
+		frames[0].vao = vaos[0];
+		frames[1].vao = vaos[1];
 	}
 	void GLFont::Update()
 	{
@@ -198,13 +202,23 @@ void main() {
 
 		FrameData& frame = frames[frameIdx];
 		currFrame = frameIdx;
-		glBindVertexArray(_vao);
+		glBindVertexArray(frame.vao);
+		GLenum bufferDraw = GL_STREAM_DRAW;
 		if (frame.hash == currhash) {
 			glBindBuffer(GL_ARRAY_BUFFER, frame.vertexBuffer);
+			
+			glBufferData(GL_ARRAY_BUFFER, vertSize, nullptr, bufferDraw);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, frame.indexBuffer);
-		
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indSize, nullptr, bufferDraw);
+			
+			glBufferData(GL_ARRAY_BUFFER, vertSize, _vertices.data(), bufferDraw);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indSize, _indices.data(), bufferDraw);
+			GLERR();
+			frame.indSize = indSize;
+			frame.numIndices = (uint32_t)_indices.size();
 		}
-		else {
+		else 
+		{
 
 			frame.hash = currhash;
 
@@ -214,34 +228,31 @@ void main() {
 
 				}
 				glGenBuffers(1, &frame.vertexBuffer);
-
-				glBindBuffer(GL_ARRAY_BUFFER, frame.vertexBuffer);
-				glBufferData(GL_ARRAY_BUFFER, vertSize, _vertices.data(), GL_DYNAMIC_DRAW);
+				glBindBuffer(GL_ARRAY_BUFFER, frame.vertexBuffer);				
+				glBufferData(GL_ARRAY_BUFFER, vertSize, _vertices.data(), bufferDraw);								
 				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(FontVertex), 0);
 				glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex), (void*)sizeof(vec3));
 				glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(FontVertex), (void*)(sizeof(vec3) + sizeof(vec4)));
 				glEnableVertexAttribArray(0);
 				glEnableVertexAttribArray(1);
 				glEnableVertexAttribArray(2);
+				GLERR();
 			}
 			else if (vertSize > 0) {
-				glBindBuffer(GL_ARRAY_BUFFER, frame.vertexBuffer);
-				glBufferData(GL_ARRAY_BUFFER, vertSize, _vertices.data(), GL_DYNAMIC_DRAW);
+				glBindBuffer(GL_ARRAY_BUFFER, frame.vertexBuffer);				
+				glBufferData(GL_ARRAY_BUFFER, vertSize, _vertices.data(), bufferDraw);				
+				GLERR();
 			}
 			frame.vertSize = vertSize;
 			if (frame.indSize == 0 || frame.indSize < indSize) {
 				if (frame.indexBuffer != -1) {
 					glDeleteBuffers(1, &frame.indexBuffer);
 				}
-				glGenBuffers(1, &frame.indexBuffer);
-
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, frame.indexBuffer);
-				glBufferData(GL_ELEMENT_ARRAY_BUFFER, indSize, _indices.data(), GL_DYNAMIC_DRAW);
+				glGenBuffers(1, &frame.indexBuffer);				
 			}
-			else {
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, frame.indexBuffer);
-				glBufferData(GL_ELEMENT_ARRAY_BUFFER, indSize, _indices.data(), GL_DYNAMIC_DRAW);
-			}
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, frame.indexBuffer);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indSize, _indices.data(), bufferDraw);
+			GLERR();
 			frame.indSize = indSize;
 			frame.numIndices = (uint32_t)_indices.size();
 		}
@@ -255,8 +266,8 @@ void main() {
 	{
 		
 
-		std::vector<FontVertex> vertices;
-		std::vector<uint32_t> indices;
+		//std::vector<FontVertex> vertices;
+		//std::vector<uint32_t> indices;
 		uint32_t indexoffset = (uint32_t)_vertices.size();
 		size_t len = strlen(ptext);
 
@@ -294,22 +305,22 @@ void main() {
 			FontVertex topright = { { xpos + w,ypos,0.0f},color,{u1,1.f} };
 			FontVertex bottomleft = { { xpos,(ypos + h),0.0f},color,{u0,1.f-v} };
 			FontVertex bottomright = { {xpos + w,(ypos + h),0.0f},color,{u1,1.f-v} };
-			vertices.push_back(topleft);
-			vertices.push_back(topright);
-			vertices.push_back(bottomleft);
-			vertices.push_back(bottomright);
-			indices.push_back(indexoffset + 0);
-			indices.push_back(indexoffset + 1);
-			indices.push_back(indexoffset + 2);
-			indices.push_back(indexoffset + 1);
-			indices.push_back(indexoffset + 3);
-			indices.push_back(indexoffset + 2);
+			_vertices.push_back(topleft);
+			_vertices.push_back(topright);
+			_vertices.push_back(bottomleft);
+			_vertices.push_back(bottomright);
+			_indices.push_back(indexoffset + 0);
+			_indices.push_back(indexoffset + 1);
+			_indices.push_back(indexoffset + 2);
+			_indices.push_back(indexoffset + 1);
+			_indices.push_back(indexoffset + 3);
+			_indices.push_back(indexoffset + 2);
 			indexoffset += 4;
 			x += (character.advance >> 6) * scale;
 
 		}
-		_vertices.insert(_vertices.end(), vertices.begin(), vertices.end());
-		_indices.insert(_indices.end(), indices.begin(), indices.end());
+		//_vertices.insert(_vertices.end(), vertices.begin(), vertices.end());
+		//_indices.insert(_indices.end(), indices.begin(), indices.end());
 
 	}
 	void GLFont::Render()
@@ -334,6 +345,7 @@ void main() {
 		glDrawElements(GL_TRIANGLES, frame.numIndices, GL_UNSIGNED_INT, 0);
 		if(polygonMode!=GL_FILL)
 			glPolygonMode(GL_POLYGON_MODE, polygonMode);
+		glBindVertexArray(0);
 		GLERR();
 	}
 	void GLFont::GetTextSize(const char* ptext, float& width, float& height)

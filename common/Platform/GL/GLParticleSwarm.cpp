@@ -102,7 +102,7 @@ void main(){
 		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Renderer::ParticleVertex), (void*)sizeof(vec3));			//color		
 		glEnableVertexAttribArray(0);		
 		glEnableVertexAttribArray(1);
-		
+		glBindVertexArray(0);
 		_vertexCount = vertexCount;
 	}
 	GLParticleSwarm::~GLParticleSwarm()
@@ -117,13 +117,15 @@ void main(){
 		if (_vertexCount) {
 			
 			glBindVertexArray(_vao);			
+			glBindBuffer(GL_ARRAY_BUFFER, _vertexBuffer);
 			_shader.Bind();
 			_shader.setMat4("viewProj", viewProj);
 			_shader.setVec3("eyePosW", eyePos);
 			_shader.setVec2("sizeW", _size);
 			
 			//glFrontFace(GL_CCW);			
-			glDrawArrays(GL_POINTS, 0, _vertexCount);			
+			glDrawArrays(GL_POINTS, 0, _vertexCount);	
+			glBindVertexArray(0);
 		}
 	}
 	void GLParticleSwarm::ResetVertices(Renderer::ParticleVertex* pvertices, uint32_t vertexCount)
@@ -142,5 +144,6 @@ void main(){
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);		
 		_vertexCount = vertexCount;
+		glBindVertexArray(0);
 	}
 }

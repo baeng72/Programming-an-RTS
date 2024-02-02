@@ -281,8 +281,8 @@ void main(){
 	{
 
 
-		std::vector<FontVertex> vertices;
-		std::vector<uint32_t> indices;
+		//std::vector<FontVertex> vertices;
+		//std::vector<uint32_t> indices;
 		uint32_t indexoffset = (uint32_t)_vertices.size();
 		size_t len = strlen(ptext);
 		float x = (float)xstart;
@@ -319,24 +319,24 @@ void main(){
 			FontVertex topright = { { xpos + w,ypos,0.0f},color,{u1,0.f} };
 			FontVertex bottomleft = { { xpos,ypos + h,0.0f},color,{u0,v} };
 			FontVertex bottomright = { {xpos + w,ypos + h,0.0f},color,{u1,v} };
-			vertices.push_back(topleft);
-			vertices.push_back(topright);
-			vertices.push_back(bottomleft);
-			vertices.push_back(bottomright);
-			indices.push_back(indexoffset + 0);
-			indices.push_back(indexoffset + 1);
-			indices.push_back(indexoffset + 2);
-			indices.push_back(indexoffset + 1);
-			indices.push_back(indexoffset + 3);
-			indices.push_back(indexoffset + 2);
+			_vertices.push_back(topleft);
+			_vertices.push_back(topright);
+			_vertices.push_back(bottomleft);
+			_vertices.push_back(bottomright);
+			_indices.push_back(indexoffset + 0);
+			_indices.push_back(indexoffset + 1);
+			_indices.push_back(indexoffset + 2);
+			_indices.push_back(indexoffset + 1);
+			_indices.push_back(indexoffset + 3);
+			_indices.push_back(indexoffset + 2);
 			indexoffset += 4;
 			x += (character.advance >> 6) * scale;
 
 		}
-		_vertices.insert(_vertices.end(), vertices.begin(), vertices.end());
+		/*_vertices.insert(_vertices.end(), vertices.begin(), vertices.end());
 		_indices.insert(_indices.end(), indices.begin(), indices.end());
 		vertices.clear();
-		indices.clear();
+		indices.clear();*/
 
 
 

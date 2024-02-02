@@ -44,7 +44,7 @@ namespace Vulkan {
 		_swapchain = std::make_unique<VulkSwapchain>();
 		VulkSwapchainFlags flags;
 		flags.imageCount = 2;//double-buffer
-		flags.presentMode = _enableVSync ? VK_PRESENT_MODE_MAILBOX_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;
+		flags.presentMode = _enableVSync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_MAILBOX_KHR;// : VK_PRESENT_MODE_IMMEDIATE_KHR;
 		
 		VkClearValue clearValues[2] = {
 			{0.f,0.f,0.f,1.f} ,
