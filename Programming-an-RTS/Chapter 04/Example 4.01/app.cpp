@@ -33,7 +33,7 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 
 	_device.reset(Renderer::RenderDevice::Create(GetWindow().GetNativeHandle()));
 	_device->EnableGeometry(true);
-	_device->EnableDepthBuffer(false);
+	_device->EnableDepthBuffer(true);
 	_device->SetVSync(true);
 	_device->Init();
 

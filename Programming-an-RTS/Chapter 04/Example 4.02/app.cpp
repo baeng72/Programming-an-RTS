@@ -8,9 +8,12 @@ class APPLICATION : public Core::Application {
 	std::unique_ptr<Renderer::RenderDevice> _device;	
 	std::unique_ptr<HEIGHTMAP> _heightMap;
 	std::unique_ptr<Renderer::Font> _font;	
+	std::unique_ptr<ImGui::ImGuiWrapper> _imgui;
 	float m_angle;	
 	int _size;
 	int _amplitude;
+	bool _showImGui;
+	bool _needsUpdate;
 public:
 	APPLICATION();
 	bool Init(int width, int height, const char* title);
@@ -25,6 +28,8 @@ APPLICATION::APPLICATION() {
 	m_angle = 0.f;		
 	_size = 10;
 	_amplitude = 5;
+	_showImGui = false;
+	_needsUpdate = false;
 }
 
 bool APPLICATION::Init(int width, int height, const char* title) {
@@ -40,6 +45,8 @@ bool APPLICATION::Init(int width, int height, const char* title) {
 	_font.reset(Renderer::Font::Create());
 	_font->Init(_device.get(), "../../../../Resources/Fonts/arialn.ttf", 18);
 
+	_imgui.reset(ImGui::ImGuiWrapper::Create(_device.get(),GetWindowPtr()));
+
 	_heightMap = std::make_unique<HEIGHTMAP>(_device.get(), INTPOINT(100, 100));
 	bool res= _heightMap->CreateRandomHeightMap(rand() % 2000, _size / 10.f, _amplitude / 10.f, 9);
 	ASSERT(res, "Unable to create random heightmap.");
@@ -53,28 +60,41 @@ void APPLICATION::Update(float deltaTime) {
 	if (IsKeyPressed(KEY_ESCAPE))
 		Quit();
 	m_angle += deltaTime * 0.5f;
-	if (IsKeyPressed(KEY_SPACE)) {
+	if (IsKeyPressed(KEY_SPACE)||_needsUpdate) {
 		bool res = _heightMap->CreateRandomHeightMap(rand() % 2000, _size / 10.f, _amplitude / 10.f, 9);
 		ASSERT(res, "Unable to create random heightmap.");
 		res = _heightMap->CreateParticles();
 		ASSERT(res, "Unable to create heightmap particles.");
+		_needsUpdate = false;
 	}
 	
 	if (IsKeyPressed(KEY_DOWN)&&_size > 1) {
 		_size--;
 		Sleep(100);
+		_needsUpdate = true;
 	}
 	if (IsKeyPressed(KEY_UP) && _size < 20) {
 		_size++;
 		Sleep(100);
+		_needsUpdate = true;
 	}
 	if (IsKeyPressed(KEY_LEFT) && _amplitude > 1) {
 		_amplitude--;
 		Sleep(100);
+		_needsUpdate = true;
 	}
 	if (IsKeyPressed(KEY_RIGHT) && _amplitude < 15) {
 		_amplitude++;
 		Sleep(100);
+		_needsUpdate = true;
+	}
+	if (IsKeyPressed(KEY_I)) {
+		_showImGui = !_showImGui;
+		Sleep(100);
+		_needsUpdate = true;
+	}
+	if (_showImGui) {
+		_imgui->Update(deltaTime);
 	}
 }
 
@@ -96,12 +116,38 @@ void APPLICATION::Render() {
 	sprintf_s(buffer, "Persistance: %d (LEFT/RIGHT Arrow)", _amplitude);
 	_font->Draw(buffer, 110, 30);
 	_font->Draw("Redraw: SPACE", 110, 50);
-
+	
 	_device->StartRender();		
+	
 
 	_heightMap->Render(viewProj, eye);	
+	
+	if (_showImGui) {
+		_imgui->Start();
+		ImGui::Begin("Noise");
+		if (ImGui::InputInt("Size", &_size)) {
+			if (_size < 1)
+				_size = 1;
+			if (_size > 20)
+				_size = 20;
+			_needsUpdate = true;
+		}
+		if (ImGui::InputInt("Amplitude", &_amplitude)) {
+			if (_amplitude < 1) {
+				_amplitude = 1;
+			}
+			if (_amplitude > 15) {
+				_amplitude = 15;
+			}
+			_needsUpdate = true;
+		}
+		if (ImGui::Button("Redraw")) {
+			_needsUpdate = true;
+		}
+		ImGui::End();
+		_imgui->End();
+	}
 	_font->Render();
-
 	_device->EndRender();
 }
 

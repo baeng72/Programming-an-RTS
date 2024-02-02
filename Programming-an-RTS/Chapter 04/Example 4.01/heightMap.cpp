@@ -74,10 +74,11 @@ bool HEIGHTMAP::CreateParticles()
 
 void HEIGHTMAP::Render(glm::mat4&viewProj,glm::vec3&eye)
 {
+	_particles->Draw(viewProj, eye);
 	vec2 size= _heightMapTexture->GetScale();
 	mat4 sca = glm::scale(mat4(1.f), vec3(size.x, size.y, 1.f));
 	_sprite->SetTransform(sca);
 
 	_sprite->Draw(_heightMapTexture.get(), glm::vec3(0.f, 0.f, 0.f));
-	_particles->Draw(viewProj, eye);
+	
 }
