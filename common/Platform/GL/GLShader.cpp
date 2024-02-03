@@ -2,7 +2,7 @@
 
 namespace GL {
 	GLShader::GLShader(Renderer::RenderDevice* pdevice, void* shaderData)
-		:_pdevice(pdevice),_pshader(reinterpret_cast<ShaderUtil*>(shaderData)),_buffer(UINT32_MAX)
+		:_pdevice(pdevice),_pshader(reinterpret_cast<ShaderUtil*>(shaderData)),_storageBuffer(UINT32_MAX)
 	{
 	}
 	GLShader::~GLShader() {
@@ -16,8 +16,8 @@ namespace GL {
 		if (pdynoffsets && dynoffcount > 0) {
 
 			GLint buffer=0;
-			if (_buffer != UINT32_MAX)
-				buffer = _buffer;
+			if (_storageBuffer != UINT32_MAX)
+				buffer = _storageBuffer;
 			else {
 				glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING, &buffer);
 				GLERR();
@@ -35,13 +35,16 @@ namespace GL {
 	}*/
 	bool GLShader::SetUniformBuffer(uint32_t i, Renderer::Buffer* pbuffer, bool dynamic)
 	{
+		GLuint buffer = *((GLuint*)pbuffer->GetNativeHandle());
 		
-		return false;
+		_pshader->SetUniformBuffer(i, buffer);
+		return true;
 	}
 	bool GLShader::SetUniformBuffer(const char* pname, Renderer::Buffer* pbuffer, bool dynamic)
 	{
-		
-		return false;
+		GLuint buffer = *((GLuint*)pbuffer->GetNativeHandle());
+		_pshader->SetUniformBuffer(pname, buffer);
+		return true;
 	}
 	bool GLShader::SetUniformData(uint32_t i, void* ptr, uint32_t len, bool dynamic)
 	{
@@ -211,6 +214,34 @@ namespace GL {
 	{
 		return _pshader->GetUniformLocation(pname);
 	}
+	bool GLShader::SetTexture(uint32_t i, Renderer::Texture* ptexture) {
+		struct GLTextureInfo {
+			int textureID;
+			int width;
+			int height;
+			GLenum addrMode;
+			GLenum filter;
+		};
+		GLTextureInfo* pinfo = (GLTextureInfo*)ptexture->GetNativeHandle();
+		_pshader->SetTexture(pinfo->textureID);
+		_pshader->SetSampler(pinfo->addrMode, pinfo->filter);
+		return true;
+	}
+
+	bool GLShader::SetTexture(const char* pname, Renderer::Texture* ptexture) {
+		struct GLTextureInfo {
+			int textureID;
+			int width;
+			int height;
+			GLenum addrMode;
+			GLenum filter;
+		};
+		GLTextureInfo* pinfo = (GLTextureInfo*)ptexture->GetNativeHandle();
+		_pshader->SetTexture(pname, pinfo->textureID);
+		_pshader->SetSampler(pinfo->addrMode, pinfo->filter);
+		return true;
+	}
+
 	bool GLShader::SetTexture(uint32_t, Renderer::Texture** pptexture, uint32_t count)
 	{
 		struct GLTextureInfo {
@@ -285,15 +316,15 @@ namespace GL {
 	{
 		
 		GLuint buffer = *(GLuint*)pbuffer->GetNativeHandle();
-		_pshader->SetStorageBuffer(buffer);
+		_pshader->SetStorageBuffer(i,buffer);
 		
 		return true;
 	}
 	bool GLShader::SetStorageBuffer(const char* pname, Renderer::Buffer* pbuffer, bool dynamic)
 	{
 		GLuint buffer = *(GLuint*)pbuffer->GetNativeHandle();
-		_buffer = buffer;
-		_pshader->SetStorageBuffer(buffer);
+		_storageBuffer = buffer;
+		_pshader->SetStorageBuffer(pname,buffer);
 		return true;
 	}
 	bool GLShader::SetStorageData(uint32_t i, void* ptr, uint32_t len, bool dynamic)

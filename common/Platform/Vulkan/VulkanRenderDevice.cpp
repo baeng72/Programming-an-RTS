@@ -8,7 +8,7 @@ namespace Vulkan {
 
 	
 
-	VulkanRenderDevice::VulkanRenderDevice(void* nativeWindowHandle) :_enableVSync(true),_enableGeometry(false),_enableDepthBuffer(false),_inRender(false),_inOffscreenRender(false)
+	VulkanRenderDevice::VulkanRenderDevice(void* nativeWindowHandle) :_enableVSync(false),_enableGeometry(false),_enableDepthBuffer(false),_inRender(false),_inOffscreenRender(false)
 	{
 		_window = reinterpret_cast<GLFWwindow*>(nativeWindowHandle);
 
@@ -213,5 +213,9 @@ namespace Vulkan {
 	{
 		vkCmdDraw(_cmd, count, 1, offset, 0);
 	}
+	/*void VulkanRenderDevice::DrawIndexed(uint32_t count)
+	{
+		vkCmdDraw(_cmd, count, 1,0, 0);
+	}*/
 	
 }

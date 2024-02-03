@@ -10,6 +10,7 @@ namespace GL {
 		GLFWwindow* _window;
 		float _clearColors[4];
 		bool _depthTest;
+		GLuint _vao;
 	public:
 		GLRenderDevice(void* nativeWindowHandle);
 		virtual ~GLRenderDevice();
@@ -35,6 +36,7 @@ namespace GL {
 		virtual void SetViewport(ViewPort& vp)override;
 		virtual float GetCurrentTicks()override;
 		virtual void DrawVertices(uint32_t count, uint32_t offset = 0)override;
+		//virtual void DrawIndexed(uint32_t indexCount)override;
 
 	};
 }

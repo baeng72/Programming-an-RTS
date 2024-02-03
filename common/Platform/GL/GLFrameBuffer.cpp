@@ -121,7 +121,8 @@ namespace GL {
 	}
 	void GLFrameBuffer::DrawVertices(uint32_t count)
 	{
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLES, 0, count);
+		//glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
 		GLERR();
 	}
 

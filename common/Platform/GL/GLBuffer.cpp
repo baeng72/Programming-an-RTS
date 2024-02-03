@@ -60,7 +60,7 @@ namespace GL {
 	{
 		GLenum bufferType = _isUniform ? GL_UNIFORM_BUFFER : GL_SHADER_STORAGE_BUFFER;
 		glUnmapBuffer(bufferType);
-		
+		GLERR();
 		_mapped = false;
 	}
 	uint32_t GLBuffer::GetSize() const

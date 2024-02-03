@@ -7,7 +7,8 @@ namespace GL {
 	class GLShader : public Renderer::Shader {
 		Renderer::RenderDevice* _pdevice;
 		ShaderUtil* _pshader;
-		unsigned int _buffer;
+		unsigned int _storageBuffer;
+
 	public:
 		GLShader(Renderer::RenderDevice* pdevice, void* shaderData);
 		virtual ~GLShader();
@@ -45,6 +46,8 @@ namespace GL {
 		virtual bool SetTexture(uint32_t, Renderer::Texture** pptexture, uint32_t count) override;		//set 1 or more textures into a slot/descriptor binding
 		virtual bool SetTexture(const char* pname, Renderer::Texture** pptexture, uint32_t count) override;		//set 1 or more textures into a slot/descriptor binding
 		virtual bool SetTextures(Renderer::Texture** pptextures, uint32_t count) override;					//set 1 or more textures into available texture slots/bindings
+		virtual bool SetTexture(uint32_t, Renderer::Texture*) override;
+		virtual bool SetTexture(const char* pname, Renderer::Texture*) override;
 		virtual uint32_t GetTextureId(const char* pname) override;
 		virtual bool SetStorageBuffer(uint32_t i, Renderer::Buffer* pbuffer, bool dynamic = false)override;
 		virtual bool SetStorageBuffer(const char* pname, Renderer::Buffer* pbuffer, bool dynamic = false)override;

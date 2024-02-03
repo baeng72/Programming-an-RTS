@@ -130,7 +130,7 @@ void APPLICATION::Render() {
 	glm::mat4 matModel = glm::mat4(1.f);
 	glm::mat4 matView = glm::lookAtLH(eye, lookat, up);
 	//constexpr float fov = glm::radians(45.f);
-	glm::mat4 matProj = Core::perspective(quaterpi, (float)_width, (float)_height, 1.f, 1000.f);
+	glm::mat4 matProj = Core::perspective(quarterpi, (float)_width, (float)_height, 1.f, 1000.f);
 	
 	glm::mat4 viewProj = matProj * matView;
 

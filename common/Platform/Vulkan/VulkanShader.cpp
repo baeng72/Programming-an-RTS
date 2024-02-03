@@ -176,7 +176,7 @@ namespace Vulkan {
 				int32_t s1 = std::get<2>(_pShaderData->reflection.blockmembers[j]);
 				int32_t b1 = std::get<3>(_pShaderData->reflection.blockmembers[j]);
 				uint32_t offset = std::get<4>(_pShaderData->reflection.blockmembers[j]);
-				if (set = s1 && binding == b1) {
+				if (set == s1 && binding == b1) {
 					std::get<7>(_pShaderData->reflection.blockmembers[j]) = (void*)((uint8_t*)pdata->ptr + offset);//patch offset into pointers
 				}
 			}
@@ -462,10 +462,36 @@ namespace Vulkan {
 	uint32_t VulkanShader::GetUniformId(const char* pname,bool dynamic)
 	{
 		size_t hash = Core::HashFNV1A(pname, strlen(pname));
+		assert(_pShaderData->reflection.blockmap.find(hash) != _pShaderData->reflection.blockmap.end());
 		return _pShaderData->reflection.blockmap[hash];
 		
 	}
+	bool VulkanShader::SetTexture(uint32_t id, Renderer::Texture* ptexture) {
+		assert(id < texturemembers.size());
+		auto& member = texturemembers[id];
+		Vulkan::VulkContext* contextptr = reinterpret_cast<Vulkan::VulkContext*>(_pdevice->GetDeviceContext());
+		Vulkan::VulkContext& context = *contextptr;
 
+
+		int set = std::get<2>(member);
+		int bindx = std::get<3>(member);
+		int writeidx = (int)reinterpret_cast<size_t>(std::get<7>(member));//use index into binding set above
+		int imagecount = std::get<4>(member);//need to have 'offset' be count, using size as indicator that it's a texture
+		auto& write = _writes[set][writeidx];
+		assert(write.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+		assert(write.descriptorCount == imagecount);
+		Vulkan::Texture* pvtext = (Vulkan::Texture*)ptexture->GetNativeHandle();
+		VkDescriptorImageInfo* pinfo = (VkDescriptorImageInfo*)&write.pImageInfo[0];
+		pinfo->imageView = pvtext->imageView;
+		pinfo->sampler = pvtext->sampler;
+		pinfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		return true;
+	}
+
+	bool VulkanShader::SetTexture(const char* pname, Renderer::Texture* ptexture) {
+		uint32_t id = GetTextureId(pname);
+		return SetTexture(id, ptexture);
+	}
 	
 	bool VulkanShader::SetTexture(uint32_t id, Renderer::Texture** pptexture, uint32_t count)
 	{
@@ -478,7 +504,7 @@ namespace Vulkan {
 
 		int set = std::get<2>(member);
 		int bindx = std::get<3>(member);
-		int writeidx = (int)(long)std::get<7>(member);//use index into binding set above
+		int writeidx = (int)reinterpret_cast<size_t>(std::get<7>(member));//use index into binding set above
 		int imagecount = std::get<4>(member);//need to have 'offset' be count, using size as indicator that it's a texture
 		auto& write = _writes[set][writeidx];
 		assert(write.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
@@ -573,7 +599,7 @@ namespace Vulkan {
 				auto& member = texturemembers[m];
 				int set = std::get<2>(member);
 				int binding = std::get<3>(member);
-				int writeidx =(int) std::get<7>(member);//index set above
+				int writeidx =(int)reinterpret_cast<size_t>(std::get<7>(member));//index set above
 				/*if (set == (int)s) {
 					cursettuple.push_back(member);
 				}*/

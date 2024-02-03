@@ -14,6 +14,7 @@ namespace GL {
 		std::unordered_map<int, std::string> PreProcess(const std::string& src);
 		int ShaderTypeFromString(const std::string& type);
 		std::unordered_map<size_t, int> _uniformMap;
+		std::unordered_map<size_t, int> _blockMap;
 		std::unordered_map<size_t, int> _textureMap;//bad name
 		std::vector<GLint> _textureslots;
 		GLenum _frontFace;
@@ -195,7 +196,10 @@ namespace GL {
 		void SetTextures(int* ptexids, uint32_t count);
 		void SetTextures(const char* pname, int* texids, uint32_t count);
 		void SetSampler(GLenum addrMode, GLenum filter);
-		void SetStorageBuffer(GLuint buffer);	
+		void SetUniformBuffer(const char* pname, GLuint buffer);
+		void SetUniformBuffer(uint32_t idx, GLuint buffer);
+		void SetStorageBuffer(const char*pname,GLuint buffer);	
+		void SetStorageBuffer(uint32_t idx, GLuint buffer);
 		void SetFrontFace(GLenum ff) { _frontFace = ff; }
 		void SetCullFace(GLenum cf) { _cullFace = cf; _enableCull = true; }
 		void EnableCull(bool enable) { _enableCull = enable; }

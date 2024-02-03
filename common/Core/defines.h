@@ -33,7 +33,7 @@ using ivec4 = glm::ivec4;
 constexpr float pi = glm::pi<float>();
 constexpr float twopi = 2.f * glm::pi<float>();
 constexpr float halfpi = 0.5f * glm::pi<float>();
-constexpr float quaterpi = 0.25f * glm::pi<float>();
+constexpr float quarterpi = 0.25f * glm::pi<float>();
 #else
 
 #endif

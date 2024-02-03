@@ -6,9 +6,11 @@ namespace GL {
 	{
 		_window = reinterpret_cast<GLFWwindow*>(nativeWindowHandle);
 		glfwSwapInterval(0);
+		glGenVertexArrays(1, &_vao);
 	}
 	GLRenderDevice::~GLRenderDevice()
 	{
+		glDeleteVertexArrays(1, &_vao);
 	}
 	void GLRenderDevice::Init()
 	{
@@ -53,6 +55,7 @@ namespace GL {
 	void GLRenderDevice::EndRender()
 	{
 		//EASY_FUNCTION(profiler::colors::Red);
+		GLERR();
 		glfwSwapBuffers(_window);
 	}
 
@@ -151,6 +154,13 @@ namespace GL {
 	}
 	void GLRenderDevice::DrawVertices(uint32_t count, uint32_t offset)
 	{
-		glDrawArrays(GL_POINTS, offset, count);
+		glBindVertexArray(_vao);
+		glDrawArrays(GL_TRIANGLES, offset, count);
+		GLERR();
 	}
+
+	/*void GLRenderDevice::DrawIndexed(uint32_t count) {
+		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+		GLERR();
+	}*/
 }

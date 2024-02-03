@@ -149,7 +149,7 @@ glm::mat4 CAMERA::GetProjectionMatrix()
 {
 	int width, height;
 	_pwindow->GetWindowSize(width, height);	
-	glm::mat4 matProj = Core::perspective(quaterpi, (float)width, (float)height, 1.f, 1000.f);
+	glm::mat4 matProj = Core::perspective(quarterpi, (float)width, (float)height, 1.f, 1000.f);
 	return matProj;
 }
 

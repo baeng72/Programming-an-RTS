@@ -94,7 +94,7 @@ void APPLICATION::Render() {
 	glm::vec3 up(0.f, 1.f, 0.f);
 	glm::mat4 matModel = glm::mat4(1.f);
 	glm::mat4 matView = glm::lookAtLH(eye, lookat, up);
-	glm::mat4 matProj = Core::perspective(quaterpi, (float)_width, (float)_height, 1.f, 1000.f);
+	glm::mat4 matProj = Core::perspective(quarterpi, (float)_width, (float)_height, 1.f, 1000.f);
 	
 	glm::mat4 viewProj = matProj * matView;
 

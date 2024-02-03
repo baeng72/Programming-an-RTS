@@ -90,22 +90,54 @@ namespace GL {
 					
 				}
 			}
-		}
-		/*{
-			int count;
-			GLenum type;
-			GLint size;
-			const int bufSize = 32;
-			GLchar name[bufSize];
-			GLsizei length;
-			glGetProgramiv(_programID, GL_ACTIVE_ATTRIBUTES, &count);
+			glGetProgramiv(_programID, GL_ACTIVE_UNIFORM_BLOCKS, &count);
+			GLenum props[1] = { GL_NAME_LENGTH };
+			GLint res[1];
 			for (int i = 0; i < count; i++) {
-				glGetActiveAttrib(_programID, (GLuint)i, bufSize, &length, &size, &type, name);
-				if (type == GL_FLOAT_VEC3) {
+				props[0] = GL_NAME_LENGTH;
+				res[0] = 0;
+				length = 0;
+				glGetProgramResourceiv(_programID, GL_UNIFORM_BLOCK, i, 1, props, 1, &length, res);
+				
+				glGetProgramResourceName(_programID, GL_UNIFORM_BLOCK, i, bufSize, &length, name);
+				
+				if (length > 0) {
+					size_t hash = Core::HashFNV1A(name, length);
+					props[0] =  GL_BUFFER_BINDING ;
+					res[0] = 0;
+					glGetProgramResourceiv(_programID, GL_UNIFORM_BLOCK,i, 1, props, 1, nullptr, res);
+					if (res[0] > -1) {
+						GLint loc = res[0];
+						assert(_blockMap.find(hash) == _blockMap.end());
+						_blockMap[hash] = loc;
+					}
+				
 
 				}
 			}
-		}*/
+			glGetProgramInterfaceiv(_programID, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &count);
+			for (int i = 0; i < count; i++) {
+				props[0] = GL_NAME_LENGTH;
+				res[0] = 0;
+				length = 0;
+				glGetProgramResourceiv(_programID, GL_SHADER_STORAGE_BLOCK, i, 1, props, 1, &length, res);
+
+				glGetProgramResourceName(_programID, GL_SHADER_STORAGE_BLOCK, i, bufSize, &length, name);
+				if (length > 0) {
+					size_t hash = Core::HashFNV1A(name, length);
+					props[0] = GL_BUFFER_BINDING;
+					res[0] = 0;
+					glGetProgramResourceiv(_programID, GL_SHADER_STORAGE_BLOCK, i, 1, props, 1, nullptr, res);
+					if (res[0] > -1) {
+						GLint loc = res[0];
+						assert(_blockMap.find(hash) == _blockMap.end());
+						_blockMap[hash] = loc;
+					}
+				}
+			}
+			
+		}
+		
 	}
 	
 	ShaderUtil::ShaderUtil(const char* vertexSrc, const char* fragmentSrc)
@@ -205,6 +237,7 @@ namespace GL {
 		return (int)-1;
 	}
 	void ShaderUtil::SetTexture(int texID) {
+		ensureProgram();
 		glBindTexture(GL_TEXTURE_2D, texID);
 		
 		GLERR();
@@ -213,10 +246,11 @@ namespace GL {
 		size_t hash = Core::HashFNV1A(pname, strlen(pname));
 		int location = _uniformMap[hash];
 		int offset = _textureMap[hash];
+		ensureProgram();
 		glActiveTexture(GL_TEXTURE0 + offset);
 		glBindTexture(GL_TEXTURE_2D, texID);
 		
-		glUniform1i(location, texID);
+		glUniform1i(location, offset);
 		GLERR();
 	}
 	void ShaderUtil::SetTextures(int* ptexids, uint32_t count) {
@@ -262,12 +296,50 @@ namespace GL {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, addrMode);
 		GLERR();
 	}
-	void ShaderUtil::SetStorageBuffer(GLuint buffer)
+
+	void ShaderUtil::SetStorageBuffer(const char*pname,GLuint buffer)
 	{
-		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		size_t hash = Core::HashFNV1A(pname, strlen(pname));
+		assert(_blockMap.find(hash) != _blockMap.end());
+		int binding = _blockMap[hash];
 		//glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, buffer);
+		GLERR();
+	}
+	void ShaderUtil::SetStorageBuffer(uint32_t idx, GLuint buffer) {
+		assert(idx < _blockMap.size());
+		int binding = _blockMap.at(idx);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, buffer);
+		GLERR();
+	}
+
+	void ShaderUtil::SetUniformBuffer(uint32_t idx, GLuint buffer) {
+		assert(idx < _blockMap.size());
+		int binding = _blockMap.at(idx);
+		glBindBufferBase(GL_UNIFORM_BUFFER, binding, buffer);
+		GLERR();
+	}
+	void ShaderUtil::SetUniformBuffer(const char* pname, GLuint buffer) {
+		size_t hash = Core::HashFNV1A(pname, strlen(pname));
+		assert(_blockMap.find(hash) != _blockMap.end());
+		int binding = _blockMap[hash];
+//		glBindBuffer(GL_UNIFORM_BUFFER, buffer);
+		glBindBufferBase(GL_UNIFORM_BUFFER, binding, buffer);
+		
+		//
+		//GLsizei length = 0;
+		//GLchar name[64];
+		//GLsizei bufSize = sizeof(name);
+		//glGetActiveUniformBlockName(_programID, 0, bufSize, &length, name);
+		//if (length > 0) {
+		//	GLint blockIndex = glGetUniformBlockIndex(_programID, name);
+		//	glUniformBlockBinding(_programID, blockIndex, 0);
+		//	GLERR();
+		//	glBindBuffer(GL_UNIFORM_BUFFER, buffer);
+		//	GLERR();
+		//	glBindBufferBase(GL_UNIFORM_BUFFER, 0, buffer);
+
+		//}
 		GLERR();
 	}
 
