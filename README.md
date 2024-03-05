@@ -14,8 +14,6 @@ Clone with git...<br/>
 ```diff
 git clone  repository-.... (click code button for repository link)
 cd repository-folder
-git clone  repository-.... (click code button for repository link)
-cd repository-folder
 git submodule update --init <strike>git submodule update</strike> Thanks sidshekar
 ```
 Build with cmake...
