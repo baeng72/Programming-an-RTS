@@ -222,14 +222,14 @@ void TERRAIN::CalculateAlphaMaps() {
 		}
 		//create a new texture
 		_alphaMaps[i].reset(Renderer::Texture::Create(_pdevice, texWidth, texHeight, Renderer::TextureFormat::R8G8B8A8, (uint8_t*)pdata));
-		if (Core::GetAPI() == Core::API::Vulkan) {
-			//what a hack
-			Renderer::Texture* pdiffuse = _diffuseMaps[i].get();
+		//if (Core::GetAPI() == Core::API::Vulkan) {
+		//	//what a hack
+		//	Renderer::Texture* pdiffuse = _diffuseMaps[i].get();
 
-			Renderer::Texture* palpha = _alphaMaps[i].get();
-			std::vector<Renderer::Texture*> textures = { pdiffuse,palpha };
-			_shaders[i]->SetTextures(textures.data(), 2);
-		}
+		//	Renderer::Texture* palpha = _alphaMaps[i].get();
+		//	std::vector<Renderer::Texture*> textures = { pdiffuse,palpha };
+		//	_shaders[i]->SetTextures(textures.data(), 2);
+		//}
 	}
 	delete[] pdata;
 	
@@ -259,8 +259,8 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 		Renderer::Texture* pdiffuse = _diffuseMaps[m].get();
 
 		Renderer::Texture* palpha = _alphaMaps[m].get();
-		pshader->SetTexture("texmap", &pdiffuse, 1);
-		pshader->SetTexture("alphamap", &palpha, 1);
+		pshader->SetTexture("texmap", pdiffuse);
+		pshader->SetTexture("alphamap", palpha);
 		pshader->Bind();
 		for (size_t i = 0; i < _patches.size(); i++)
 			_patches[i]->Render();

@@ -51,6 +51,7 @@ void APPLICATION::Update(float deltaTime) {
 	if (IsKeyPressed(KEY_SPACE)) {
 		_image++;
 		_image %= 3;
+		_device->Wait();
 		switch (_image) {
 		case 0:
 			_heightMap->LoadFromFile(Core::ResourcePath::GetTexturePath("abe.jpg"));

@@ -5,15 +5,15 @@ layout(location=1) in vec3 inNormal;
 layout(location=2) in vec2 inUV;
 
 
-out vec3 aNormal;
-out vec2 aUV;
+layout(location=0) out vec3 aNormal;
+layout(location=1) out vec2 aUV;
 
 
 
 
 
-uniform	mat4 viewProj;	//changes depending on view
-uniform	mat4 model;		//varies per object
+layout (location=0) uniform	mat4 viewProj;	//changes depending on view
+layout (location=1) uniform	mat4 model;		//varies per object
 
 
 void main(){
@@ -29,7 +29,7 @@ layout(location=1) in vec2 aUV;
 
 
 
-out vec4 outFragColor;
+layout(location=0) out vec4 outFragColor;
 
 struct DirectionalLight{
 	vec4 diffuse;
@@ -38,10 +38,10 @@ struct DirectionalLight{
 	vec3 direction;
 };
 
-uniform	DirectionalLight light;
+layout(location=2) uniform	DirectionalLight light;
 
 
-uniform sampler2D texmap;
+layout(binding=0) uniform sampler2D texmap;
 
 
 void main(){

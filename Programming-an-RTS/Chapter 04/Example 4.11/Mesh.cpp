@@ -26,7 +26,7 @@ void MESH::Render(glm::mat4& matViewProj, glm::mat4& matWorld, Renderer::Directi
 	_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
 	_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
 	auto texture = _texture.get();
-	_shader->SetTexture("texmap", &texture, 1);
+	_shader->SetTexture("texmap", texture);
 	_shader->Bind();
 	_mesh->Bind();
 	_mesh->Render();

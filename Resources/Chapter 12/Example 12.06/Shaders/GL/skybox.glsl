@@ -5,13 +5,8 @@ layout(location=1) in vec2 inUV;
 
 layout(location=0) out vec2 outUV;
 
-
-
-uniform	mat4 viewProj;	//same whole scene
-
-
-uniform	mat4 world;
-
+layout(location=0) uniform	mat4 viewProj;	//same whole scene
+layout(location=1) uniform	mat4 world;
 
 void main(){
 	gl_Position = viewProj * world * vec4(inPos,1.0);
@@ -23,8 +18,7 @@ void main(){
 layout(location=0) in vec2 inUV;
 layout(location=0) out vec4 outFragColor;
 
-uniform sampler2D texmap;
-
+layout(binding=0) uniform sampler2D texmap;
 
 void main(){
 	vec4 clr = texture(texmap,inUV);

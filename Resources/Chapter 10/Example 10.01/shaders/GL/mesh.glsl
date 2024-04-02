@@ -12,11 +12,11 @@ layout(location=2) out vec2 aWorldUV;
 
 
 
-uniform	mat4 viewProj;	//same whole scene
-uniform	vec2 mapSize;
+layout(location=0) uniform	mat4 viewProj;	//same whole scene
+layout(location=1) uniform	vec2 mapSize;
 
 
-uniform mat4 model;		//varies per object		
+layout(location=2) uniform mat4 model;		//varies per object		
 
 
 void main(){
@@ -43,11 +43,11 @@ struct DirectionalLight{
 	vec3 direction;
 };
 
-uniform	DirectionalLight light;
+layout(location=3) uniform	DirectionalLight light;
 
 
-uniform sampler2D texmap;
-uniform sampler2D lightmap;
+layout(binding=0) uniform sampler2D texmap;
+layout(binding=1) uniform sampler2D lightmap;
 
 
 

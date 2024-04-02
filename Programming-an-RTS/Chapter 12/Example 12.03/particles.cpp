@@ -24,6 +24,7 @@ void LoadParticleResources(Renderer::RenderDevice* pdevice,std::shared_ptr<Rende
 	createInfo.blendInfo.dstColorFactor = Renderer::ShaderBlendFactor::One;
 	createInfo.topologyType = Renderer::ShaderTopologyType::PointList;
 	particleShader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("particles.glsl"), createInfo)));
+	
 }
 
 void UnloadParticleResources() {
@@ -36,6 +37,7 @@ void UnloadParticleResources() {
 //////////////////////////////////////
 PARTICLE_SYSTEM::PARTICLE_SYSTEM(Renderer::RenderDevice* pdevice) :EFFECT(pdevice) {
 	_particleSize = 3.f;
+	
 }
 
 PARTICLE_SYSTEM::~PARTICLE_SYSTEM() {
@@ -50,10 +52,7 @@ void PARTICLE_SYSTEM::Render(mat4& matVP) {
 	if (_particles.empty())
 		return;
 	PreRender(matVP);
-	particleShader->SetTexture("texmap", &_pTexture, 1);
 	
-	auto buffer = particleBuffer.get();
-	particleShader->SetStorageBuffer("PARTICLE_BUFFER", buffer, false);
 	particleShader->Bind();
 	int batchSize = 512;
 	for (int i = 0; i < _particles.size(); i += batchSize)
@@ -81,10 +80,10 @@ void PARTICLE_SYSTEM::RenderBatch(int start, int batchSize){
 	}
 
 	particleBuffer->UnmapPtr();
-
+	
 	//Render batch
 	if (particlesRendered > 0)
-		_pdevice->DrawVertices(particlesRendered, bufferOffset);
+		_pdevice->DrawPoints(particlesRendered, bufferOffset);
 
 	bufferOffset += batchSize;
 }
@@ -117,6 +116,10 @@ MAGIC_SHOWER::MAGIC_SHOWER(Renderer::RenderDevice* pdevice, int noParticles, vec
 		
 	}
 	_pTexture = starTexture.get();
+	particleShader->SetTexture("texmap", &_pTexture, 1);
+
+	auto buffer = particleBuffer.get();
+	particleShader->SetStorageBuffer("PARTICLE_BUFFER", buffer, false);
 }
 
 MAGIC_SHOWER::~MAGIC_SHOWER() {

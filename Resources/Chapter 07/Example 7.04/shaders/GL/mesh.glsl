@@ -6,13 +6,8 @@ layout(location=1) in vec3 inNormal;
 
 layout(location=0) out vec3 Normal;
 
-
-
-
-uniform	mat4 viewProj;	//same whole scene
-
-
-uniform	mat4 model;		//varies per object
+layout(location=0) uniform	mat4 viewProj;	//same whole scene
+layout(location=1) uniform	mat4 model;		//varies per object
 
 
 
@@ -29,7 +24,7 @@ layout(location=0) in vec3 Normal;
 
 layout(location=0) out vec4 outFragColor;
 
-uniform	vec4 inColor;
+layout(location=2) uniform	vec4 color;
 
 struct DirectionalLight{
 	vec4 diffuse;
@@ -38,11 +33,12 @@ struct DirectionalLight{
 	vec3 direction;
 };
 
-uniform DirectionalLight light;
+layout(location=3) uniform DirectionalLight light;
 
 
 
 void main(){
+	vec4 inColor =color;
 	//normalize interpolated normal
 	vec3 normal = normalize(Normal);
 	float shade = max(dot(normal,light.direction),0);
@@ -51,6 +47,6 @@ void main(){
 	
 	float specfactor = pow(shade,32);//hack specular (no view dir at moment)
 	vec3 spec = vec3(inColor) * vec3(light.specular) * specfactor ;
-	vec4 color = vec4(ambient + diffuse + spec,1.0);
-	outFragColor = color;	
+	vec4 clr = vec4(ambient + diffuse + spec,1.0);
+	outFragColor = clr;	
 }

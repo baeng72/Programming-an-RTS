@@ -110,8 +110,9 @@ bool PATCH::CreateMesh(HEIGHTMAP& hm, Rect source, Renderer::RenderDevice* pdevi
 	{
 		_tex.push_back(t.get());
 	}
-	
-	return false;
+	_shader->SetTexture("texmaps", _tex.data(), (uint32_t)_tex.size());
+	_shader->SetStorageBuffer("Attr", _attrBuffer.get());
+	return true;
 }
 
 void PATCH::Release() {
@@ -124,8 +125,8 @@ void PATCH::Render(glm::mat4&viewProj,glm::mat4&model, Renderer::DirectionalLigh
 {
 	//_shader->Bind();
 	
-	_shader->SetTexture("texmaps", _tex.data(), (uint32_t)_tex.size());	
-	_shader->SetStorageBuffer("Attr", _attrBuffer.get());
+	
+	
 	_shader->SetUniform("viewProj", &viewProj);
 	_shader->SetUniform("model", &model);
 	_shader->SetUniform("light.ambient", &light.ambient);

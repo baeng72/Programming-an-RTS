@@ -9,12 +9,9 @@ layout(location=0) out vec3 aNormal;
 layout(location=1) out vec2 aUV;
 layout(location=2) out vec2 aWorldUV;
 
-uniform	mat4 viewProj;	//same whole scene
-uniform	vec2	mapSize;
-
-
-uniform	mat4 model;		//varies per object
-
+layout(location=0) uniform	mat4 viewProj;	//same whole scene
+layout(location=1) uniform	mat4 model;		//varies per object
+layout(location=2) uniform	vec2	mapSize;
 
 void main(){
 	vec4 worldPos = model * vec4(inPos,1.0);
@@ -33,6 +30,10 @@ layout(location=2) in vec2 aWorldUV;
 
 layout(location=0) out vec4 outFragColor;
 
+layout(location=3) uniform	vec4 teamColor;
+layout(location=4) uniform	vec4 color;
+
+
 struct DirectionalLight{
 	vec4 diffuse;
 	vec4 ambient;
@@ -40,13 +41,11 @@ struct DirectionalLight{
 	vec3 direction;
 };
 
-uniform	DirectionalLight light;
+layout(location=5) uniform	DirectionalLight light;
 
 
-uniform sampler2D texmap;
-uniform sampler2D lightmap;
-uniform	vec4 teamColor;
-uniform	vec4 color;
+layout(binding=0) uniform sampler2D texmap;
+layout(binding=1) uniform sampler2D lightmap;
 
 
 

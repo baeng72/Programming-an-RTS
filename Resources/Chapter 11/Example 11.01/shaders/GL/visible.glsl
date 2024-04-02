@@ -7,8 +7,8 @@ layout (location=1) in vec2 inUV;
 layout (location=0) out vec2 outUV;
 
 
-uniform mat4 matVP;
-uniform	mat4 matWorld;
+layout (location=0) uniform mat4 matVP;
+layout (location=1) uniform	mat4 matWorld;
 
 
 
@@ -26,7 +26,7 @@ void main(){
 layout (location=0) in vec2 inUV;
 layout (location=0) out vec4 outFragColor;
 
-uniform sampler2D sightTexture;
+layout(binding=0) uniform sampler2D sightTexture;
 
 
 void main(){		

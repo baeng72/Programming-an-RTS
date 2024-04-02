@@ -11,9 +11,9 @@ layout(location=2) out vec2 aWorldUV;
 
 
 
-uniform 	mat4 viewProj;	//same whole scene
+layout(location=0) uniform 	mat4 viewProj;	//same whole scene
 	
-uniform 	mat4 model;		//varies per object
+layout(location=1) uniform 	mat4 model;		//varies per object
 
 
 
@@ -42,13 +42,13 @@ struct DirectionalLight{
 	vec3 direction;
 };
 
-uniform	DirectionalLight light;
+layout(location=4) uniform	DirectionalLight light;
 
 
-uniform		vec4 teamColor;
-uniform		vec4 color;
+layout(location=2) uniform		vec4 teamColor;
+layout(location=3) uniform		vec4 color;
 
-uniform sampler2D texmap;
+layout(binding=0) uniform sampler2D texmap;
 
 
 

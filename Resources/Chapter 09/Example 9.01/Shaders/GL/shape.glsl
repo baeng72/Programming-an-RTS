@@ -10,11 +10,11 @@ layout(location=1) out vec2 UV;
 layout(location=2) out vec4 Color;
 
 
-uniform 	mat4 viewProj;	//same whole scene
+layout(location=0) uniform 	mat4 viewProj;	//same whole scene
 	
 
-uniform	mat4 model;		//varies per object
-uniform	vec4 color;
+layout(location=1) uniform	mat4 model;		//varies per object
+layout(location=2) uniform	vec4 color;
 
 
 void main(){
@@ -41,7 +41,7 @@ struct DirectionalLight{
 	vec3 direction;
 };
 
-uniform	DirectionalLight light;
+layout(location=3) uniform	DirectionalLight light;
 
 
 

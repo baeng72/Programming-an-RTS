@@ -1,22 +1,14 @@
 #type vertex
-#version 450
+#version 460 core
 layout(location=0) in vec3 inPos;
 layout(location=1) in vec3 inNormal;
 layout(location=2) in vec4 inColor;
 
-out vec3 aNormal;
-out vec4 aColor;
+layout (location=0) out vec3 aNormal;
+layout (location=1) out vec4 aColor;
 
-struct DirectionalLight{
-	vec4 diffuse;
-	vec4 ambient;
-	vec4 specular;
-	vec3 direction;
-};
-
-
-uniform	mat4 viewProj;	//same whole scene
-uniform	mat4 model;		//varies per object
+layout (location=0) uniform	mat4 viewProj;	//same whole scene
+layout (location=1) uniform	mat4 model;		//varies per object
 
 
 void main(){
@@ -30,7 +22,7 @@ void main(){
 layout(location=0) in vec3 aNormal;
 layout(location=1) in vec4 aColor;
 
-out vec4 outFragColor;
+layout(location=0) out vec4 outFragColor;
 
 struct DirectionalLight{
 	vec4 diffuse;
@@ -40,7 +32,7 @@ struct DirectionalLight{
 };
 
 
-uniform	DirectionalLight light;
+layout (location=2) uniform	DirectionalLight light;
 
 void main(){
 	//normalize interpolated normal

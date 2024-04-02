@@ -3,7 +3,7 @@
 layout(location=0) in vec3 inPos;
 layout(location=1) in vec3 inNormal;
 
-out vec3 aNormal;
+layout(location=0) out vec3 aNormal;
 
 
 
@@ -11,8 +11,8 @@ out vec3 aNormal;
 
 
 
-uniform	mat4 viewProj;
-uniform	mat4 model;
+layout(location=0) uniform	mat4 viewProj;
+layout(location=1) uniform	mat4 model;
 
 
 
@@ -35,12 +35,12 @@ struct DirectionalLight{
 	vec3 direction;
 };
 
-uniform	DirectionalLight light;
+layout(location=4) uniform	DirectionalLight light;
 
 
 
-uniform	vec4 clrdiffuse;
-uniform	vec4 clrspecular;
+layout(location=2) uniform	vec4 clrdiffuse;
+layout(location=3) uniform	vec4 clrspecular;
 
 
 

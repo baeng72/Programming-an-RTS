@@ -5,14 +5,14 @@ layout(location=1) in vec3 inNormal;
 layout(location=2) in vec2 inUV;
 
 
-out vec3 aNormal;
-out vec2 aUV;
+layout(location=0) out vec3 aNormal;
+layout(location=1) out vec2 aUV;
 
 
-uniform mat4 viewProj;	//same whole scene
+layout(location=0) uniform mat4 viewProj;	//same whole scene
 	
 
-uniform	mat4 model;		//varies per object
+layout(location=1) uniform	mat4 model;		//varies per object
 	
 void main(){
 	gl_Position = viewProj * model * vec4(inPos,1.0);
@@ -28,7 +28,7 @@ layout(location=1) in vec2 aUV;
 
 
 
-out vec4 outFragColor;
+layout(location=0) out vec4 outFragColor;
 
 struct DirectionalLight{
 	vec4 diffuse;
@@ -37,17 +37,13 @@ struct DirectionalLight{
 	vec3 direction;
 };
 
-uniform	DirectionalLight light;
+layout(location=3) uniform	DirectionalLight light;
 
 
-uniform vec4 color;
+layout(location=2) uniform vec4 color;
 
 
 void main(){
-	
-	
-	
-	
 	
 	//normalize interpolated normal
 	vec3 normal = normalize(aNormal);

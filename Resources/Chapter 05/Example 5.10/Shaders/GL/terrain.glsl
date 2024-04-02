@@ -5,13 +5,13 @@ layout(location=1) in vec3 inNormal;
 layout(location=2) in vec2 inUV;
 layout(location=3) in vec2 inAlphaUV;
 
-out vec3 aNormal;
-out vec2 aUV;
-out vec2 aAlphaUV;
+layout(location=0) out vec3 aNormal;
+layout(location=1) out vec2 aUV;
+layout(location=2) out vec2 aAlphaUV;
 
 
-uniform 	mat4 viewProj;	//same whole scene
-uniform	mat4 model;		//varies per object
+layout(location=0) uniform 	mat4 viewProj;	//same whole scene
+layout(location=1) uniform	mat4 model;		//varies per object
 
 void main(){
 	gl_Position = viewProj * model * vec4(inPos,1.0);
@@ -28,7 +28,7 @@ layout(location=1) in vec2 aUV;
 layout(location=2) in vec2 aAlphaUV;
 
 
-out vec4 outFragColor;
+layout(location=0) out vec4 outFragColor;
 
 struct DirectionalLight{
 	vec4 diffuse;
@@ -37,14 +37,14 @@ struct DirectionalLight{
 	vec3 direction;
 };
 
-uniform	DirectionalLight light;
+layout(location=2) uniform	DirectionalLight light;
 
 
-uniform sampler2D a_texmap1;
-uniform sampler2D b_texmap2;
-uniform sampler2D c_texmap3;
-uniform sampler2D d_alphamap;
-uniform sampler2D e_lightmap;
+layout(binding=0) uniform sampler2D a_texmap1;
+layout(binding=1) uniform sampler2D b_texmap2;
+layout(binding=2) uniform sampler2D c_texmap3;
+layout(binding=3) uniform sampler2D d_alphamap;
+layout(binding=4) uniform sampler2D e_lightmap;
 
 void main(){
 	

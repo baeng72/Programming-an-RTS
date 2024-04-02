@@ -14,13 +14,14 @@ layout(location=1) out vec2 UV;
 
 
 
-uniform	mat4 viewProj;	//same whole scene
+layout(location=0) uniform	mat4 viewProj;	//same whole scene
+layout(location=1) uniform mat4 model;		//varies per object
 	
 layout(binding=0) readonly buffer skeleton{
 	mat4 bones[];
 };
 
-uniform mat4 model;		//varies per object
+
 
 
 void main(){
@@ -49,10 +50,10 @@ struct DirectionalLight{
 	vec3 direction;
 };
 
-uniform	DirectionalLight light;
+layout(location=2) uniform	DirectionalLight light;
 
 
-uniform sampler2D texmap;
+layout(binding=0) uniform sampler2D texmap;
 
 
 void main(){

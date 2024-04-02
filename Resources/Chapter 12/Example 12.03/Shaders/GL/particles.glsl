@@ -11,7 +11,7 @@ struct PARTICLE_VERTEX{
 
 
 
-readonly buffer PARTICLE_BUFFER{
+layout(binding=0) readonly buffer PARTICLE_BUFFER{
 	PARTICLE_VERTEX data[];
 }particles;
 
@@ -32,9 +32,9 @@ layout(location=1) in vec4 aColor[];
 layout(location=0) out vec4 outColor;
 layout(location=1) out vec2 outUV;
 
-uniform	mat4 viewProj;
-uniform	vec3 eyePosW;
-uniform	vec2 sizeW;	
+layout(location=0) uniform	mat4 viewProj;
+layout(location=1) uniform	vec3 eyePosW;
+layout(location=2) uniform	vec2 sizeW;	
 
 
 //vec2 uvs[] = {vec2(0,0),vec2(1,0),vec2(1,1),vec2(0,1)};
@@ -86,7 +86,7 @@ layout(location=0) in vec4 inColor;
 layout(location=1) in vec2 inUV;
 layout(location=0) out vec4 outFragColor;
 
-uniform sampler2D texmap;
+layout(binding=0) uniform sampler2D texmap;
 
 void main(){
 	vec4 clr = texture(texmap,inUV);

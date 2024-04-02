@@ -33,8 +33,8 @@ void main(){
 layout (location=0) in vec2 inUV;
 layout (location=0) out vec4 outFragColor;
 
-uniform sampler2D landscapeTexture;
-uniform sampler2D fogOfWarTexture;
+layout(binding=0) uniform sampler2D landscapeTexture;
+layout(binding=1) uniform sampler2D fogOfWarTexture;
 
 
 void main(){		

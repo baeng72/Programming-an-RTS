@@ -118,7 +118,7 @@ SKYBOX::SKYBOX(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::ShaderM
 	Renderer::ShaderCreateInfo ci;
 	ci.cullMode = Renderer::ShaderCullMode::frontFace;
 	_shader.reset(Renderer::Shader::Create(pdevice, shaderManager->CreateShaderData(Core::ResourcePath::GetShaderPath("skybox.glsl"),ci)));
-	_skyboxTexture.reset(Renderer::Texture::Create(pdevice, TEX_DIM, TEX_DIM, Renderer::TextureFormat::R8G8B8A8,Renderer::TextureSamplerAddress::Clamp,Renderer::TextureSamplerFilter::Nearest));
+	_skyboxTexture.reset(Renderer::Texture::Create(pdevice, TEX_DIM, TEX_DIM, Renderer::TextureFormat::R8G8B8A8,Renderer::TextureSamplerWrap::Clamp,Renderer::TextureSamplerFilter::Nearest));
 	_depthTexture.reset(Renderer::Texture::Create(pdevice, TEX_DIM, TEX_DIM, Renderer::TextureFormat::D32));
 	auto texture = _skyboxTexture.get();
 	auto depth = _depthTexture.get();

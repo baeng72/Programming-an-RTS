@@ -7,10 +7,9 @@ layout (location=2) in vec2 inUV;
 layout (location=0) out vec2 aUV;
 
 
-uniform	mat4 matVP;
+layout(location=0) uniform	mat4 matVP;
 
-
-uniform	mat4 matWorld;
+layout(location=1) uniform	mat4 matWorld;
 
 
 
@@ -24,8 +23,8 @@ void main(){
 layout(location=0) in vec2 aUV;
 layout(location=0) out vec4 outFragColor;
 
-uniform vec4 color;
-uniform sampler2D effectTexture;
+layout(location=2) uniform vec4 color;
+layout(binding=0) uniform sampler2D effectTexture;
 
 void main(){
 	vec4 clr = texture(effectTexture,aUV);

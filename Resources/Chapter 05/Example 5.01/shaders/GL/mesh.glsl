@@ -1,17 +1,17 @@
 #type vertex
-#version 450
+#version 460 core
 layout(location=0) in vec3 inPos;
 layout(location=1) in vec3 inNormal;
 
 
-out vec3 aNormal;
-out vec4 aColor;
+layout (location=0) out vec3 aNormal;
+layout (location=1) out vec4 aColor;
 
 
-uniform	mat4 viewProj;	//same whole scene
+layout (location=0) uniform	mat4 viewProj;	//same whole scene
 	
-uniform	mat4 model;		//varies per object
-uniform	vec4 color;
+layout (location=1) uniform	mat4 model;		//varies per object
+layout (location=2) uniform	vec4 color;
 
 
 void main(){
@@ -21,11 +21,11 @@ void main(){
 }
 
 #type fragment
-#version 450
-layout(location=0) in vec3 aNormal;
-layout(location=1) in vec4 aColor;
+#version 460 core
+layout (location=0) in vec3 aNormal;
+layout (location=1) in vec4 aColor;
 
-out vec4 outFragColor;
+layout (location=0) out vec4 outFragColor;
 
 struct DirectionalLight{
 	vec4 diffuse;
@@ -34,7 +34,7 @@ struct DirectionalLight{
 	vec3 direction;
 };
 
-uniform	DirectionalLight light;
+layout (location=3) uniform	DirectionalLight light;
 
 
 

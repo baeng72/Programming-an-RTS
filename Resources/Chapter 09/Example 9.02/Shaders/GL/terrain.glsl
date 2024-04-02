@@ -10,10 +10,10 @@ layout(location=1) out vec2 aUV;
 layout(location=2) out vec2 aAlphaUV;
 
 
-uniform	mat4 viewProj;	//same whole scene
+layout(location=0) uniform	mat4 viewProj;	//same whole scene
 	
 
-uniform	mat4 model;		//varies per object
+layout(location=1) uniform	mat4 model;		//varies per object
 
 
 void main(){
@@ -40,14 +40,14 @@ struct DirectionalLight{
 	vec3 direction;
 };
 
-uniform	DirectionalLight light;
+layout(location=2) uniform	DirectionalLight light;
 
 
-uniform sampler2D a_texmap1;
-uniform sampler2D b_texmap2;
-uniform sampler2D c_texmap3;
-uniform sampler2D d_alphamap;
-uniform sampler2D e_lightmap;
+layout(binding=0) uniform sampler2D a_texmap1;
+layout(binding=1) uniform sampler2D b_texmap2;
+layout(binding=2) uniform sampler2D c_texmap3;
+layout(binding=3) uniform sampler2D d_alphamap;
+layout(binding=4) uniform sampler2D e_lightmap;
 
 void main(){
 	

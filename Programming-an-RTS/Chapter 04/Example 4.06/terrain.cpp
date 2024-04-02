@@ -144,6 +144,8 @@ void TERRAIN::Init(Renderer::RenderDevice* pdevice,std::shared_ptr<Renderer::Sha
 	_heightMap = std::make_unique<HEIGHTMAP>(_size, 20.f);
 	_heightMap->LoadFromFile(Core::ResourcePath::GetTexturePath("heightmap.jpg"));
 	CreatePatches(3);
+	Renderer::Texture* ptexture = _texture.get();
+	_shader->SetTexture("texmap", &ptexture, 1);
 }
 
 void TERRAIN::GenerateRandomTerrain(int numPatches)
@@ -193,14 +195,14 @@ void TERRAIN::Render(glm::mat4&viewProj,glm::mat4&model,Renderer::DirectionalLig
 {
 	_shader->Bind();
 	
-	Renderer::Texture* ptexture = _texture.get();
+	
 	_shader->SetUniformData("viewProj", &viewProj, sizeof(mat4));
 	_shader->SetUniformData("model", &model, sizeof(mat4));
 	_shader->SetUniformData("light.ambient", &light.ambient, sizeof(vec4));
 	_shader->SetUniformData("light.diffuse", &light.diffuse, sizeof(vec4));
 	_shader->SetUniformData("light.specular", &light.specular, sizeof(vec4));
 	_shader->SetUniformData("light.direction", &light.direction, sizeof(vec3));
-	_shader->SetTexture("texmap", &ptexture, 1);
+	
 	for (size_t i = 0; i < _patches.size(); i++)
 		_patches[i]->Render();
 }
