@@ -15,6 +15,7 @@ namespace GL {
 		_alphaOp = GL_FUNC_ADD;
 	}
 	GLuint ShaderUtil::compileShader(const char* shaderSrc, GLenum shaderType) {
+		
 		GLuint shaderID = -1;
 		int success;
 		char buffer[512];
@@ -31,6 +32,8 @@ namespace GL {
 		return shaderID;
 	}
 	void ShaderUtil::compile(const char* vertexSrc, const char* geometrySrc, const char* fragmentSrc) {
+		
+
 		GLuint vertexID=-1, geometryID=-1, fragmentID=-1;
 		char buffer[512];
 		int success;
@@ -70,7 +73,10 @@ namespace GL {
 				glGetActiveUniform(_programID, (GLuint)i, bufSize, &length, &size, &type, name);
 				
 				int location = glGetUniformLocation(_programID, name);
-				
+				GLenum props[1] = { GL_LOCATION };
+				GLint res[1] = { 0 };
+				length = 0;
+				//glGetProgramResourceiv(_programID, GL_LOCATION, i, 1, props, 1, &length, res);
 				size_t hash = Core::HashFNV1A(name, strlen(name));
 				_uniformMap[hash] = location;
 				if (type == GL_SAMPLER_2D) {
@@ -89,7 +95,29 @@ namespace GL {
 					}
 					
 				}
+				else if (type == GL_SAMPLER_CUBE) {
+					int textureoffset = (int)_textureMap.size();
+					_textureMap[hash] = textureoffset;
+					_textureslots.push_back(location);
+					std::string sname = name;
+					props[0] = GL_BUFFER_BINDING;
+					res[0] = 0;
+					length = 0;
+					//glGetProgramResourceiv(_programID, GL_UNIFORM, i, 1, props, 1, &length, res);
+					GLint val = 0;
+					glGetIntegerv(GL_TEXTURE_CUBE_MAP, &val);
+					size_t pos = sname.find('[');
+					if (pos != std::string::npos) {
+						name[pos] = 0;
+						hash = Core::HashFNV1A(name, strlen(name));
+						_uniformMap[hash] = location;
+						_textureMap[hash] = textureoffset;
+						
+
+					}
+				}
 			}
+			
 			glGetProgramiv(_programID, GL_ACTIVE_UNIFORM_BLOCKS, &count);
 			GLenum props[1] = { GL_NAME_LENGTH };
 			GLint res[1];
@@ -185,6 +213,9 @@ namespace GL {
 		std::string filepath = fileName;
 		auto lastSlash = filepath.find_last_of("/\\");
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
+		if (lastSlash > 0) {
+			_path = filepath.substr(0, lastSlash);
+		}
 		auto lastDot = filepath.rfind('.');
 		auto count = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
 		std::string name = filepath.substr(lastSlash, count);
@@ -207,11 +238,22 @@ namespace GL {
 		in.close();
 		return result;
 	}
-	std::unordered_map<int, std::string> ShaderUtil::PreProcess(const std::string& source) {
+	std::unordered_map<int, std::string> ShaderUtil::PreProcess(std::string& source) {
 		std::unordered_map<int, std::string> shaderSources;
 		const char* typeToken = "#type";
 		size_t typeTokenLength = strlen(typeToken);
 		size_t pos = source.find(typeToken, 0);
+		while (source.find("#include ") != source.npos) {
+			const auto pos = source.find("#include ");
+			const auto p1 = source.find('<', pos);
+			const auto p2 = source.find('>', pos);
+			if (p1 == source.npos || p2 == source.npos || p2 <= p1) {
+				LOG_ERROR("Error with shader #include");
+			}
+			const std::string name = source.substr(p1 + 1, p2 - p1 - 1);
+			const std::string include = readFile(_path+name);
+			source.replace(pos, p2 - pos + 1, include.c_str());
+		}
 		while (pos != std::string::npos) {
 			size_t eol = source.find_first_of("\r\n", pos);
 			ASSERT(pos != std::string::npos, "Syntax error reading shader file.");
@@ -249,7 +291,7 @@ namespace GL {
 		ensureProgram();
 		glActiveTexture(GL_TEXTURE0 + offset);
 		glBindTexture(GL_TEXTURE_2D, texID);
-		
+		GLERR();
 		glUniform1i(location, offset);
 		GLERR();
 	}

@@ -112,12 +112,16 @@ namespace Vulkan {
 		VkCommandBuffer getCurrentCommandBuffer()const { return commandBuffers[index]; }
 		uint32_t	NextFrame(uint64_t timeout = UINT64_MAX);
 		VkCommandBuffer BeginRender(bool startRenderPass = true);
-		void EndRender(VkCommandBuffer cmd, bool present = true);
+		void EndRender(VkCommandBuffer cmd, bool present = true, bool inRender = true);
 		void StartRenderPass(VkCommandBuffer);
 		void Resize(uint32_t width, uint32_t height);
 		VkRenderPass getRenderPass()const { return renderPass; }
 		uint32_t getFrameCount()const { return frameCount; }
+		uint32_t getImageCount()const { return imageCount; }
+		const VkImageView* getSwapchainImageViews()const { return swapchainImageViews; }
+		const VkImageView getDepthImageView()const { return depthImage.imageView; }
 		uint32_t getCurrFrame()const { return currFrame; }
 		void SetClearColor(int index, VkClearColorValue value) { clearValues[index].color = value; }
+		
 	};
 }

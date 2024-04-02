@@ -10,13 +10,14 @@ namespace Renderer {
 		virtual ~RenderDevice() = default;
 		virtual void Init() = 0;
 		virtual void StartRender(bool mainpass=true) = 0;
-		virtual void EndRender() = 0;
+		virtual void EndRender(bool endpass=true) = 0;
 		virtual void StartOffscreenRender() = 0;
 		virtual void EndOffscreenRender()=0;
 		/*virtual void StartShadowRender() = 0;
 		virtual void EndShadowRender() = 0;*/
 		virtual void SetVSync(bool vsync) = 0;
 		virtual void EnableGeometry(bool geom) = 0;
+		virtual void EnableMultiDraw(bool multi) = 0;
 		virtual void EnableWireframe(bool wireframe) = 0;
 		virtual void EnableLines(bool lines) = 0;
 		virtual void EnableDepthBuffer(bool depth) = 0;
@@ -29,7 +30,8 @@ namespace Renderer {
 		virtual void Clear(Rect& r, Color clr) = 0;
 		virtual void SetViewport(ViewPort& vp)=0;
 		virtual float GetCurrentTicks() = 0;
-		virtual void DrawVertices(uint32_t count,uint32_t offset=0) = 0;
+		virtual void DrawTriangles(uint32_t count,uint32_t offset=0) = 0;
+		virtual void DrawPoints(uint32_t count, uint32_t offset = 0) = 0;
 		//virtual void DrawIndexed(uint32_t indexCount) = 0;
 		static RenderDevice* Create(void* nativeWidowHandle);
 	};

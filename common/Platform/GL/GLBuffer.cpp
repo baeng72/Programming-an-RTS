@@ -31,14 +31,16 @@ namespace GL {
 	{
 		if (_mapped)
 			UnmapPtr();
-		if (_isUniform) {
+		/*if (_isUniform) {
 			glBindBuffer(GL_UNIFORM_BUFFER, _buffer);
 			glBufferSubData(GL_UNIFORM_BUFFER, offset, size, ptr);
 		}
 		else {
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, _buffer);
 			glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, ptr);
-		}
+		}*/
+		glNamedBufferSubData(_buffer, offset, size, ptr);
+		GLERR();
 	}
 	void* GLBuffer::GetNativeHandle() const
 	{

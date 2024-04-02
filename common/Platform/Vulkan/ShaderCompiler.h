@@ -5,5 +5,5 @@ class ShaderCompiler {
 public:
 	ShaderCompiler();
 	~ShaderCompiler();
-	std::vector<uint32_t> compileShader(const char* shaderSrc, VkShaderStageFlagBits shaderStage);
+	std::vector<uint32_t> compileShader(const char* shaderSrc, VkShaderStageFlagBits shaderStage, bool isVulkan=true);
 };

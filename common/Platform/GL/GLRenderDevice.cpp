@@ -52,7 +52,7 @@ namespace GL {
 		GLERR();
 		
 	}
-	void GLRenderDevice::EndRender()
+	void GLRenderDevice::EndRender(bool endpass)
 	{
 		//EASY_FUNCTION(profiler::colors::Red);
 		GLERR();
@@ -77,6 +77,9 @@ namespace GL {
 	}
 	void GLRenderDevice::EnableGeometry(bool geom)
 	{
+	}
+	void GLRenderDevice::EnableMultiDraw(bool multi) {
+
 	}
 	void GLRenderDevice::EnableWireframe(bool wireframe)
 	{
@@ -152,13 +155,18 @@ namespace GL {
 	{
 		return (float)glfwGetTime();
 	}
-	void GLRenderDevice::DrawVertices(uint32_t count, uint32_t offset)
-	{
+	void GLRenderDevice::DrawTriangles(uint32_t count, uint32_t offset)
+	{		
 		glBindVertexArray(_vao);
 		glDrawArrays(GL_TRIANGLES, offset, count);
 		GLERR();
 	}
-
+	void GLRenderDevice::DrawPoints(uint32_t count, uint32_t offset)
+	{
+		glBindVertexArray(_vao);
+		glDrawArrays(GL_POINTS, offset, count);
+		GLERR();
+	}
 	/*void GLRenderDevice::DrawIndexed(uint32_t count) {
 		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
 		GLERR();

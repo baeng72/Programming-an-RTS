@@ -18,6 +18,7 @@ namespace GL {
 		GLint _width;
 		GLint _height;
 		GLint _viewport[4];
+		GLuint _vao;
 	public:
 		GLFrameBuffer(Renderer::RenderDevice* pdevice,Renderer::Texture** pptextures, uint32_t count,Renderer::Texture*pdepthmap, bool clearonrender = true,bool clonedevice=false);
 		GLFrameBuffer(const GLFrameBuffer& rhs) = delete;

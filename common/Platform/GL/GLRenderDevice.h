@@ -16,7 +16,7 @@ namespace GL {
 		virtual ~GLRenderDevice();
 		virtual void Init() override;
 		virtual void StartRender(bool mainpass=true) override;
-		virtual void EndRender() override;
+		virtual void EndRender(bool endpass=true) override;
 		virtual void StartOffscreenRender() override;
 		virtual void EndOffscreenRender() override;
 		/*virtual void StartShadowRender() override;
@@ -24,6 +24,7 @@ namespace GL {
 		virtual void SetVSync(bool vsync) override;
 		virtual void EnableGeometry(bool geom) override;
 		virtual void EnableWireframe(bool wireframe) override;
+		virtual void EnableMultiDraw(bool multi)override;
 		virtual void EnableLines(bool lines)override;
 		virtual void EnableDepthBuffer(bool depth)override;
 		virtual void* GetDeviceContext()const override;
@@ -35,7 +36,8 @@ namespace GL {
 		virtual void Clear(Rect& r, Color clr) override;
 		virtual void SetViewport(ViewPort& vp)override;
 		virtual float GetCurrentTicks()override;
-		virtual void DrawVertices(uint32_t count, uint32_t offset = 0)override;
+		virtual void DrawTriangles(uint32_t count, uint32_t offset = 0)override;
+		virtual void DrawPoints(uint32_t count, uint32_t offset = 0)override;
 		//virtual void DrawIndexed(uint32_t indexCount)override;
 
 	};

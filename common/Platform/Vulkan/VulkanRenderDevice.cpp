@@ -8,7 +8,7 @@ namespace Vulkan {
 
 	
 
-	VulkanRenderDevice::VulkanRenderDevice(void* nativeWindowHandle) :_enableVSync(false),_enableGeometry(false),_enableDepthBuffer(false),_inRender(false),_inOffscreenRender(false)
+	VulkanRenderDevice::VulkanRenderDevice(void* nativeWindowHandle) :_enableVSync(false),_enableGeometry(false),_enableDepthBuffer(false),_inRender(false),_inOffscreenRender(false),_enableMultiDraw(false)
 	{
 		_window = reinterpret_cast<GLFWwindow*>(nativeWindowHandle);
 
@@ -34,6 +34,7 @@ namespace Vulkan {
 		initFlags.enableGeometryShader = _enableGeometry;
 		initFlags.enableWireframe = _enableWireframe;
 		initFlags.enableLineWidth = _enableLines;
+		initFlags.enableMultiDraw = _enableMultiDraw;
 		_state->Init(initFlags, _window);
 		auto physicalDevice = _state->getPhysicalDevice();
 		VkPhysicalDeviceProperties properties;
@@ -109,11 +110,11 @@ namespace Vulkan {
 		
 	}
 
-	void VulkanRenderDevice::EndRender()
+	void VulkanRenderDevice::EndRender(bool endpass)
 	{
 		assert(_inRender);
 		//EASY_FUNCTION(profiler::colors::Red);
-		_swapchain->EndRender(_cmd);
+		_swapchain->EndRender(_cmd,true,endpass);
 
 		_cmd = VK_NULL_HANDLE;
 		_frameData.cmd = _cmd;
@@ -152,6 +153,9 @@ namespace Vulkan {
 
 	void VulkanRenderDevice::EnableGeometry(bool geom) {
 		_enableGeometry = geom;
+	}
+	void VulkanRenderDevice::EnableMultiDraw(bool multi) {
+		_enableMultiDraw = multi;
 	}
 	void VulkanRenderDevice::EnableLines(bool lines) {
 		_enableLines = lines;
@@ -209,7 +213,11 @@ namespace Vulkan {
 		vkCmdSetViewport(_cmd, 0, 1, &viewport);
 	}
 
-	void VulkanRenderDevice::DrawVertices(uint32_t count, uint32_t offset)
+	void VulkanRenderDevice::DrawTriangles(uint32_t count, uint32_t offset)
+	{
+		vkCmdDraw(_cmd, count, 1, offset, 0);
+	}
+	void VulkanRenderDevice::DrawPoints(uint32_t count, uint32_t offset)
 	{
 		vkCmdDraw(_cmd, count, 1, offset, 0);
 	}

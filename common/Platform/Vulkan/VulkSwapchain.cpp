@@ -320,11 +320,12 @@ namespace Vulkan {
 		vkCmdBeginRenderPass(cmd, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}
 
-	void VulkSwapchain::EndRender(VkCommandBuffer cmd, bool present) {
+	void VulkSwapchain::EndRender(VkCommandBuffer cmd, bool present, bool inRender) {
 		VkResult res;
 		{
 			//EASY_BLOCK("EndRenderPass/CommandBuffer");
-			vkCmdEndRenderPass(cmd);
+			if(inRender)
+				vkCmdEndRenderPass(cmd);
 
 			res = vkEndCommandBuffer(cmd);
 			assert(res == VK_SUCCESS);

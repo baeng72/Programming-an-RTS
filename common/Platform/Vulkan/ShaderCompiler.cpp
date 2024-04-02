@@ -1,4 +1,4 @@
-#pragma once
+
 #include "ShaderCompiler.h"
 #include <cassert>
 #include <sstream>
@@ -161,7 +161,7 @@ struct SpirvHelper
 		}
 	}
 
-	static bool GLSLtoSPV(const VkShaderStageFlagBits shader_type, const char* pshader, std::vector<unsigned int>& spirv) {
+	static bool GLSLtoSPV(const VkShaderStageFlagBits shader_type, const char* pshader, std::vector<unsigned int>& spirv, bool isVulkan) {
 
 		EShLanguage stage = FindLanguage(shader_type);
 		glslang::TShader shader(stage);
@@ -171,12 +171,18 @@ struct SpirvHelper
 		InitResources(Resources);
 
 		// Enable SPIR-V and Vulkan rules when parsing GLSL
-		EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules | EShMsgBuiltinSymbolTable);
+		EShMessages messages;
+		if(isVulkan)
+			messages= (EShMessages)(EShMsgSpvRules | EShMsgBuiltinSymbolTable | EShMsgVulkanRules);
+		else
+			messages = (EShMessages)(EShMsgSpvRules );
 
 		shaderStrings[0] = pshader;
 		shader.setStrings(shaderStrings, 1);
-		shader.setEnvInput(glslang::EShSource::EShSourceGlsl, stage, glslang::EShClient::EShClientVulkan, 100);
-		shader.setEnvClient(glslang::EShClient::EShClientVulkan, glslang::EShTargetClientVersion::EShTargetVulkan_1_0);
+		glslang::EShClient client = isVulkan ? glslang::EShClient::EShClientVulkan : glslang::EShClient::EShClientOpenGL;
+		glslang::EshTargetClientVersion version =  glslang::EshTargetClientVersion::EShTargetVulkan_1_2;
+		shader.setEnvInput(glslang::EShSource::EShSourceGlsl, stage, client, 100);
+		shader.setEnvClient(client, version);
 		shader.setEnvTarget(glslang::EShTargetLanguage::EShTargetSpv, glslang::EShTargetLanguageVersion::EShTargetSpv_1_0);
 		if (!shader.parse(&Resources, 100, false, messages)) {
 			std::string info = shader.getInfoLog();
@@ -306,9 +312,9 @@ ShaderCompiler::~ShaderCompiler()
 {
 	SpirvHelper::Finalize();
 }
-std::vector<uint32_t> ShaderCompiler::compileShader(const char* shaderSrc, VkShaderStageFlagBits shaderStage)
+std::vector<uint32_t> ShaderCompiler::compileShader(const char* shaderSrc, VkShaderStageFlagBits shaderStage,bool isVulkan)
 {
 	std::vector<uint32_t> spirv;
-	SpirvHelper::GLSLtoSPV(shaderStage, shaderSrc, spirv);
+	SpirvHelper::GLSLtoSPV(shaderStage, shaderSrc, spirv,isVulkan);
 	return spirv;
 }

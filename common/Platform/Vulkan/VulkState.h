@@ -40,6 +40,7 @@ namespace Vulkan {
 #endif
 		bool		enableLineWidth{ false };
 		bool		enableSwapchain{ true };
+		bool		enableMultiDraw{ false };
 	};
 
 	class VulkState {

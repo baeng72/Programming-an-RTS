@@ -1,14 +1,17 @@
 #pragma
 
 #include "../../Renderer/Shader.h"
-
-#include "ShaderUtil.h"
+#include "GLShaderManager.h"
+#include "GLTexture.h"
+//#include "ShaderUtil.h"
 namespace GL {
 	class GLShader : public Renderer::Shader {
-		Renderer::RenderDevice* _pdevice;
-		ShaderUtil* _pshader;
-		unsigned int _storageBuffer;
-
+		Renderer::RenderDevice* _pdevice;		
+		GLShaderData* _pshaderData;
+		std::vector<size_t> _resourceKeys;
+		std::unordered_map<size_t, int> _resourceType;
+		std::unordered_map<size_t, std::vector<GLuint>> _resourceHandles;
+		void ensureProgram();
 	public:
 		GLShader(Renderer::RenderDevice* pdevice, void* shaderData);
 		virtual ~GLShader();

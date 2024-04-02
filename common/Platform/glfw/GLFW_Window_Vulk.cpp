@@ -133,6 +133,22 @@ namespace GLFW {
 	{
 		winData._evFunc.push_back(func);
 	}
+	void GLFW_Window_Vulk::Shutdown() {
+		glfwSetCharCallback(_window, [](GLFWwindow* window, unsigned int keycode) {
+			});
+		glfwSetCursorPosCallback(_window, [](GLFWwindow* window, double xPos, double yPos) {
+			});
+		glfwSetScrollCallback(_window, [](GLFWwindow* window, double xoffset, double yoffset) {
+			});
+		glfwSetMouseButtonCallback(_window, [](GLFWwindow* window, int button, int action, int modes) {
+			});
+		glfwSetKeyCallback(_window, [](GLFWwindow* window, int key, int scancode, int action, int modes) {
+			});
+		glfwSetWindowCloseCallback(_window, [](GLFWwindow* window) {
+			});
+		glfwSetWindowSizeCallback(_window, [](GLFWwindow* window, int width, int height) {
+			});
+	}
 
 	void GLFW_Window_Vulk::OnBeginUpdate() {
 		//_context->StartRender();

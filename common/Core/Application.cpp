@@ -11,6 +11,7 @@ namespace Core {
 		_instance = this;
 		
 		_fps = _lastFps = 0;
+		_mousebuttons[0] = _mousebuttons[1] = _mousebuttons[2] = 0;
 	}
 
 	Application::~Application()
@@ -23,6 +24,7 @@ namespace Core {
 		_height = height;
 		_title = title;
 		_window = std::unique_ptr<Window>(Window::Create(width, height, title));
+		_mousepos = vec2(width * 0.5f, height * 0.5f);
 		_window->SetEventHandler(std::bind(&Application::OnEvent, this, std::placeholders::_1));
 		return true;
 	}
@@ -33,7 +35,12 @@ namespace Core {
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowCloseEvent>(EventType::WindowClose, std::bind(&Application::OnWindowClose, this, std::placeholders::_1));
 		dispatcher.Dispatch<WindowResizeEvent>(EventType::WindowResize, std::bind(&Application::OnWindowResize, this, std::placeholders::_1));
-
+		dispatcher.Dispatch<KeyPressedEvent>(EventType::KeyPressed, std::bind(&Application::OnKeyPressed, this, std::placeholders::_1));
+		dispatcher.Dispatch<KeyReleasedEvent>(EventType::KeyReleased, std::bind(&Application::OnKeyReleased, this, std::placeholders::_1));
+		dispatcher.Dispatch<MouseButtonPressedEvent>(EventType::MouseButtonPressed, std::bind(&Application::OnMouseButtonPressed, this, std::placeholders::_1));
+		dispatcher.Dispatch<MouseButtonReleasedEvent>(EventType::MouseButtonReleased, std::bind(&Application::OnMouseButtonReleased, this, std::placeholders::_1));
+		dispatcher.Dispatch<MouseScrolledEvent>(EventType::MouseScrolled, std::bind(&Application::OnMouseScrolled, this, std::placeholders::_1));
+		dispatcher.Dispatch<MouseMovedEvent>(EventType::MouseMoved, std::bind(&Application::OnMouseMoved, this, std::placeholders::_1));
 	}
 
 	void Application::Run()
@@ -64,6 +71,7 @@ namespace Core {
 
 			}
 		}
+		_window->Shutdown();
 		Cleanup();
 	}
 
@@ -81,5 +89,37 @@ namespace Core {
 		}
 		_minimized = false;
 		return false;
+	}
+
+	bool Application::OnKeyPressed(KeyPressedEvent& ev) {
+		_keys.insert(ev.key);
+		return true;
+	}
+
+	bool Application::OnKeyReleased(KeyReleasedEvent& ev) {
+		_keys.erase(ev.key);
+		return true;
+	}
+
+	bool Application::OnMouseButtonPressed(MouseButtonPressedEvent& ev) {
+		_mousebuttons[ev.button] = 1;
+		return true;
+	}
+
+	bool Application::OnMouseButtonReleased(MouseButtonReleasedEvent& ev) {
+		_mousebuttons[ev.button] = 0;
+		return true;
+	}
+
+	bool Application::OnMouseScrolled(MouseScrolledEvent& ev) {
+		_mousescroll[0] = ev.xOffset;
+		_mousescroll[1] = ev.yOffset;
+		return true;
+	}
+
+	bool Application::OnMouseMoved(MouseMovedEvent& ev) {
+		_mousepos[0] = ev.xPos;
+		_mousepos[1] = ev.yPos;
+		return true;
 	}
 }

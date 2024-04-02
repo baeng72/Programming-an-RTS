@@ -86,7 +86,7 @@ void main(){
 		glm::mat4 t = glm::translate(_xform, position);
 		glm::mat4 s = glm::scale(id, glm::vec3(pText->width, pText->height, 0.f));
 		glm::mat4 model = t * s;
-		mat4 mvp = _orthoproj * model;
+		mat4 mvp = _orthoproj;
 		vec4 p = mvp * vec4(0.f, 0.f, 0.f, 1.f);
 		
 		glBindVertexArray(_vao);

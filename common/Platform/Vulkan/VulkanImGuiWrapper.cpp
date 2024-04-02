@@ -160,14 +160,15 @@ void main()
 		io.DisplaySize = ImVec2((float)width, (float)height);
 		io.DisplayFramebufferScale = ImVec2(1, 1);
 		_viewport.x = _viewport.y = 0;
-		_viewport.width = width;
-		_viewport.height = height;
+		_viewport.width = (float)width;
+		_viewport.height = (float)height;
 		_viewport.ffar = 1000.f;
 		_viewport.fnear = 0.1f;
 	}
 	VulkanImGuiWrapper::~VulkanImGuiWrapper()
 	{
 		_pdevice->Wait();
+		
 		ImGui::DestroyContext();
 		VulkContext& context = *reinterpret_cast<VulkContext*>(_pdevice->GetDeviceContext());
 		for (int i = 0; i < MAX_FRAMES; i++) {

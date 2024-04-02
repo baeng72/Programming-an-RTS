@@ -222,6 +222,9 @@ namespace Vulkan {
 				case SPV_REFLECT_FORMAT_R32G32B32A32_SINT:
 					size = sizeof(int) * 4;
 					break;
+				case SPV_REFLECT_FORMAT_UNDEFINED:
+					size = 0;
+					break;
 				default:
 					assert(0);
 					break;
@@ -1049,7 +1052,7 @@ namespace Vulkan {
 	std::string VulkanShaderManager::readFile(const std::string& filepath) {//borowed from TheCherno Hazel shader stuff
 		std::string result;		
 		std::ifstream in(filepath, std::ios::in | std::ios::binary);
-		ASSERT(in, "Unable to open shader file.");
+		ASSERT(in, "Unable to open shader file:" + filepath);
 		in.seekg(0, std::ios::end);
 		result.resize(in.tellg());
 		in.seekg(0, std::ios::beg);
@@ -1058,11 +1061,22 @@ namespace Vulkan {
 		return result;
 	}
 
-	std::unordered_map<VkShaderStageFlagBits, std::string> VulkanShaderManager::PreProcess(const std::string& source) {
+	std::unordered_map<VkShaderStageFlagBits, std::string> VulkanShaderManager::PreProcess(std::string& source) {
 		std::unordered_map<VkShaderStageFlagBits, std::string> shaderSources;
 		const char* typeToken = "#type";
 		size_t typeTokenLength = strlen(typeToken);
 		size_t pos = source.find(typeToken, 0);
+		while (source.find("#include ") != source.npos) {
+			const auto pos = source.find("#include ");
+			const auto p1 = source.find('<', pos);
+			const auto p2 = source.find('>', pos);
+			if (p1 == source.npos || p2 == source.npos || p2 <= p1) {
+				LOG_ERROR("Error with shader #include");
+			}
+			const std::string name = source.substr(p1 + 1, p2 - p1 - 1);
+			const std::string include = readFile(_path+name);
+			source.replace(pos, p2 - pos + 1, include.c_str());
+		}
 		while (pos != std::string::npos) {
 			size_t eol = source.find_first_of("\r\n", pos);
 			ASSERT(pos != std::string::npos, "Syntax error reading shader file.");
@@ -1091,6 +1105,9 @@ namespace Vulkan {
 		std::string filepath = shaderPath;
 		auto lastSlash = filepath.find_last_of("/\\");
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
+		if (lastSlash > 0) {
+			_path = filepath.substr(0, lastSlash);
+		}
 		auto lastDot = filepath.rfind('.');
 		auto count = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
 		std::string name = filepath.substr(lastSlash, count);
@@ -1106,6 +1123,9 @@ namespace Vulkan {
 		std::string filepath = shaderPath;
 		auto lastSlash = filepath.find_last_of("/\\");
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
+		if (lastSlash > 0) {
+			_path = filepath.substr(0, lastSlash);
+		}
 		auto lastDot = filepath.rfind('.');
 		auto count = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
 		std::string name = filepath.substr(lastSlash, count);

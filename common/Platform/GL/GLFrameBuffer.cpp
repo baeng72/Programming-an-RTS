@@ -54,9 +54,11 @@ namespace GL {
 			_clearColors[1] = Color(1.f, 0.f, 0.f, 0.f);
 			_clearColorCount = 2u;
 		}
+		glGenVertexArrays(1, &_vao);
 	}
 	GLFrameBuffer::~GLFrameBuffer()
 	{
+		glDeleteVertexArrays(1, &_vao);
 		glDeleteBuffers(2, _fbos.data());
 	}
 	void GLFrameBuffer::StartRender()
@@ -121,6 +123,7 @@ namespace GL {
 	}
 	void GLFrameBuffer::DrawVertices(uint32_t count)
 	{
+		glBindVertexArray(_vao);
 		glDrawArrays(GL_TRIANGLES, 0, count);
 		//glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
 		GLERR();

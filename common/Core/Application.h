@@ -1,15 +1,23 @@
 #pragma once
 #include "Window.h"
+#include "defines.h"
 namespace Core {
 	class Application {
+	
 		static Application* _instance;
 		std::unique_ptr<Window> _window;
-
 		bool _running{ true };
 		bool _minimized{ false };
 		float _lastFrameTime{ 0.f };
 		bool OnWindowClose(WindowCloseEvent& ev);
 		bool OnWindowResize(WindowResizeEvent& ev);
+		bool OnKeyPressed(KeyPressedEvent& ev);
+		bool OnKeyReleased(KeyReleasedEvent& ev);
+		bool OnKeyTyped(KeyTypedEvent& ev);
+		bool OnMouseButtonPressed(MouseButtonPressedEvent& ev);
+		bool OnMouseButtonReleased(MouseButtonReleasedEvent& ev);
+		bool OnMouseScrolled(MouseScrolledEvent& ev);
+		bool OnMouseMoved(MouseMovedEvent& ev);
 	protected:
 		std::string _title;
 		int _width;
@@ -17,10 +25,16 @@ namespace Core {
 		int _fps;
 		int _lastFps;
 		float _time;
+		std::set<int> _keys;
+		int _mousebuttons[3];
+		vec2 _mousepos;
+		float _mousescroll[2];
+
 		void SetRunning(bool running) { _running = running; }
 		bool IsRunning()const { return _running; }
 		bool IsMinimized()const { return _minimized; }
 		bool IsKeyPressed(int key)const { return _window->IsKeyPressed(key); }
+		bool IsKeyPressed2(int key)const { return _keys.find(key) != _keys.end(); }
 		int GetFPS()const { return _lastFps; }
 	public:
 		Application();

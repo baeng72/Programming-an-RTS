@@ -38,3 +38,10 @@
 //ImGui stuff
 #include "Platform/imgui/ImGuiWrapper.h"
 
+
+//Utils
+#include "Platform/utils/HDRUtils.h"
+
+//SPIRV stuff
+#include "Platform/SPIRV/SPIRVCompiler.h"
+#include "Platform/SPIRV/SPIRVReflector.h"

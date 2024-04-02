@@ -1,5 +1,5 @@
 message("Core CMakeLists.txt")
-file(GLOB CORE_FILES "*.cpp" "*.h")
+file(GLOB CORE_FILES "*.cpp" "*.h" "*.hpp")
 
 #source_group(PLATFORM FILES ${PLATFORM_FILES})
 # foreach(FILE ${CORE_FILES}) 

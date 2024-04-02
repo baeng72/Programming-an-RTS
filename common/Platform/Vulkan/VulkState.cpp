@@ -84,6 +84,11 @@ namespace Vulkan {
 		if (initFlags.enableWireframe && deviceFeatures.fillModeNonSolid) {
 			enabledFeatures.fillModeNonSolid = VK_TRUE;
 		}
+		if (initFlags.enableMultiDraw) {
+			enabledFeatures.multiDrawIndirect = VK_TRUE;
+			enabledFeatures.drawIndirectFirstInstance = VK_TRUE;
+			deviceExtensions.push_back(VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME);
+		}
 
 		uint32_t queueCount = 2;
 		device = initDevice(physicalDevice, deviceExtensions, queues, enabledFeatures, queueCount);

@@ -8,13 +8,13 @@
 
 namespace Vulkan {
 	
-	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, const char* pfile,glm::vec2 size, Renderer::TextureSamplerAddress samplerAdd, Renderer::TextureSamplerFilter filter):_size(size)
+	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, const char* pfile,glm::vec2 size, Renderer::TextureSamplerWrap samplerAdd, Renderer::TextureSamplerFilter filter):_size(size)
 	{		
 		_pdevice = pdevice;
 		VulkContext* contextptr = reinterpret_cast<VulkContext*>(pdevice->GetDeviceContext());
 		VulkContext& context = *contextptr;
 		std::vector<Vulkan::Texture> textures;
-		
+		_type = Renderer::TextureType::Tex2D;//TODO: need to allow for cube type
 		TextureLoader::begin(context.device, context.commandBuffer, context.queue, context.memoryProperties)
 			.addTexture(pfile)
 			.setSamplerAddressMode(GetSamplerAddrMode(samplerAdd))
@@ -45,7 +45,7 @@ namespace Vulkan {
 		_addr = samplerAdd;
 		_filter = filter;
 	}
-	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, uint8_t* pixels, Renderer::TextureSamplerAddress samplerAdd, Renderer::TextureSamplerFilter filter)
+	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, uint8_t* pixels, Renderer::TextureSamplerWrap samplerAdd, Renderer::TextureSamplerFilter filter)
 		:_size(glm::vec2(width,height))
 	{
 		_pdevice = pdevice;
@@ -54,6 +54,7 @@ namespace Vulkan {
 		bool enableLod = false;
 		int bytesperpixel = 0;
 		_fmt = fmt;
+		_type = Renderer::TextureType::Tex2D;//TODO: need to allow for cube type
 		VkImageAspectFlagBits aspect = VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM;
 		VkFormat format = VK_FORMAT_MAX_ENUM;
 		switch (fmt) {
@@ -81,6 +82,9 @@ namespace Vulkan {
 			aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
 			bytesperpixel = 4;
 			format = VK_FORMAT_D32_SFLOAT;
+			break;
+		default:
+			assert(0);
 			break;
 		}
 		_addr = samplerAdd;
@@ -130,7 +134,7 @@ namespace Vulkan {
 		}
 		
 	}
-	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, Renderer::TextureSamplerAddress samplerAdd, Renderer::TextureSamplerFilter filter) 
+	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, int width, int height, Renderer::TextureFormat fmt, Renderer::TextureSamplerWrap samplerAdd, Renderer::TextureSamplerFilter filter) 
 		:_size(glm::vec2(width, height))
 	{
 		_pdevice = pdevice;
@@ -139,6 +143,7 @@ namespace Vulkan {
 		bool enableLod = false;
 		int bytesperpixel = 0;
 		_fmt = fmt;
+		_type = Renderer::TextureType::Tex2D;//TODO: need to allow for cube type
 		VkImageAspectFlagBits aspect = VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM;
 		VkImageUsageFlagBits usage = VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM;
 		VkFormat format = VK_FORMAT_MAX_ENUM;
@@ -203,6 +208,7 @@ namespace Vulkan {
 		VulkanTextureImpl* pvsrc = reinterpret_cast<VulkanTextureImpl*>(psrc);
 		int width = (int) pvsrc->_size.x;
 		int height = (int) pvsrc->_size.y;
+		_type = pvsrc->_type;
 		_fmt = pvsrc->_fmt;
 		int bytesperpixel = 0;
 		bool enableLod = false;
@@ -244,6 +250,7 @@ namespace Vulkan {
 		_addr = pvsrc->_addr;
 		_filter = pvsrc->_filter;
 		VkDeviceSize imageSize = (uint64_t)width * (uint64_t)height * bytesperpixel;
+
 		TextureProperties props;
 		props.format = format;
 		props.aspect = aspect;
@@ -342,12 +349,135 @@ namespace Vulkan {
 		}
 
 	}
+	VulkanTextureImpl::VulkanTextureImpl(Renderer::RenderDevice* pdevice, Renderer::TextureCreateInfo& ci)
+		:_pdevice(pdevice) {
+		create(pdevice, ci);
+	}
 	VulkanTextureImpl::~VulkanTextureImpl()
 	{
 		VulkContext* contextptr = reinterpret_cast<VulkContext*>(_pdevice->GetDeviceContext());
 		VulkContext& context = *contextptr;
 		vkDeviceWaitIdle(context.device);
 		Vulkan::cleanupTexture(context.device, _texture);
+	}
+
+	void VulkanTextureImpl::create(Renderer::RenderDevice* pdevice, Renderer::TextureCreateInfo& ci) {
+		VulkContext* contextptr = reinterpret_cast<VulkContext*>(pdevice->GetDeviceContext());
+		VulkContext& context = *contextptr;
+		bool enableLod = false;
+		int bytesperpixel = 0;		
+		VkImageAspectFlagBits aspect = VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM;
+		
+		VkFormat format = VK_FORMAT_MAX_ENUM;
+		switch (ci.format) {
+		case Renderer::TextureFormat::R8:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			bytesperpixel = 1;
+			format = VK_FORMAT_R8_SRGB;// UNORM;
+			
+			break;
+		case Renderer::TextureFormat::R8G8:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			bytesperpixel = 2;
+			format = VK_FORMAT_R8G8_SRGB;// UNORM;
+			break;
+		case Renderer::TextureFormat::R8G8B8:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			bytesperpixel = 3;
+			format = VK_FORMAT_R8G8B8_SRGB;// UNORM;
+			break;
+		case Renderer::TextureFormat::R8G8B8A8:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			bytesperpixel = 4;
+			format = VK_FORMAT_R8G8B8A8_SRGB;// UNORM;
+			break;
+		case Renderer::TextureFormat::D32:
+			aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
+			bytesperpixel = 4;
+			format = VK_FORMAT_D32_SFLOAT;
+			break;
+		case Renderer::TextureFormat::FR32G32B32:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			bytesperpixel = 4 * 3;
+			format = VK_FORMAT_R32G32B32_SFLOAT;
+			break;
+		case Renderer::TextureFormat::FR32G32B32A32:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			bytesperpixel = 4 * 4;
+			format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			break;
+		case Renderer::TextureFormat::FR16G16B16A16:
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+			bytesperpixel = 4 * 2;
+			format = VK_FORMAT_R16G16B16A16_SFLOAT;
+			break;
+		default:
+			assert(0);
+			break;
+		}
+		_addr = ci.wrap;
+		_filter = ci.filter;
+		_type = ci.type;
+		_fmt = ci.format;
+		int faces = ci.type == Renderer::TextureType::TexCube ? 6 : 1;
+		ASSERT(format != VK_FORMAT_MAX_ENUM, "Unkown format for bytesperpixel: {0}", bytesperpixel);
+		uint32_t size = (bytesperpixel * ci.width * ci.height);
+		VkDeviceSize imageSize = size * faces;
+		TextureProperties props;
+		props.layers = faces;
+		props.format = format;
+		props.isCubeMap = ci.type == Renderer::TextureType::TexCube ? true : false;
+		props.aspect = aspect;
+		props.height = ci.height;
+		props.width = ci.width;
+		props.layout = VK_IMAGE_LAYOUT_UNDEFINED;
+		
+		props.samplerProps.addressMode = GetSamplerAddrMode(ci.wrap);
+		props.samplerProps.filter = GetSamplerFilter(ci.filter);
+		int func = (int)ci.function;
+		if (func & (int)Renderer::TextureFunction::Sampler)
+			props.imageUsage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+		if (func & (int)Renderer::TextureFunction::Target)
+			props.imageUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		if (func & (int)Renderer::TextureFunction::Source)
+			props.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		if (func & (int)Renderer::TextureFunction::Target)
+			props.imageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		if (ci.pixels != nullptr)
+			props.imageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
+		props.mipLevels = enableLod ? 0 : 1;
+#ifdef __USE__VMA__
+		props.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+#else
+		props.memoryProps = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+#endif
+		initTexture(context.device, context.memoryProperties, props, _texture);
+		//
+		if (ci.pixels != nullptr) {
+			transitionImage(context.device, context.queue, context.commandBuffer, _texture.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, _texture.mipLevels, faces);
+			//transitionImage(context.device, context.queue, context.commandBuffer, _texture.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, _texture.mipLevels);
+			Buffer stagingBuffer;
+			BufferProperties bufProps;
+#ifdef __USE__VMA__
+			bufProps.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+#else
+			bufProps.memoryProps = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+#endif
+			bufProps.bufferUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+			bufProps.size = imageSize;
+			initBuffer(context.device, context.memoryProperties, bufProps, stagingBuffer);
+			void* ptr = mapBuffer(context.device, stagingBuffer);
+			
+			for (uint32_t i = 0; i < props.layers; i++) {
+				uint32_t offset = (uint32_t)(i * size);
+				memcpy(ptr, &ci.pixels[offset], size);
+				CopyBufferToImage(context.device, context.queue, context.commandBuffer, stagingBuffer, _texture, ci.width, ci.height, 0, i);
+			}
+			generateMipMaps(context.device, context.queue, context.commandBuffer, _texture);
+			unmapBuffer(context.device, stagingBuffer);
+			cleanupBuffer(context.device, stagingBuffer);
+		}
 	}
 	
 	void* VulkanTextureImpl::GetNativeHandle() const
@@ -375,14 +505,17 @@ namespace Vulkan {
 			imageCI.format = _texture.format;
 			imageCI.extent = { _texture.width, _texture.height,1 };
 			imageCI.mipLevels = 1;
-			imageCI.arrayLayers = 1;
+			imageCI.arrayLayers = _texture.layerCount;
 			imageCI.samples = VK_SAMPLE_COUNT_1_BIT;
 			imageCI.tiling = VK_IMAGE_TILING_LINEAR;
 			imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;// VK_IMAGE_LAYOUT_UNDEFINED;
 			imageCI.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+			if(imageCI.arrayLayers==6)//cubemap?
+				imageCI.flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 			initImage(context.device, imageCI, dstImage, true);
 	
 			int numpixels = 4;
+			bool isFloatFmt = false;
 			switch (_texture.format) {
 			case VK_FORMAT_R8_UINT:
 			case VK_FORMAT_R8_SNORM:
@@ -404,6 +537,11 @@ namespace Vulkan {
 			case VK_FORMAT_R8G8B8_UNORM:
 			case VK_FORMAT_R8G8B8_SRGB:
 				numpixels = 3;
+				break;
+			case VK_FORMAT_R16G16B16A16_SFLOAT:
+			case VK_FORMAT_R32G32B32A32_SFLOAT:
+				numpixels = 4;
+				isFloatFmt = true;
 				break;
 			}
 	
@@ -534,23 +672,26 @@ namespace Vulkan {
 					}
 				}
 			}
-			stbi_write_jpg(ppath, _texture.width, _texture.height, numpixels, data, 100);
+			if(isFloatFmt)
+				stbi_write_jpg(ppath, _texture.width, _texture.height, numpixels, data, 100);
+			else
+				stbi_write_hdr(ppath, _texture.width, _texture.height, 4, (const float*)data);
 			cleanupImage(context.device, dstImage);
 		return true;
 	}
 
 
-	VkSamplerAddressMode VulkanTextureImpl::GetSamplerAddrMode(Renderer::TextureSamplerAddress add)
+	VkSamplerAddressMode VulkanTextureImpl::GetSamplerAddrMode(Renderer::TextureSamplerWrap add)
 	{
 		VkSamplerAddressMode mode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 		switch (add) {
-		case Renderer::TextureSamplerAddress::Clamp:
+		case Renderer::TextureSamplerWrap::Clamp:
 			mode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 			break;
-		case Renderer::TextureSamplerAddress::Repeat:
+		case Renderer::TextureSamplerWrap::Repeat:
 			mode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 			break;
-		case Renderer::TextureSamplerAddress::Border:
+		case Renderer::TextureSamplerWrap::Border:
 			mode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 			break;
 		}
@@ -567,5 +708,183 @@ namespace Vulkan {
 			break;
 		}
 		return filter;
+	}
+
+	bool VulkanTextureImpl::GetPixels(std::vector<uint8_t>& pixels, int face)const {
+		VulkContext* contextptr = reinterpret_cast<VulkContext*>(_pdevice->GetDeviceContext());
+		VulkContext& context = *contextptr;
+		bool supportsBlit = (context.formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT) && (context.formatProperties.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT);
+		int numpixels = 4;
+		int bytesperpixel = 4;
+		bool isFloatFmt = false;
+		
+		bool isHalf = false;
+		switch (_fmt) {
+		case Renderer::TextureFormat::FR16G16B16A16:
+			isHalf = true;
+			bytesperpixel = 4 * 4;
+			isFloatFmt = true;
+			break;
+		case Renderer::TextureFormat::FR32G32B32A32:
+			
+			bytesperpixel = 4 * 4;
+			isFloatFmt = true;
+			break;
+		case Renderer::TextureFormat::R8:
+			
+			bytesperpixel = 1;
+			break;
+		case Renderer::TextureFormat::R8G8:
+			
+			bytesperpixel = 2;
+			break;
+		case Renderer::TextureFormat::R8G8B8:
+			
+			bytesperpixel = 3;
+			break;
+		case Renderer::TextureFormat::R8G8B8A8:
+			
+			bytesperpixel = 4;
+			break;
+		default:
+			assert(0);
+			break;
+		}
+
+		Image dstImage;
+		VkImageCreateInfo imageCI{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+		imageCI.imageType = VK_IMAGE_TYPE_2D;
+		imageCI.format = _texture.format;
+		imageCI.extent = { _texture.width, _texture.height,1 };
+		imageCI.mipLevels = 1;
+		imageCI.arrayLayers = 1;
+		imageCI.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageCI.tiling = VK_IMAGE_TILING_LINEAR;
+		imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;// VK_IMAGE_LAYOUT_UNDEFINED;
+		imageCI.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		
+		initImage(context.device, imageCI, dstImage, true);
+
+		
+
+		transitionImage(context.device, context.queue, context.commandBuffer, dstImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+		transitionImage(context.device, context.queue, context.commandBuffer, _texture.image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,1,1,face);
+
+		VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+		VkResult res = vkBeginCommandBuffer(context.commandBuffer, &beginInfo);
+		assert(res == VK_SUCCESS);
+
+
+
+		if (supportsBlit) {
+			VkOffset3D blitSize;
+			blitSize.x = _texture.width;
+			blitSize.y = _texture.height;
+			blitSize.z = 1;
+
+			VkImageBlit imageBlitRegion{};
+			imageBlitRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageBlitRegion.srcSubresource.layerCount = 1;
+			imageBlitRegion.srcSubresource.baseArrayLayer = face;
+			imageBlitRegion.srcOffsets[1] = blitSize;
+			imageBlitRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageBlitRegion.dstSubresource.layerCount = 1;
+			imageBlitRegion.dstOffsets[1];
+
+			vkCmdBlitImage(context.commandBuffer, _texture.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				dstImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				1,
+				&imageBlitRegion,
+				VK_FILTER_NEAREST);
+		}
+		else {
+			VkImageCopy imageCopyRegion{};
+
+			imageCopyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageCopyRegion.srcSubresource.layerCount = 1;
+			imageCopyRegion.srcSubresource.baseArrayLayer = face;
+			imageCopyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageCopyRegion.dstSubresource.layerCount = 1;
+			imageCopyRegion.extent.width = _texture.width;
+			imageCopyRegion.extent.height = _texture.height;
+			imageCopyRegion.extent.depth = 1;
+
+			vkCmdCopyImage(context.commandBuffer,
+				_texture.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				dstImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				1,
+				&imageCopyRegion);
+		}
+
+		res = vkEndCommandBuffer(context.commandBuffer);
+		assert(res == VK_SUCCESS);
+
+		VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &context.commandBuffer;
+
+		VkFence fence = initFence(context.device);
+
+
+		res = vkQueueSubmit(context.queue, 1, &submitInfo, fence);
+		assert(res == VK_SUCCESS);
+
+		res = vkWaitForFences(context.device, 1, &fence, VK_TRUE, UINT64_MAX);
+		assert(res == VK_SUCCESS);
+
+
+		vkDestroyFence(context.device, fence, nullptr);
+
+
+		transitionImage(context.device, context.queue, context.commandBuffer, dstImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+
+		//transitionImage(device, queue, cmd, srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, srcLayout);
+		transitionImage(context.device, context.queue, context.commandBuffer, _texture.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,1,1,face);
+		//generateMipMaps(context.device, context.queue, context.commandBuffer, _texture);
+
+		VkImageSubresource subResource{ VK_IMAGE_ASPECT_COLOR_BIT,0,0 };
+		VkSubresourceLayout subResourceLayout;
+		vkGetImageSubresourceLayout(context.device, dstImage.image, &subResource, &subResourceLayout);
+
+		bool colorSwizzle = false;
+		if (!supportsBlit)
+		{
+			std::vector<VkFormat> formatsBGR = { VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SNORM };
+			colorSwizzle = (std::find(formatsBGR.begin(), formatsBGR.end(), dstImage.format) != formatsBGR.end());
+		}
+
+		uint8_t* data{ nullptr };
+#ifdef __USE__VMA__
+		data = (uint8_t*)dstImage.allocationInfo.pMappedData;
+#else
+		vkMapMemory(device, dstImage.memory, 0, VK_WHOLE_SIZE, 0, (void**)&data);
+#endif
+		data += subResourceLayout.offset;
+		int facebytes = _texture.width * _texture.height * bytesperpixel;
+		assert(facebytes <= pixels.size());
+		if (pixels.size() < facebytes)
+			return false;
+		if (isHalf) {
+			half_float::half* phalf = (half_float::half*)data;
+			float* pf = (float*)pixels.data();
+			for (uint32_t y = 0; y < _texture.height; y++) {
+				
+				for (uint32_t x = 0; x < _texture.width; x++) {
+					uint32_t offset = x + y * _texture.width;
+					for (int j = 0; j < 4; j++) {
+						
+						half_float::half hv = *phalf++;
+						float f = hv;
+						*pf++ = f;
+					}
+				}
+			}
+		}
+		else {
+			memcpy(pixels.data(), data, facebytes);
+		}
+		cleanupImage(context.device, dstImage);
+		return true;
 	}
 }

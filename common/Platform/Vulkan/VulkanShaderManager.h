@@ -99,6 +99,8 @@ namespace Vulkan {
 		Vulkan::Buffer _uniformBuffer;
 		std::vector<Vulkan::UniformBufferInfo> _uboInfo;		
 		std::unordered_map<std::string,VulkanShaderData> _shaderList;
+		std::string _path;
+
 		VkCompareOp GetCompareOp(Renderer::ShaderCompareOp op);
 		VkCullModeFlagBits GetCullMode(Renderer::ShaderCullMode mode);
 		VkBlendFactor GetBlendFactor(Renderer::ShaderBlendFactor factor);
@@ -106,7 +108,7 @@ namespace Vulkan {
 		void CompileShader(const std::string&name,const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources,Renderer::ShaderCullMode cullMode,bool enableBlend,bool enableDepth, Renderer::ShaderStorageType* ptypes, uint32_t numtypes, void* platformData = nullptr);
 		void CompileShader(const std::string& name, const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources, Renderer::ShaderCreateInfo& createInfo);
 		std::string readFile(const std::string& filepath);
-		std::unordered_map<VkShaderStageFlagBits, std::string> PreProcess(const std::string& src);
+		std::unordered_map<VkShaderStageFlagBits, std::string> PreProcess(std::string& src);
 		VkShaderStageFlagBits ShaderTypeFromString(const std::string& type);
 		
 		void Reflect(std::unordered_map < VkShaderStageFlagBits, std::vector<uint32_t>>& spirvMap, ShaderReflection&reflection);

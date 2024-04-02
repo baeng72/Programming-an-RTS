@@ -100,6 +100,7 @@ void main()
 	}
 	GLImGuiWrapper::~GLImGuiWrapper()
 	{
+		
 		ImGui::DestroyContext();
 		for (size_t i = 0; i < MAX_FRAMES; i++) {
 			glDeleteBuffers(1, &frames[i].vertexBuffer);

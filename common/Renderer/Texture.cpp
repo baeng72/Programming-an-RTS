@@ -3,7 +3,7 @@
 #include "../Platform/Vulkan/VulkanTexture.h"
 #include "../Platform/GL/GLTexture.h"
 namespace Renderer {
-	Texture* Texture::Create(RenderDevice* pdevice, const char* pfile, TextureSamplerAddress samplerAdd, TextureSamplerFilter filter) {
+	Texture* Texture::Create(RenderDevice* pdevice, const char* pfile, TextureSamplerWrap samplerAdd, TextureSamplerFilter filter) {
 		switch (Core::GetAPI()) {
 		case Core::API::GL:
 			return new GL::GLTexture(pdevice, pfile, glm::vec2(-1.f),samplerAdd,filter);
@@ -13,7 +13,7 @@ namespace Renderer {
 		assert(0);
 		return nullptr;
 	}
-	Texture* Texture::Create(RenderDevice* pdevice, const char* pfile, glm::vec2 size, TextureSamplerAddress samplerAdd, TextureSamplerFilter filter) {
+	Texture* Texture::Create(RenderDevice* pdevice, const char* pfile, glm::vec2 size, TextureSamplerWrap samplerAdd, TextureSamplerFilter filter) {
 		switch (Core::GetAPI()) {
 		case Core::API::GL:
 			return new GL::GLTexture(pdevice, pfile, size, samplerAdd,filter);
@@ -23,7 +23,7 @@ namespace Renderer {
 		assert(0);
 		return nullptr;
 	}
-	Texture* Texture::Create(RenderDevice* pdevice, int width, int height, TextureFormat fmt, uint8_t* pixels, TextureSamplerAddress samplerAdd, TextureSamplerFilter filter) {
+	Texture* Texture::Create(RenderDevice* pdevice, int width, int height, TextureFormat fmt, uint8_t* pixels, TextureSamplerWrap samplerAdd, TextureSamplerFilter filter) {
 		switch (Core::GetAPI()) {
 		case Core::API::GL:
 			return new GL::GLTexture(pdevice, width, height, fmt, pixels, samplerAdd,filter);
@@ -34,7 +34,7 @@ namespace Renderer {
 		return nullptr;
 	}
 
-	Texture* Texture::Create(RenderDevice* pdevice, int width, int height, TextureFormat fmt, TextureSamplerAddress samplerAdd, TextureSamplerFilter filter) {
+	Texture* Texture::Create(RenderDevice* pdevice, int width, int height, TextureFormat fmt, TextureSamplerWrap samplerAdd, TextureSamplerFilter filter) {
 		switch (Core::GetAPI()) {
 		case Core::API::GL:
 			return new GL::GLTexture(pdevice, width, height, fmt, samplerAdd,filter);
@@ -52,6 +52,18 @@ namespace Renderer {
 		case Core::API::Vulkan:
 			return new Vulkan::VulkanTextureImpl(pdevice, ptexture);
 		}
+		assert(0);
+		return nullptr;
+	}
+
+	Texture* Texture::Create(RenderDevice* pdevice, TextureCreateInfo& ci) {
+		switch (Core::GetAPI()) {
+		case Core::API::GL:
+			return new GL::GLTexture(pdevice, ci);
+		case Core::API::Vulkan:
+			return new Vulkan::VulkanTextureImpl(pdevice, ci);
+		}
+
 		assert(0);
 		return nullptr;
 	}

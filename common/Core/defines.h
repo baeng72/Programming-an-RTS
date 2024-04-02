@@ -9,6 +9,16 @@ constexpr int MAX_FRAMES = 2;
 #include <vector>
 #include <array>
 #include <unordered_map>
+#include "half.hpp"
+
+//https://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exists-using-standard-c-c11-14-17-c
+#ifdef _WIN32
+#include <io.h>
+#define access _access_s
+#else
+#include <unistd.h>
+#endif
+
 //may want to use different linear algebra stuff?
 #define __USE__GLM__ 
 #if defined __USE__GLM__
@@ -29,6 +39,7 @@ using mat3 = glm::mat3;
 using mat4 = glm::mat4;
 using quat = glm::quat;
 using Color = glm::vec4;
+using ivec2 = glm::ivec2;
 using ivec4 = glm::ivec4;
 constexpr float pi = glm::pi<float>();
 constexpr float twopi = 2.f * glm::pi<float>();
@@ -48,6 +59,14 @@ inline void decomposeMatrix(mat4& m, vec3& pos, quat& rot, vec3& scale) {
 	mat[1][0] /= scale.x; mat[1][1] /= scale.y; mat[1][2] /= scale.z;
 	mat[2][0] /= scale.x; mat[2][1] /= scale.y; mat[2][2] /= scale.z;
 	rot = glm::quat(mat);
+}
+
+template<typename T> T clamp(T v, T a, T b) {
+	if (v < a)
+		return a;
+	if (v > b)
+		return b;
+	return v;
 }
 /// <summary>
 /// GL Projections
@@ -131,16 +150,23 @@ inline vec3 glProject(vec3 const& obj, mat4 const& model, mat4 const& mvp, vec4 
 
 inline mat4 vulkPerspectiveLH(float fov, float width, float height, float zn, float zf) {
 	
-
-	float rad = fov * 0.25f;
-	const float h = 1 / glm::tan(rad);// glm::cos(rad) / glm::sin(rad);
-	const float w = h * height / width; ///todo max(width , Height) / min(width , Height)?
-	mat4 result=mat4(1.f);	
-	result[0][0] = w;
-	result[1][1] = -h;//flip y
+	float aspect = width / height;
+	const float tanHalfFovy = tan(fov * 0.5f);
+	mat4 result = mat4(1.f);
+	result[0][0] = 1.f / (aspect * tanHalfFovy);
+	result[1][1] = -1.f / tanHalfFovy;
 	result[2][2] = zf / (zf - zn);
 	result[2][3] = 1.f;
-	result[3][2] = -zf * zn / (zf - zn);
+	result[3][2] = -(zf * zn) / (zf - zn);
+	//float rad = fov * 0.25f;
+	//const float h = 1 / glm::tan(rad);// glm::cos(rad) / glm::sin(rad);
+	//const float w = h * height / width; ///todo max(width , Height) / min(width , Height)?
+	//mat4 result=mat4(1.f);	
+	//result[0][0] = w;
+	//result[1][1] = -h;//flip y
+	//result[2][2] = zf / (zf - zn);
+	//result[2][3] = 1.f;
+	//result[3][2] = -zf * zn / (zf - zn);
 
 	return result;
 }
@@ -269,4 +295,15 @@ inline bool planeIntersectLine(vec3& out, vec4 pp, vec3 pv1, vec3 pv2) {
 	float temp = (pp.w + dot(normal, pv1)) / d;
 	out = pv1 - dir * temp;
 	return true;
+}
+
+inline bool FileExists(const char* path) {
+	return access(path, 0) == 0;
+}
+
+template<typename T, typename... U>
+inline size_t getAddress(std::function<T(U...)> f) {
+	typedef T(fnType)(U...);
+	fnType** fnPointer = f.template target<fnType*>();
+	return (size_t)*fnPointer;
 }

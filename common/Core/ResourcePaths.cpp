@@ -66,6 +66,10 @@ namespace Core {
 			return GetMeshPath(projPath, meshname);
 		}
 
+		void GetMeshPath(const char* meshname, char* buffer, int len) {
+			sprintf_s(buffer,len, "%s/%s/meshes/%s", resourcePath, projPath, meshname);
+		}
+
 		bool ProjectResourcePathExists(const char* pathname) {
 			std::ifstream infile(pathname);
 			return infile.good();

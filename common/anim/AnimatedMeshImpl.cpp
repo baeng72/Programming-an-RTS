@@ -176,6 +176,7 @@ namespace Animation {
 		/*Vulkan::VulkFrameData* pframedata = reinterpret_cast<Vulkan::VulkFrameData*>(_pdevice->GetCurrentFrameData());
 		Vulkan::VulkFrameData& frameData = *pframedata;		
 		vkCmdDrawIndexed(frameData.cmd, _indexCount, 1, 0, 0, 0);*/
+		assert(ppalette[0][0] != vec4(0.f));
 		_boneBuffer->UnmapPtr();
 		_vibuffer->Render();
 	}

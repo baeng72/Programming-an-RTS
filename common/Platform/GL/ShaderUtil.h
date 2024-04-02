@@ -9,9 +9,9 @@ namespace GL {
 	class ShaderUtil {
 		GLuint _programID;
 		GLuint compileShader(const char* shaderSrc, GLenum shaderType);
-		
+		std::string _path;
 		std::string readFile(const std::string& filepath);
-		std::unordered_map<int, std::string> PreProcess(const std::string& src);
+		std::unordered_map<int, std::string> PreProcess(std::string& src);
 		int ShaderTypeFromString(const std::string& type);
 		std::unordered_map<size_t, int> _uniformMap;
 		std::unordered_map<size_t, int> _blockMap;
@@ -28,6 +28,7 @@ namespace GL {
 		GLenum _srcAlpha;
 		GLenum _dstAlpha;
 		GLenum _alphaOp;
+		
 	public:
 		ShaderUtil();
 		ShaderUtil(const ShaderUtil& rhs) = delete;

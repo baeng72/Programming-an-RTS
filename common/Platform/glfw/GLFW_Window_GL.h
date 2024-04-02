@@ -22,6 +22,7 @@ namespace GLFW {
 		virtual ~GLFW_Window_GL();
 		virtual void* GetNativeHandle()const override { return _window; }
 		virtual void SetEventHandler(const std::function<void(Event&)>& func)override;
+		virtual void Shutdown()override;
 		virtual void OnBeginUpdate()override;
 		virtual void OnUpdate()override;
 		virtual bool IsKeyPressed(int key)override {

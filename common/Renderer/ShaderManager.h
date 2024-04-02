@@ -48,10 +48,10 @@ namespace Renderer {
 	};
 	struct ShaderBlendInfo {
 		bool enable{ false };
-		ShaderBlendFactor srcColorFactor{ ShaderBlendFactor::SrcColor };
-		ShaderBlendFactor dstColorFactor{ ShaderBlendFactor::Zero };
+		ShaderBlendFactor srcColorFactor{ ShaderBlendFactor::SrcAlpha };
+		ShaderBlendFactor dstColorFactor{ ShaderBlendFactor::OneMinusSrcAlpha };
 		ShaderBlendOp colorOp{ ShaderBlendOp::Add };
-		ShaderBlendFactor srcAlphaFactor{ ShaderBlendFactor::SrcAlpha };
+		ShaderBlendFactor srcAlphaFactor{ ShaderBlendFactor::One };
 		ShaderBlendFactor dstAlphaFactor{ ShaderBlendFactor::Zero };
 		ShaderBlendOp alphaOp{ ShaderBlendOp::Add };
 	};

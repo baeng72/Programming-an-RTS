@@ -29,18 +29,20 @@ namespace Vulkan {
 		bool				_enableDepthBuffer;
 		bool				_inRender;
 		bool				_inOffscreenRender;
+		bool				_enableMultiDraw;
 	public:
 		VulkanRenderDevice(void* nativeWindowHandle);
 		virtual ~VulkanRenderDevice();
 		virtual void Init() override;
 		virtual void StartRender(bool mainpass=true) override;
-		virtual void EndRender() override;
+		virtual void EndRender(bool endpass=true) override;
 		virtual void StartOffscreenRender() override;
 		virtual void EndOffscreenRender() override;
 		/*virtual void StartShadowRender() override;
 		virtual void EndShadowRender() override;*/
 		virtual void SetVSync(bool vsync) override;
 		virtual void EnableGeometry(bool geom) override;
+		virtual void EnableMultiDraw(bool multi)override;
 		virtual void EnableWireframe(bool wireframe) override;
 		virtual void EnableLines(bool lines)override;
 		virtual void EnableDepthBuffer(bool depth)override;
@@ -53,7 +55,9 @@ namespace Vulkan {
 		virtual void Clear(Rect& r, Color clr) override;
 		virtual void SetViewport(ViewPort& vp)override;
 		virtual float GetCurrentTicks()override { return (float)glfwGetTime(); }
-		virtual void DrawVertices(uint32_t count, uint32_t offset = 0)override;
+		virtual void DrawTriangles(uint32_t count, uint32_t offset = 0)override;
+		virtual void DrawPoints(uint32_t count, uint32_t offset = 0) override;
 		//virtual void DrawIndexed(uint32_t indexCount)override;
+		VulkSwapchain* getSwapchain()const { return _swapchain.get(); }
 	};
 }

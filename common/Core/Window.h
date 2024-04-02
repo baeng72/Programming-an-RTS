@@ -3,6 +3,7 @@
 #include <string>
 #include <functional>
 #include <memory>
+#include <set>
 #include "Event.h"
 
 //key codes, same as GLFW but this avoids having to include glfw.
@@ -149,6 +150,7 @@ namespace Core {
 		virtual void* GetNativeHandle()const = 0;
 
 		virtual void SetEventHandler(const std::function<void(Event&)>& func) = 0;
+		virtual void Shutdown() = 0;
 		virtual void OnBeginUpdate() = 0;
 		virtual void OnUpdate() = 0;
 		virtual bool IsKeyPressed(int key) = 0;
