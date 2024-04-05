@@ -118,8 +118,9 @@ void main(){
 		GLTextureInfo* pText = (GLTextureInfo*)ptexture->GetNativeHandle();
 		glm::mat4 id = glm::mat4(1.f);
 		glm::mat4 t = glm::translate(_xform, position);
-		glm::mat4 s = glm::scale(id, glm::vec3(pText->width, pText->height, 0.f));
-		glm::mat4 model = t * s;
+		glm::mat4 s = glm::scale(id, glm::vec3(rc.Width(), rc.Height(), 1.f));
+
+		glm::mat4 model = t*s;
 		mat4 mvp = _orthoproj * model;
 		vec4 p = mvp * vec4(0.f, 0.f, 0.f, 1.f);
 

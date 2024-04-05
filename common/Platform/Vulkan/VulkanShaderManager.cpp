@@ -222,6 +222,9 @@ namespace Vulkan {
 				case SPV_REFLECT_FORMAT_R32G32B32A32_SINT:
 					size = sizeof(int) * 4;
 					break;
+				case SPV_REFLECT_FORMAT_R32_SFLOAT:
+					size = sizeof(float);
+					break;
 				case SPV_REFLECT_FORMAT_UNDEFINED:
 					size = 0;
 					break;

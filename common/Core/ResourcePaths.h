@@ -12,6 +12,10 @@ namespace Core {
 		const char* GetFontPath(const char* fontname);
 		const char* GetMeshPath(const char* proj, const char* meshname);
 		const char* GetMeshPath(const char* meshname);
+		const char* GetSoundPath(const char* proj, const char* sndname);
+		const char* GetSoundPath(const char* sndname);
+		const char* GetMusicPath(const char* proj, const char* sndname);
+		const char* GetMusicPath(const char* sndname);
 		void GetMeshPath(const char* meshname, char* buffer, int len);
 		const char* GetCursorPath(const char* proj, const char* cursorname);
 		const char* GetCursorPath(const char* cursorname);

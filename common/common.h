@@ -45,3 +45,6 @@
 //SPIRV stuff
 #include "Platform/SPIRV/SPIRVCompiler.h"
 #include "Platform/SPIRV/SPIRVReflector.h"
+
+//sound
+#include "sound/sound.h"

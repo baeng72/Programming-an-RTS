@@ -176,6 +176,9 @@ namespace SPIRVUtils {
 				case SPV_REFLECT_FORMAT_UNDEFINED://probably a structure of inputs
 					size = 0;//could break this into a block type, but probably wouldn't be necessary
 					break;
+				case SPV_REFLECT_FORMAT_R32_SFLOAT:
+					size = 4;
+					break;
 				default:
 					assert(0);
 					break;

@@ -69,6 +69,20 @@ namespace Core {
 		void GetMeshPath(const char* meshname, char* buffer, int len) {
 			sprintf_s(buffer,len, "%s/%s/meshes/%s", resourcePath, projPath, meshname);
 		}
+		const char* GetSoundPath(const char* proj, const char* sndname) {
+			sprintf_s(filePath, "%s/%s/Sounds/%s", resourcePath, proj, sndname);
+			return filePath;
+		}
+		const char* GetSoundPath(const char* sndname) {
+			return GetSoundPath(projPath, sndname);
+		}
+		const char* GetMusicPath(const char* proj, const char* sndname) {
+			sprintf_s(filePath, "%s/%s/Music/%s", resourcePath, proj, sndname);
+			return filePath;
+		}
+		const char* GetMusicPath(const char* sndname) {
+			return GetMusicPath(projPath, sndname);
+		}
 
 		bool ProjectResourcePathExists(const char* pathname) {
 			std::ifstream infile(pathname);

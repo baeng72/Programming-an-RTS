@@ -9,7 +9,8 @@ add_subdirectory(Core)
 add_subdirectory(Renderer)
 add_subdirectory(mesh)
 add_subdirectory(anim)
-set(SOURCE_FILES ${COMMON_FILES} ${PLATFORM_FILES} ${CORE_FILES} ${RENDERER_FILES} ${MESH_FILES} ${ANIM_FILES})
+add_subdirectory(sound)
+set(SOURCE_FILES ${COMMON_FILES} ${PLATFORM_FILES} ${CORE_FILES} ${RENDERER_FILES} ${MESH_FILES} ${ANIM_FILES} ${SOUND_FILES})
 
 add_library(common ${SOURCE_FILES})
 
@@ -22,6 +23,7 @@ source_group(core files ${core_files})
 source_group(renderer files ${renderer_files})
 source_group(mesh files ${mesh_files})
 source_group(anim files ${anim_files})
+source_group(sound files ${sound_files})
 #message("Src: " ${SRC_BUILD_FILES})
 #set_source_files_properties(${COMMON_FILES} PROPERTIES HEADER_FILES_ONLY TRUE)
 # source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}"

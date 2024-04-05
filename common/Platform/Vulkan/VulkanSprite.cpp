@@ -256,7 +256,7 @@ void main(){
 			mat4 id = glm::mat4(1.f);
 			mat4 t = glm::translate(_xform, position);
 
-			glm::mat4 s = glm::scale(id, glm::vec3(_ptexture->width, _ptexture->height, 0.f));
+			glm::mat4 s = glm::scale(id, glm::vec3(rc.Width(), rc.Height(), 1.f));
 			mat4 model = t * s;// *_xform;
 			//calculate uv offsets
 			float leftStart = rc.left / (float)_ptexture->width;

@@ -45,7 +45,7 @@ namespace Core {
 
 	void Application::Run()
 	{
-		_time = (float)glfwGetTime();
+		_time = _lastFrameTime = (float)glfwGetTime();
 		while (_running) {
 			float time = (float)glfwGetTime();
 			float delta = time - _lastFrameTime;
