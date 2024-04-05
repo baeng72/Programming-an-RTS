@@ -20,7 +20,7 @@ void MOUSE::Init(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::Shad
 	x = width / 2;
 	y = height / 2;
 	pwindow->ShowCursor(false);
-	std::unique_ptr<Renderer::Image> image = std::unique_ptr<Renderer::Image>(Renderer::Image::Create("../../../../Resources/Chapter 12/Example 12.04/cursor/cursor.png"));
+	std::unique_ptr<Renderer::Image> image = std::unique_ptr<Renderer::Image>(Renderer::Image::Create(Core::ResourcePath::GetCursorPath("cursor.png")));
 	uint32_t* pixels = (uint32_t*)image->GetPixels();
 	int channels;
 	image->GetSize(width, height, channels);
@@ -126,7 +126,7 @@ RAY MOUSE::GetRay(mat4& matProj, mat4& matView, mat4& matWorld)
 void MOUSE::DisableInput(float ms)
 {
 	
-	_disableTime = ms+ _pdevice->GetCurrentTicks();
+	_disableTime = ms+ _pdevice->GetCurrentTicks()*1000;
 }
 
 
@@ -143,10 +143,16 @@ bool MOUSE::PressInRect(Rect& dst) {
 }
 
 bool MOUSE::ClickLeft() {
+	if (_pdevice->GetCurrentTicks() * 1000 < _disableTime) {
+		return false;
+	}
 	return _pwindow->IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 }
 
 bool MOUSE::ClickRight() {
+	if (_pdevice->GetCurrentTicks() * 1000 < _disableTime) {
+		return false;
+	}
 	return _pwindow->IsMouseButtonPressed(MOUSE_BUTTON_RIGHT);
 }
 

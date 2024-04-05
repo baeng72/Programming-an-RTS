@@ -1,0 +1,33 @@
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                        Fire Pixelshader                              //
+//                                                                      //
+//                   Written by C. Granberg, 2006                       //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+
+sampler fireTexture;
+sampler noiseTexture;
+
+float4 Main(float2 UV         : TEXCOORD0, 
+            float2 UV_NOISE1  : TEXCOORD1,
+            float2 UV_NOISE2  : TEXCOORD2,
+            float2 UV_NOISE3  : TEXCOORD3,
+            float  mainAlpha  : TEXCOORD4) : COLOR
+{
+    //Sample noise pixels
+    float n1 = tex2D(noiseTexture, UV_NOISE1);
+    float n2 = tex2D(noiseTexture, UV_NOISE2);
+    float n3 = tex2D(noiseTexture, UV_NOISE3);
+
+    //Sum up noise and perturb the x coordinate of the main UV
+    UV.x += (n1 + n2 + n3) * 0.1f - 0.05f;
+   
+    //Sample the diffuse texture
+    float4 c0 = tex2D(fireTexture, UV);
+
+    //Multiply mainAlpha with this pixels alpha value
+    c0.a *= mainAlpha;
+
+    return c0;
+}
