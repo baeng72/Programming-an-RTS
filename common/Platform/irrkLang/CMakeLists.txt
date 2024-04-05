@@ -1,0 +1,6 @@
+
+file(GLOB IRRKLANG_FILES "*.cpp" "*.h")
+
+
+
+set(IRRKLANG_FILES ${IRRKLANG_FILES} PARENT_SCOPE)
