@@ -90,3 +90,7 @@ add_subdirectory(glad)
 
 #imgui
 add_subdirectory(imgui)
+
+#irrklang
+#add_subdirectory(irrKlang-64bit-1.6.0)
+#set_property(TARGET irrKlang-64bit-1.6.0 PROPERTY FOLDER "ThirdParty")
