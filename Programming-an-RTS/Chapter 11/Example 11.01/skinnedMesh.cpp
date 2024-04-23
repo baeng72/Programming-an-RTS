@@ -50,13 +50,13 @@ void SKINNEDMESH::Update() {
 	_meshShader->SetStorageBuffer("skeleton", _animatedMesh->GetBoneBuffer(), true);//such a hack...
 }
 
-void SKINNEDMESH::SetPose(float time)
+void SKINNEDMESH::SetPose(float time,Mesh::AnimationController*pcontroller)
 {
 
 	if (_currAnimation == 2) {
 		int z = 0;
 	}
-	_animationController->Advance(time);
+	pcontroller->Advance(time);
 
 
 }
@@ -87,16 +87,16 @@ std::vector<std::string> SKINNEDMESH::GetAnimations()
 	}
 	return animationNames;
 }
-void SKINNEDMESH::Render(Renderer::Shader* pshader) {
+void SKINNEDMESH::Render(Renderer::Shader* pshader,Mesh::AnimationController*pcontroller) {
 
 
 	{
 		Renderer::Texture* ptexture = _meshTexture.get();
 		_meshShader->SetTexture("texmap", &ptexture, 1);
-		uint32_t dynoffsets[1] = { (uint32_t)_animationController->GetControllerOffset() * sizeof(mat4) };
+		uint32_t dynoffsets[1] = { (uint32_t)pcontroller->GetControllerOffset() * sizeof(mat4) };
 		pshader->Bind(dynoffsets, 1);
 		_animatedMesh->Bind();
-		_animatedMesh->Render(_animationController.get());
+		_animatedMesh->Render(pcontroller);
 	}
 
 }

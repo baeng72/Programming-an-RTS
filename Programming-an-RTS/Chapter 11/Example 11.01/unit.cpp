@@ -79,6 +79,7 @@ UNIT::UNIT(int type, int team, INTPOINT mp, TERRAIN* terrain) {
 		_name = "Magician";
 	}
 	unitMeshes[_type]->Update();
+	_pcontroller = unitMeshes[_type]->GetAnimationController();
 	SetAnimation("Still");
 }
 
@@ -99,7 +100,7 @@ void UNIT::Render(Renderer::Shader* pshader) {
 				SetAnimation(_animation);
 			}
 			{
-				unitMeshes[_type]->SetPose(_time);
+				unitMeshes[_type]->SetPose(_time,_pcontroller);
 				_time = 0.f;
 			}
 		}
@@ -119,7 +120,7 @@ void UNIT::Render(Renderer::Shader* pshader) {
 		//	pshader->SetUniformData("model", &worldxform, sizeof(mat4));
 		//	pshader->SetUniformData("color", &color, sizeof(vec4));
 		//}
-		unitMeshes[_type]->Render(pshader);
+		unitMeshes[_type]->Render(pshader,_pcontroller);
 
 	}
 }
@@ -262,12 +263,14 @@ void UNIT::SetAnimation(const char* name)
 
 
 	}
-	unitMeshes[_type]->SetAnimation(_animation);
+	_pcontroller->SetAnimation(_animation, false);
+	//unitMeshes[_type]->SetAnimation(_animation);
 }
 
 void UNIT::SetAnimation(int i) {
 	_animation = i;
-	unitMeshes[_type]->SetAnimation(i);
+	//unitMeshes[_type]->SetAnimation(i);
+	_pcontroller->SetAnimation(i, false);
 }
 
 Renderer::Shader* UNIT::GetShader() {

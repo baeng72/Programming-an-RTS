@@ -20,14 +20,14 @@ public:
 	~SKINNEDMESH();
 	void Load(Renderer::RenderDevice* pdevice, std::shared_ptr<Renderer::ShaderManager>& shaderManager, const char* fileName);
 	void Update();
-	void SetPose(float time);
+	void SetPose(float time,Mesh::AnimationController*pcontroller);
 	void SetAnimation(const char* pname);
 	void SetAnimation(int animidx);
 	std::vector<std::string> GetAnimations();
-	void Render(Renderer::Shader* pshader);
+	void Render(Renderer::Shader* pshader,Mesh::AnimationController*pcontroller);
 	int GetBoneIndex(const char* boneName);
 	mat4 GetBoneXForm(int boneID);
 	mat4 GetWorldXForm()const { return _xform; }
 	Renderer::Shader* GetShader() { return _meshShader.get(); }
-	
+	Mesh::AnimationController* GetAnimationController()const { return _animatedMesh->GetController(); }
 };

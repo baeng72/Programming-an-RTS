@@ -24,6 +24,7 @@ class UNIT : public MAPOBJECT {
 	int _activeWP;
 	bool _moving;
 	float _movePrc;				//0.0-1.0, used to interpolate between lastWP and nextWP
+	Mesh::AnimationController* _pcontroller;
 public:
 	UNIT(int type, int team, INTPOINT mp, TERRAIN* terrain);
 	virtual ~UNIT();
