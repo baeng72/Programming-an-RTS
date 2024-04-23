@@ -1,0 +1,18 @@
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                    Visited-Texture Pixelshader                       //
+//                                                                      //
+//                   Written by C. Granberg, 2006                       //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+
+sampler visibleTexture;
+sampler visitedTexture;
+
+float4 Main(float2 UV : TEXCOORD0) : COLOR
+{
+    float4 c0 = tex2D(visibleTexture, UV);
+    float4 c1 = tex2D(visitedTexture, UV);
+
+    return max(c0, c1);
+}
