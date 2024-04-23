@@ -51,6 +51,7 @@ namespace Vulkan {
 		}
 		if (_stagingBuffer.buffer != VK_NULL_HANDLE)
 			cleanupBuffer(context.device, _stagingBuffer);
+		fontTexturePtr.reset();
 	}
 
 	void VulkanFont::Init(Renderer::RenderDevice* pdevice, const char* pfont, int fontSize)

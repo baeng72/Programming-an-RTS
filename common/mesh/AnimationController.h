@@ -25,6 +25,8 @@ namespace Mesh {
 		virtual int GetBonePoseXForm(int boneID, mat4& xform) = 0;
 		virtual int GetControllerID() = 0;
 		virtual int GetControllerOffset()const = 0;
+		virtual float GetTime()const = 0;
+		virtual void SetTime(float time) = 0;
 		virtual bool Pause(bool pause) = 0;
 	};
 }

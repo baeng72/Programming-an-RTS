@@ -86,7 +86,7 @@ namespace Animation {
 			
 		}*/
 		//_matrixPalette.resize(_skeleton.boneHierarchy.size());//reserve space for bone hierarchy
-		AllocateBoneBuffer(4);
+		AllocateBoneBuffer(20);
 		
 		Create(pvertices, vertSize, pindices, indSize,attributes);
 		

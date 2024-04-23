@@ -3,7 +3,6 @@
 
 namespace Mesh {
 	
-
 	
 	AnimationControllerImpl::AnimationControllerImpl(std::vector<Mesh::AnimationClip>& animations, Mesh::Skeleton& skeleton,int id)
 		: _skeleton(skeleton), _animations(animations),_id(id)
@@ -109,6 +108,7 @@ namespace Mesh {
 		
 	}
 	void AnimationControllerImpl::Advance(float time,bool loop) {
+		
 		_clipTime += time * _animations[_currClip].ticksPerSecond;
 		if (_clipTime > _clipLength) {
 			if (loop) {
@@ -334,6 +334,8 @@ namespace Mesh {
 #endif
 			//sample current animation
 		//_lastClipTime = _clipTime;
+
+			
 		float clipTime = time * _animations[_currClip].ticksPerSecond;
 		
 		float currClipTime = clipTime;

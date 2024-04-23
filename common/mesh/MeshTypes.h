@@ -35,6 +35,7 @@ namespace Mesh {
 		std::string name;
 		float ticksPerSecond;
 		std::vector<AnimationChannel> channels;
+		float duration;
 	};
 	struct Skeleton {
 		std::vector<int> boneHierarchy;

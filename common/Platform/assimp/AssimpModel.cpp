@@ -264,8 +264,10 @@ namespace Assimp {
 	void AssimpModel::ProcessAnimations(const aiScene* pscene)
 	{
 		unsigned int animationCount = pscene->mNumAnimations;
+		
 		_animations.resize(animationCount);
 		for (unsigned int aniIdx = 0; aniIdx < animationCount; ++aniIdx) {
+			
 			auto panimation = pscene->mAnimations[aniIdx];
 			const std::string name = panimation->mName.C_Str();
 			_animations[aniIdx].name = name;
@@ -299,6 +301,7 @@ namespace Assimp {
 					quat rotation = AssimpToGLM(pchannel->mRotationKeys[r].mValue);
 					dstchannel.rotations[r] = rotation;
 					dstchannel.rotationTimes[r] = time;
+					duration = std::max(duration, time);
 				}
 				unsigned int scaleCount = pchannel->mNumScalingKeys;
 				dstchannel.scales.resize(scaleCount);
@@ -311,6 +314,7 @@ namespace Assimp {
 				}
 				
 			}
+			_animations[aniIdx].duration = duration;
 		}
 	}
 

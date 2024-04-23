@@ -34,17 +34,17 @@ namespace Mesh {
 		float GetClipLength();
 		int _boneCount;
 		int _id;
-		
-		
+
+
 	public:
-		AnimationControllerImpl(std::vector<Mesh::AnimationClip>& clips, Mesh::Skeleton& skeleton,int id);
+		AnimationControllerImpl(std::vector<Mesh::AnimationClip>& clips, Mesh::Skeleton& skeleton, int id);
 		~AnimationControllerImpl();
-		
+
 		virtual void SetAnimation(int anim, bool fade = true) override;
 		virtual void Advance(float time, bool loop = true)override;
-		virtual void Advance(std::shared_ptr<Core::ThreadPool>& pool,float time, bool loop=true)override;
+		virtual void Advance(std::shared_ptr<Core::ThreadPool>& pool, float time, bool loop = true)override;
 		virtual void SetPose(float time, bool loop = true) override;
-		virtual void SetPose(std::shared_ptr<Core::ThreadPool>&pool,float time, bool loop)override;
+		virtual void SetPose(std::shared_ptr<Core::ThreadPool>& pool, float time, bool loop)override;
 		virtual void GetPoseXForms(std::vector<mat4>& xforms) override;//before bind pose applied
 		virtual void GetPose(std::vector<mat4>& poseXForms) override;
 		virtual void GetPose(mat4* pxforms, uint32_t size) override;
@@ -55,7 +55,9 @@ namespace Mesh {
 		virtual int GetBoneIndex(const char* boneName) override;
 		virtual int GetBonePoseXForm(int boneID, mat4& xform) override;
 		virtual int GetControllerID() override { return _id; };
-		virtual int GetControllerOffset()const override {		return (int)(_id * std::max(_boneCount, 20));		}
+		virtual int GetControllerOffset()const override { return (int)(_id * std::max(_boneCount, 20)); }
+		virtual float GetTime()const { return _clipTime; }
 		virtual bool Pause(bool pause)override { return false; }
+		virtual void SetTime(float time) override { _clipTime = std::min(_clipLength, std::max(0.f,time)); }
 	};
 }

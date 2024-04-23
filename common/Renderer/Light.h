@@ -9,7 +9,7 @@ namespace Renderer {
 		color 		specular;
 		color 		ambient;
 		glm::vec3	direction;
-		float		padding;
+		float		padding{ 0.f };
 		DirectionalLight(){
 			diffuse = specular = ambient = color(0.f);
 			direction = glm::vec3(0.f);			
